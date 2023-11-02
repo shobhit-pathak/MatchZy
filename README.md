@@ -20,7 +20,7 @@ MatchZy is a plugin for CS2 (Counter Strike 2) for running and managing pugs/scr
 **Note**: CSSharp plugin is only for servers on Linux systems.
 
 ## What can MatchZy do?
-MatchZy can solve a lot of match management requirements. It provides basic commands like `!ready`, `!unready`, `!pause`, `!unpause`, `!tac`, `!stop`, etc and many required functionalities!
+MatchZy can solve a lot of match management requirements. It provides basic commands like `!ready`, `!unready`, `!pause`, `!unpause`, `!tac`, `!stop`, etc, provides matches stats, and much more!
 
 **Feature higlights:**
 - Warmup with infinite money 🤑
