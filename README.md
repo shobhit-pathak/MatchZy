@@ -8,7 +8,7 @@ MatchZy is a plugin for CS2 (Counter Strike 2) for running and managing pugs/scr
 ## Installation
 * Install Metamod (https://cs2.poggu.me/metamod/installation/)
 * Install CounterStrikeSharp (CSSharp) (https://docs.cssharp.dev/guides/getting-started/). (**Note**: This step can be skipped if you install [MatchZy with CSSharp release](https://github.com/shobhit-pathak/MatchZy/releases/))
-	* Go to this link: https://github.com/roflmuffin/CounterStrikeSharp/actions/runs/6732399022
+	* Go to this link: https://github.com/roflmuffin/CounterStrikeSharp/actions/runs/6746149540
 	* Scroll down and download 'counterstrikesharp-with-runtime'
 	* Extract the addons folder to the csgo/ directory of the dedicated server. The contents of your addons folder should contain both the counterstrikesharp folder and the metamod folder
 	* Verify the installation by typing `meta list ` on server console. You should see CounterStrikeSharp plugin by Roflmuffin
