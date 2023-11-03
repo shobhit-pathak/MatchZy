@@ -272,7 +272,7 @@ namespace MatchZy
                     string command = ".asay";
                     string commandArg = message.Substring(command.Length).Trim();
 
-                    if (commandArg != "") {
+                    if (IsPlayerAdmin(player) && commandArg != "") {
                         Server.PrintToChatAll($"[{ChatColors.Red}ADMIN{ChatColors.Default}] {commandArg}");
                     }
                 }
