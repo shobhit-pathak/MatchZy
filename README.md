@@ -7,20 +7,20 @@ MatchZy is a plugin for CS2 (Counter Strike 2) for running and managing pugs/scr
 
 ## Installation
 * Install Metamod (https://cs2.poggu.me/metamod/installation/)
-* Install CounterStrikeSharp (CSSharp) (https://docs.cssharp.dev/guides/getting-started/).
+* Install CounterStrikeSharp (CSSharp) (https://docs.cssharp.dev/guides/getting-started/). (**Note**: This step can be skipped if you install [MatchZy with CSSharp release](https://github.com/shobhit-pathak/MatchZy/releases/))
 	* Go to this link: https://github.com/roflmuffin/CounterStrikeSharp/actions/runs/6732399022
 	* Scroll down and download 'counterstrikesharp-with-runtime'
 	* Extract the addons folder to the csgo/ directory of the dedicated server. The contents of your addons folder should contain both the counterstrikesharp folder and the metamod folder
 	* Verify the installation by typing `meta list ` on server console. You should see CounterStrikeSharp plugin by Roflmuffin
 	* You can refer to https://docs.cssharp.dev/guides/getting-started for detailed instructions. Initially, it may seem a bit hectic, but trust me, it's worth it! :P 
 * Install MatchZy 
-	* Download the latest MatchZy release and extract the files to the csgo/ directory of the dedicated server.
+	* Download the latest [MatchZy release](https://github.com/shobhit-pathak/MatchZy/releases/) and extract the files to the csgo/ directory of the dedicated server.
 	* Verify the installation by typing `css_plugins list` and you should see MatchZy by WD- listed there.
 
 **Note**: CSSharp plugin is only for servers on Linux systems.
 
 ## What can MatchZy do?
-MatchZy can solve a lot of match management requirements. It provides basic commands like `!ready`, `!unready`, `!pause`, `!unpause`, `!tac`, `!stop`, etc.
+MatchZy can solve a lot of match management requirements. It provides basic commands like `!ready`, `!unready`, `!pause`, `!unpause`, `!tac`, `!stop`, etc, provides matches stats, and much more!
 
 **Feature higlights:**
 - Warmup with infinite money 🤑
@@ -161,4 +161,6 @@ MIT
 ## Credits and thanks!
 * [Get5](https://github.com/splewis/get5) - A lot of functionalities and workings have been referred from Get5 and they did an amazing job for managing matches in CS:GO. Huge thanks to them!
 * [eBot](https://github.com/deStrO/eBot-CSGO) - Amazing job in CS:GO and then provided this great panel again in CS2 which is helping a lot of organizers now. Some logics have been referred from eBot as well!
-* [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp/) - Amazing job with development of CSSharp which gave us a platform to build our own plugins and also sparked my interest in plugin development! 
+* [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp/) - Amazing job with development of CSSharp which gave us a platform to build our own plugins and also sparked my interest in plugin development!
+* [AlliedModders and community](https://alliedmods.net/) - They are the reason this whole plugin was possible! They are very helpful and inspire a lot!
+* [LOTGaming](https://lotgaming.xyz/) - Helped me a lot with initial testing and provided servers on different systems and locations!
