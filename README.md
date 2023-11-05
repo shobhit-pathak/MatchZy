@@ -1,7 +1,7 @@
 MatchZy - Match Plugin for CS2!
 ==============
 
-MatchZy is a plugin for CS2 (Counter Strike 2) for running and managing pugs/scrims/matches with easy configuration!
+MatchZy is a plugin for CS2 (Counter Strike 2) for running and managing practice/pugs/scrims/matches with easy configuration!
 
 [![Discord](https://discordapp.com/api/guilds/1169549878490304574/widget.png?style=banner2)](https://discord.gg/2zvhy9m7qg)
 
@@ -11,7 +11,7 @@ MatchZy is a plugin for CS2 (Counter Strike 2) for running and managing pugs/scr
 	* Go to this link: https://github.com/roflmuffin/CounterStrikeSharp/actions/runs/6732399022
 	* Scroll down and download 'counterstrikesharp-with-runtime'
 	* Extract the addons folder to the csgo/ directory of the dedicated server. The contents of your addons folder should contain both the counterstrikesharp folder and the metamod folder
-	* Verify the installation by typing `meta list ` on server console. You should see CounterStrikeSharp plugin by Roflmuffin
+	* Verify the installation by typing `meta list` on server console. You should see CounterStrikeSharp plugin by Roflmuffin
 	* You can refer to https://docs.cssharp.dev/guides/getting-started for detailed instructions. Initially, it may seem a bit hectic, but trust me, it's worth it! :P 
 * Install MatchZy 
 	* Download the latest [MatchZy release](https://github.com/shobhit-pathak/MatchZy/releases/) and extract the files to the csgo/ directory of the dedicated server.
@@ -23,6 +23,7 @@ MatchZy is a plugin for CS2 (Counter Strike 2) for running and managing pugs/scr
 MatchZy can solve a lot of match management requirements. It provides basic commands like `!ready`, `!unready`, `!pause`, `!unpause`, `!tac`, `!stop`, etc, provides matches stats, and much more!
 
 **Feature higlights:**
+- Practice Mode with `.bot`, `.spawn`, `.ctspawn`, `.tspawn`, `.nobots` and `.exitprac` commands!
 - Warmup with infinite money 🤑
 - Knife round (With expected logic, i.e., team with most players win. If same number of players, then team with HP advantage wins. If same HP, winner is decided randomly)
 - Start live match (after side selection is done by knife winner. Knife round can also be disabled).
@@ -46,6 +47,14 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.stop` Restore the backup of the current round (Both teams need to type .stop to restore the current round)
 - `.tac` Starts a tactical timeout
 
+### Practice Mode Commands
+
+- `.spawn <number>` Spawns to the provided spawn number of same team
+- `.ctspawn <number>` Spawns to the provided spawn number of CT
+- `.tspawn <number>` Spawns to the provided spawn number of T
+- `.bot` Adds a bot on user's current position
+- `.nobots` Removes all the bots
+
 ### Admin Commands
 
 - `.start` Force starts a match.
@@ -59,6 +68,8 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.map <mapname>` Changes the map
 - `.asay <message>` Say as an admin in all chat
 - `.reload_admins` Reloads admins from `admins.json`
+- `.prac` Starts Practice Mode
+- `.exitprac` Exits from practice mode and loads Match mode.
 
 ## Configuration
 
@@ -85,7 +96,7 @@ Content of the file should be something like mentioned below, it also has descri
 
 // Whether knife round is enabled by default or not. Default value: true
 // This is the default value, but knife can be toggled by admin using .knife command
-matchzy_knife_enabled_default false
+matchzy_knife_enabled_default true
 
 // Minimum ready players required to start the match. If set to 0, all connected players have to ready-up to start the match. Default: 2
 matchzy_minimum_ready_required 2
@@ -103,11 +114,16 @@ matchzy_stop_command_available false
 // Whether to pause the match after round restore or not. Default value: true
 // Players/admins can unpause the match using !unpause/.unpause. (For players, both the teams will have to use unpause command)
 matchzy_pause_after_restore true
+
+// Chat prefix to show whenever a MatchZy message is sent to players. Default value: [{Green}MatchZy{Default}]
+// Available Colors: {Default}, {Darkred}, {Green}, {LightYellow}, {LightBlue}, {Olive}, {Lime}, {Red}, {Purple}, {Grey}, {Yellow}, {Gold}, {Silver}, {Blue}, {DarkBlue}
+// {BlueGrey}, {Magenta} and {LightRed}. Make sure to end your prefix with {Default} to avoid coloring the complete messages in your prefix color
+matchzy_chat_prefix [{Green}MatchZy{Default}]
 ```
 
 
-### Configuring Warmup/Knife/Live CFGs
-Again, inside `csgo/cfg/MatchZy`, files named `warmup.cfg`, `knife.cfg` and `live.cfg` should be present. These configs are executed when Warmup, Knife and Live is started respectively.
+### Configuring Warmup/Knife/Live/Prac CFGs
+Again, inside `csgo/cfg/MatchZy`, files named `warmup.cfg`, `knife.cfg`, `live.cfg` and `prac.cfg` should be present. These configs are executed when Warmup, Knife, Live and Practice Mode is started respectively.
 
 You can modify these files according to your requirements.
 
@@ -150,10 +166,11 @@ But apart from that, my first aim for the future of MatchZy would be to solve th
 Since this plugin is built on C#, [.NET 7.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0) will be required if you intend to make changes in this plugin. Once you have that installed,
 1. Clone the repository
 2. Edit the MatchZy.csproj file and add the correct path for CounterStrikeSarp.API.dll file (This file comes with the CounterStrikeSharp plugin, mentioned in installation steps)
-3. Make your changes
-4. Use `dotnet publish` command and you'll get a folder called `bin` in your plugin directory.
-5. Navigate to `bin/Debug/net7.0/publish/`and copy all the content from there and paste it into `csgo/addons/counterstrikesharp/plugins/MatchZy` (CounterStrikeSharp.API.dll and CounterStrikeSharp.API.pdb can be skipped)
-6. It's done! Now you can test your changes, and also contribute to the plugin if you want to :p 
+3. Use `dotnet restore` to restore and install the dependencies.
+4. Make your changes
+5. Use `dotnet publish` command and you'll get a folder called `bin` in your plugin directory.
+6. Navigate to `bin/Debug/net7.0/publish/`and copy all the content from there and paste it into `csgo/addons/counterstrikesharp/plugins/MatchZy` (CounterStrikeSharp.API.dll and CounterStrikeSharp.API.pdb can be skipped)
+7. It's done! Now you can test your changes, and also contribute to the plugin if you want to :p 
 
 ## License
 MIT
@@ -164,3 +181,4 @@ MIT
 * [CounterStrikeSharp](https://github.com/roflmuffin/CounterStrikeSharp/) - Amazing job with development of CSSharp which gave us a platform to build our own plugins and also sparked my interest in plugin development!
 * [AlliedModders and community](https://alliedmods.net/) - They are the reason this whole plugin was possible! They are very helpful and inspire a lot!
 * [LOTGaming](https://lotgaming.xyz/) - Helped me a lot with initial testing and provided servers on different systems and locations!
+* [CHR15cs](https://github.com/CHR15cs) - Helped me a lot with the practice mode!

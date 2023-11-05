@@ -209,7 +209,7 @@ namespace MatchZy
 
         [ConsoleCommand("css_restart", "Restarts the match")]
         public void OnRestartMatchCommand(CCSPlayerController? player, CommandInfo? command) {
-            if (IsPlayerAdmin(player)) {
+            if (IsPlayerAdmin(player) && !isPractice) {
                 ResetMatch();
             }
         }
@@ -225,7 +225,7 @@ namespace MatchZy
         public void OnStartCommand(CCSPlayerController? player, CommandInfo? command) {
             if (player == null) return;
             
-            if (IsPlayerAdmin(player)) {
+            if (IsPlayerAdmin(player) && !isPractice) {
                 if (matchStarted) {
                     player.PrintToChat($"{chatPrefix} Start command cannot be used if match is already started! If you want to unpause, please use .unpause");
                 } else {
@@ -258,12 +258,39 @@ namespace MatchZy
             }
         }
 
+        [ConsoleCommand("css_match", "Starts match mode")]
+        public void OnMatchCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!IsPlayerAdmin(player)) return;
 
+            if (matchStarted) {
+                ReplyToUserCommand(player, "MatchZy is already in match mode!");
+                return;
+            }
 
-        [ConsoleCommand("game_rules", "Reload admins of MatchZy")]
-        public void OnGameRulesData(CCSPlayerController? player, CommandInfo command) {
-            var gameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
-            Log($"MatchWaitingForResume: {gameRules.MatchWaitingForResume}, FreezePeriod: {gameRules.FreezePeriod}, WarmupPeriod: {gameRules.WarmupPeriod}, GamePhase: {gameRules.GamePhase}");
+            StartMatchMode();
         }
+
+        [ConsoleCommand("css_exitprac", "Starts match mode")]
+        public void OnExitPracCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!IsPlayerAdmin(player)) return;
+
+            if (matchStarted) {
+                ReplyToUserCommand(player, "MatchZy is already in match mode!");
+                return;
+            }
+
+            StartMatchMode();
+        }
+
+        [ConsoleCommand("css_rcon", "Triggers provided command on the server")]
+        public void OnRconCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (!IsPlayerAdmin(player)) return;
+            Server.ExecuteCommand(command.ArgString);
+            ReplyToUserCommand(player, "Command sent successfully!");
+        }
+
     }
 }

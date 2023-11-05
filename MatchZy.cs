@@ -19,15 +19,16 @@ namespace MatchZy
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.1.0-alpha";
+        public override string ModuleVersion => "0.2.0-alpha";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
-        public override string ModuleDescription => "A plugin for running and managing CS2 pugs/scrims/matches!";
+        public override string ModuleDescription => "A plugin for running and managing CS2 practice/pugs/scrims/matches!";
 
         public string chatPrefix = $"[{ChatColors.Green}MatchZy{ChatColors.Default}]";
 
         // Match phase data
+        public bool isPractice = false;
         public bool readyAvailable = true;
         public bool matchStarted = false;
         public bool isWarmup = true;
@@ -112,6 +113,11 @@ namespace MatchZy
                 { ".restart", (player, commandInfo) => OnRestartMatchCommand(player, commandInfo) },
                 { ".settings", (player, commandInfo) => OnMatchSettingsCommand(player, commandInfo) },
                 { ".reload_admins", (player, commandInfo) => OnReloadAdmins(player, commandInfo) },
+                { ".prac", (player, commandInfo) => OnPracCommand(player, commandInfo) },
+                { ".bot", (player, commandInfo) => OnBotCommand(player, commandInfo) },
+                { ".nobots", (player, commandInfo) => OnNoBotsCommand(player, commandInfo) },
+                { ".match", (player, commandInfo) => OnMatchCommand(player, commandInfo) },
+                { ".exitprac", (player, commandInfo) => OnMatchCommand(player, commandInfo) },
                 { ".stop", (player, commandInfo) => OnStopCommand(player, commandInfo) }
             };
 
@@ -232,6 +238,7 @@ namespace MatchZy
                 var playerUserId = NativeAPI.GetUseridFromIndex(@event.Userid);
                 Log($"[EventPlayerChat] UserId(Index): {@event.Userid} playerUserId: {playerUserId} Message: {@event.Text}");
 
+                var originalMessage = @event.Text.Trim();
                 var message = @event.Text.Trim().ToLower();
 
                 CCSPlayerController? player = null;
@@ -268,12 +275,50 @@ namespace MatchZy
 
                     HandleRestoreCommand(player, commandArg);
                 }
-                if (message.StartsWith(".asay")) {
+                if (originalMessage.StartsWith(".asay")) {
                     string command = ".asay";
-                    string commandArg = message.Substring(command.Length).Trim();
+                    string commandArg = originalMessage.Substring(command.Length).Trim();
 
                     if (IsPlayerAdmin(player) && commandArg != "") {
                         Server.PrintToChatAll($"[{ChatColors.Red}ADMIN{ChatColors.Default}] {commandArg}");
+                    }
+                }
+                if (message.StartsWith(".spawn")) {
+                    string command = ".spawn";
+                    string commandArg = message.Substring(command.Length).Trim();
+
+                    HandleSpawnCommand(player, commandArg, player.TeamNum, "spawn");
+                }
+                if (message.StartsWith(".ctspawn")) {
+                    string command = ".ctspawn";
+                    string commandArg = message.Substring(command.Length).Trim();
+
+                    HandleSpawnCommand(player, commandArg, (byte)CsTeam.CounterTerrorist, "ctspawn");
+                }
+                if (message.StartsWith(".tspawn")) {
+                    string command = ".tspawn";
+                    string commandArg = message.Substring(command.Length).Trim();
+
+                    HandleSpawnCommand(player, commandArg, (byte)CsTeam.Terrorist, "tspawn");
+                }
+                if (originalMessage.StartsWith(".team1")) {
+                    string command = ".team1";
+                    string commandArg = originalMessage.Substring(command.Length).Trim();
+
+                    HandleTeamNameChangeCommand(player, commandArg, 1);
+                }
+                if (originalMessage.StartsWith(".team2")) {
+                    string command = ".team2";
+                    string commandArg = originalMessage.Substring(command.Length).Trim();
+
+                    HandleTeamNameChangeCommand(player, commandArg, 2);
+                }
+                if (originalMessage.StartsWith(".rcon")) {
+                    string command = ".rcon";
+                    string commandArg = originalMessage.Substring(command.Length).Trim();
+                    if (IsPlayerAdmin(player)) {
+                        Server.ExecuteCommand(commandArg);
+                        ReplyToUserCommand(player, "Command sent successfully!");
                     }
                 }
 

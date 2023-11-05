@@ -2,6 +2,8 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
+using CounterStrikeSharp.API.Modules.Utils;
+using System.Text.RegularExpressions;
 
 
 namespace MatchZy
@@ -60,6 +62,37 @@ namespace MatchZy
             string args = command.ArgString;
 
             pauseAfterRoundRestore = bool.TryParse(args, out bool pauseAfterRoundRestoreValue) ? pauseAfterRoundRestoreValue : args != "0" && pauseAfterRoundRestore;
+        }
+
+        [ConsoleCommand("matchzy_chat_prefix", "Default value of chat prefix for MatchZy messages. Default value: [{Green}MatchZy{Default}]")]
+        public void MatchZyChatPrefix(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+
+            string args = command.ArgString.Trim();
+
+            if (string.IsNullOrEmpty(args))
+            {
+                chatPrefix = $"[{ChatColors.Green}MatchZy{ChatColors.Default}]";
+                return;
+            }
+
+            // Adding extra space before args if message starts with a color name
+            // This is because colors cannot be applied from 1st character, hence we make first character as an empty space
+            if (args.StartsWith('{')) args = " " + args;
+
+            foreach (var field in typeof(ChatColors).GetFields())
+            {
+                string pattern = $"{{{field.Name}}}";
+                string replacement = field.GetValue(null).ToString();
+
+                // Create a case-insensitive regular expression pattern for the color name
+                string patternIgnoreCase = Regex.Escape(pattern);
+                args = Regex.Replace(args, patternIgnoreCase, replacement, RegexOptions.IgnoreCase);
+            }
+            chatPrefix = args;
+
+            Log($"[PREFIX CHANGE] chatPrefix: {chatPrefix}");
         }
 
     }

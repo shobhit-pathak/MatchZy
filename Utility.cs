@@ -259,15 +259,21 @@ namespace MatchZy
 
         private void ResetMatch(bool warmupCfgRequired = true) {
 
+            // We stop demo recording if a live match was restarted
+            if (matchStarted) {
+                Server.ExecuteCommand($"tv_stoprecord");
+            }
             // Reset match data
             matchStarted = false;
             readyAvailable = true;
+            isPaused = false;
 
             isWarmup = true;
             isKnifeRound = false;
             isSideSelectionPhase = false;
             isMatchLive = false;    
             liveMatchId = -1; 
+            isPractice = false;
 
             lastBackupFileName = "";
 
@@ -290,6 +296,9 @@ namespace MatchZy
                 { "ct", false },
                 { "t", false }
             };
+
+            // Reset owned bots data
+            pracUsedBots = new Dictionary<int, Dictionary<string, object>>();
             Server.ExecuteCommand("mp_unpause_match");
             
             KillPhaseTimers();
@@ -437,6 +446,8 @@ namespace MatchZy
         }
 
         private void HandleMatchStart() {
+            isPractice = false;
+
             liveMatchId = database.InitMatch(CT_TEAM_NAME, T_TEAM_NAME, "-");
             SetupRoundBackupFile();
             StartDemoRecording();
@@ -555,6 +566,14 @@ namespace MatchZy
                     pausedStateTimer = AddTimer(defaultChatTimerDelay, SendPausedStateMessage, TimerFlags.REPEAT);
                 }
             }
+        }
+
+        private void StartMatchMode() 
+        {
+            if (matchStarted || !isPractice) return;
+            ExecUnpracCommands();
+            ResetMatch();
+            Server.PrintToChatAll($"{chatPrefix} Match mode loaded!");
         }
 
         private void Log(string message) {
