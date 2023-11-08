@@ -81,7 +81,7 @@ Inside `csgo/cfg/MatchZy`, a file named `admins.json` should be present. If it i
 ```
 {
     "76561198154367261": "",
-    "<another_steam_id>: ""
+    "<another_steam_id>": ""
 }
 ```
 
