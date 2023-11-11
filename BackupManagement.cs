@@ -71,11 +71,16 @@ namespace MatchZy
                 else {
                     ReplyToUserCommand(player, $"Usage: !restore <round>");
                 }                
+            } else {
+                SendPlayerNotAdminMessage(player);
             }
         }
 
         private void HandleRestoreCommand(CCSPlayerController? player, string commandArg) {
-            if (!IsPlayerAdmin(player)) return;
+            if (!IsPlayerAdmin(player)) {
+                SendPlayerNotAdminMessage(player);
+                return;
+            }
             if (!isMatchLive) return;
             
             if (!string.IsNullOrWhiteSpace(commandArg)) {

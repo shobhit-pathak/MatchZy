@@ -206,6 +206,9 @@ namespace MatchZy
             readyAvailable = false;
             isKnifeRound = false;
 
+            // Storing 0-0 score backup file as lastBackupFileName, so that .stop functions properly in first round.
+            lastBackupFileName = $"matchzy_{liveMatchId}_round00.txt";
+
             KillPhaseTimers();
 
             var absolutePath = Path.Join(Server.GameDirectory + "/csgo/cfg", liveCfgPath);
@@ -399,7 +402,10 @@ namespace MatchZy
 
         private void HandleMapChangeCommand(CCSPlayerController? player, string mapName) {
             if (player == null) return;
-            if (!IsPlayerAdmin(player)) return;
+            if (!IsPlayerAdmin(player)) {
+                SendPlayerNotAdminMessage(player);
+                return;
+            }
 
             if (Server.IsMapValid(mapName)) {
                 Server.ExecuteCommand($"changelevel \"{mapName}\"");
@@ -409,7 +415,10 @@ namespace MatchZy
         }
 
         private void HandleReadyRequiredCommand(CCSPlayerController? player, string commandArg) {
-            if (!IsPlayerAdmin(player)) return;
+            if (!IsPlayerAdmin(player)) {
+                SendPlayerNotAdminMessage(player);
+                return;
+            }
             
             if (!string.IsNullOrWhiteSpace(commandArg)) {
                 if (int.TryParse(commandArg, out int readyRequired) && readyRequired >= 0 && readyRequired <= 32) {
@@ -574,6 +583,10 @@ namespace MatchZy
             ExecUnpracCommands();
             ResetMatch();
             Server.PrintToChatAll($"{chatPrefix} Match mode loaded!");
+        }
+
+        private void SendPlayerNotAdminMessage(CCSPlayerController? player) {
+            ReplyToUserCommand(player, "You must be admin in order to use this command!");
         }
 
         private void Log(string message) {

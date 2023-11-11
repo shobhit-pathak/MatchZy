@@ -28,7 +28,7 @@ namespace MatchZy
                     if (playerReadyStatus[player.UserId.Value]) {
                         player.PrintToChat($"{chatPrefix} You are already ready!");
                     } else {
-                            playerReadyStatus[player.UserId.Value] = true;
+                        playerReadyStatus[player.UserId.Value] = true;
                         player.PrintToChat($"{chatPrefix} You have been marked ready!");
                     }
                     CheckLiveRequired();
@@ -48,7 +48,7 @@ namespace MatchZy
                     if (!playerReadyStatus[player.UserId.Value]) {
                         player.PrintToChat($"{chatPrefix} You are already unready!");
                     } else {
-                            playerReadyStatus[player.UserId.Value] = false;
+                        playerReadyStatus[player.UserId.Value] = false;
                         player.PrintToChat($"{chatPrefix} You have been marked unready!");
                     }
                 }
@@ -180,6 +180,8 @@ namespace MatchZy
                 } else {
                     player.PrintToChat($"{chatPrefix} Knife round is now {ChatColors.Green}{knifeStatus}{ChatColors.Default}!");
                 }
+            } else {
+                SendPlayerNotAdminMessage(player);
             }
         }
 
@@ -194,6 +196,8 @@ namespace MatchZy
                     string minimumReadyRequiredFormatted = (player == null) ? $"{minimumReadyRequired}" : $"{ChatColors.Green}{minimumReadyRequired}{ChatColors.Default}";
                     ReplyToUserCommand(player, $"Current Ready Required: {minimumReadyRequiredFormatted} .Usage: !readyrequired <number_of_ready_players_required>");
                 }                
+            } else {
+                SendPlayerNotAdminMessage(player);
             }
         }
 
@@ -204,13 +208,21 @@ namespace MatchZy
             if (IsPlayerAdmin(player)) {
                 string knifeStatus = isKnifeRequired ? "Enabled" : "Disabled";
                 player.PrintToChat($"{chatPrefix} Current Settings: Knife: {ChatColors.Green}{knifeStatus}{ChatColors.Default}, Minimum Ready Required: {ChatColors.Green}{minimumReadyRequired}{ChatColors.Default}");
+            } else {
+                SendPlayerNotAdminMessage(player);
             }
         }
 
         [ConsoleCommand("css_restart", "Restarts the match")]
         public void OnRestartMatchCommand(CCSPlayerController? player, CommandInfo? command) {
-            if (IsPlayerAdmin(player) && !isPractice) {
-                ResetMatch();
+            if (IsPlayerAdmin(player)) {
+                if (!isPractice) {
+                    ResetMatch();
+                } else {
+                    ReplyToUserCommand(player, "Practice mode is active, cannot restart the match.");
+                }
+            } else {
+                SendPlayerNotAdminMessage(player);
             }
         }
 
@@ -225,13 +237,19 @@ namespace MatchZy
         public void OnStartCommand(CCSPlayerController? player, CommandInfo? command) {
             if (player == null) return;
             
-            if (IsPlayerAdmin(player) && !isPractice) {
+            if (IsPlayerAdmin(player)) {
+                if (isPractice) {
+                    ReplyToUserCommand(player, "Cannot start a match while in practice mode. Please use .exitprac command to exit practice mode first!");
+                    return;
+                }
                 if (matchStarted) {
                     player.PrintToChat($"{chatPrefix} Start command cannot be used if match is already started! If you want to unpause, please use .unpause");
                 } else {
                     Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}Admin{ChatColors.Default} has started the game!");
                     HandleMatchStart();
                 }
+            } else {
+                SendPlayerNotAdminMessage(player);
             }
         }
 
@@ -242,7 +260,10 @@ namespace MatchZy
                 Server.PrintToChatAll($"[{ChatColors.Red}ADMIN{ChatColors.Default}] {command.ArgString}");
                 return;
             }
-            if (!IsPlayerAdmin(player)) return;
+            if (!IsPlayerAdmin(player)) {
+                SendPlayerNotAdminMessage(player);
+                return;
+            }
             string message = "";
             for (int i = 1; i < command.ArgCount; i++) {
                 message += command.ArgByIndex(i) + " ";
@@ -255,13 +276,18 @@ namespace MatchZy
             if (IsPlayerAdmin(player)) {
                 LoadAdmins();
                 UpdatePlayersMap();
+            } else {
+                SendPlayerNotAdminMessage(player);
             }
         }
 
         [ConsoleCommand("css_match", "Starts match mode")]
         public void OnMatchCommand(CCSPlayerController? player, CommandInfo? command)
         {
-            if (!IsPlayerAdmin(player)) return;
+            if (!IsPlayerAdmin(player)) {
+                SendPlayerNotAdminMessage(player);
+                return;
+            }
 
             if (matchStarted) {
                 ReplyToUserCommand(player, "MatchZy is already in match mode!");
@@ -274,7 +300,10 @@ namespace MatchZy
         [ConsoleCommand("css_exitprac", "Starts match mode")]
         public void OnExitPracCommand(CCSPlayerController? player, CommandInfo? command)
         {
-            if (!IsPlayerAdmin(player)) return;
+            if (!IsPlayerAdmin(player)) {
+                SendPlayerNotAdminMessage(player);
+                return;
+            }
 
             if (matchStarted) {
                 ReplyToUserCommand(player, "MatchZy is already in match mode!");
@@ -287,7 +316,10 @@ namespace MatchZy
         [ConsoleCommand("css_rcon", "Triggers provided command on the server")]
         public void OnRconCommand(CCSPlayerController? player, CommandInfo command)
         {
-            if (!IsPlayerAdmin(player)) return;
+            if (!IsPlayerAdmin(player)) {
+                SendPlayerNotAdminMessage(player);
+                return;
+            }
             Server.ExecuteCommand(command.ArgString);
             ReplyToUserCommand(player, "Command sent successfully!");
         }

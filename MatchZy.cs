@@ -139,9 +139,9 @@ namespace MatchZy
                 UpdatePlayersMap();
 
                 if (readyAvailable && !matchStarted) {
-                    Log($"[FULL CONNECT] First player has connected, starting warmup!");
                     // Start Warmup when first player connect and match is not started.
                     if (GetRealPlayersCount() == 1) {
+                        Log($"[FULL CONNECT] First player has connected, starting warmup!");
                         StartWarmup();
                     }
                 }
@@ -279,8 +279,14 @@ namespace MatchZy
                     string command = ".asay";
                     string commandArg = originalMessage.Substring(command.Length).Trim();
 
-                    if (IsPlayerAdmin(player) && commandArg != "") {
-                        Server.PrintToChatAll($"[{ChatColors.Red}ADMIN{ChatColors.Default}] {commandArg}");
+                    if (IsPlayerAdmin(player)) {
+                        if (commandArg != "") {
+                            Server.PrintToChatAll($"[{ChatColors.Red}ADMIN{ChatColors.Default}] {commandArg}");
+                        } else {
+                            ReplyToUserCommand(player, "Usage: .asay <message>");
+                        }
+                    } else {
+                        SendPlayerNotAdminMessage(player);
                     }
                 }
                 if (message.StartsWith(".spawn")) {
@@ -319,6 +325,8 @@ namespace MatchZy
                     if (IsPlayerAdmin(player)) {
                         Server.ExecuteCommand(commandArg);
                         ReplyToUserCommand(player, "Command sent successfully!");
+                    } else {
+                        SendPlayerNotAdminMessage(player);
                     }
                 }
 
