@@ -11,6 +11,15 @@ namespace MatchZy
     public partial class MatchZy
     {
 
+        [ConsoleCommand("matchzy_whitelist_enabled_default", "Whether Whitelist is enabled by default or not. Default value: false")]
+        public void MatchZyWLConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+            string args = command.ArgString;
+
+            isWhitelistRequired = bool.TryParse(args, out bool isWhitelistRequiredValue) ? isWhitelistRequiredValue : args != "0" && isWhitelistRequired;
+        }
+        
         [ConsoleCommand("matchzy_knife_enabled_default", "Whether knife round is enabled by default or not. Default value: true")]
         public void MatchZyKnifeConvar(CCSPlayerController? player, CommandInfo command)
         {
