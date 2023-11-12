@@ -129,7 +129,7 @@ namespace MatchZy
 		        if(player.IsBot) return;
 		        var steamId = player.SteamID;
 		
-		        string whitelistfileName = "puggr/whitelist.cfg";
+		        string whitelistfileName = "MatchZy/whitelist.cfg";
 		        string whitelistPath = Path.Join(Server.GameDirectory + "/csgo/cfg", whitelistfileName);
 		
 		        if(!File.Exists(whitelistPath)) File.WriteAllLines(whitelistPath, new []{"Steamid1", "Steamid2"});
