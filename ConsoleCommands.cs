@@ -16,6 +16,19 @@ namespace MatchZy
 {
     public partial class MatchZy
     {
+        [ConsoleCommand("css_wl", "Toggles Whitelist")]
+        public void OnWLCommand(CCSPlayerController? player, CommandInfo? command) {            
+            if (IsPlayerAdmin(player)) {
+                isWhitelistRequired = !isWhitelistRequired;
+                string WLStatus = isWhitelistRequired ? "Enabled" : "Disabled";
+                if (player == null) {
+                    ReplyToUserCommand(player, $"Whitelist is now {WLStatus}!");
+                } else {
+                    player.PrintToChat($"{chatPrefix} Whitelist is now {ChatColors.Green}{WLStatus}{ChatColors.Default}!");
+                }
+            }
+        }
+        
         [ConsoleCommand("css_ready", "Marks the player ready")]
         public void OnPlayerReady(CCSPlayerController? player, CommandInfo? command) {
             if (player == null) return;
