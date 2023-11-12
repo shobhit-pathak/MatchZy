@@ -58,7 +58,9 @@ namespace MatchZy
             }
             GetSpawns();
             Server.PrintToChatAll($"{chatPrefix} Practice mode loaded!");
-            Server.PrintToChatAll($"{chatPrefix} Available commands: .spawn, .ctspawn, .tspawn, .bot, .nobots, .exitprac");
+            Server.PrintToChatAll($"{chatPrefix} Available commands:");
+	    Server.PrintToChatAll($"{chatPrefix} \x10.spawn, .ctspawn, .tspawn, .bot, .nobots, .exitprac");
+	    Server.PrintToChatAll($"{chatPrefix} \x10.loadnade <name>, .savenade <name>, .importnade <code> .listnades <optional filter>");
         }
 
         public void GetSpawns()
@@ -114,6 +116,173 @@ namespace MatchZy
                 ReplyToUserCommand(player, $"Usage: !{command} <number>");
             }
         }
+	
+	
+	private void HandleSaveNadeCommand(CCSPlayerController? player, string saveNadeName)
+	{
+		if (!isPractice || player == null) return;
+		
+		if (!IsPlayerAdmin(player)) return;
+		
+		if (!string.IsNullOrWhiteSpace(saveNadeName))
+		{
+			// Save current player pos and ang into a local
+			QAngle playerangle = player.PlayerPawn.Value.EyeAngles;
+			Vector playerpos = player.Pawn.Value.CBodyComponent!.SceneNode.AbsOrigin;
+		
+			// add that into a savedNades list that contains the saveNadeName, playerpos, playerangle
+			string savednadesfileName = "MatchZy/savednades.cfg";
+			string savednadesPath = Path.Join(Server.GameDirectory + "/csgo/cfg", savednadesfileName);
+		
+			if (!File.Exists(savednadesPath)) File.WriteAllLines(savednadesPath, new[] { "Name Location Viewangle" });
+		
+			// Append saveNadeName playerpos playerangle to a new line and save to savednades.cfg
+			var nadeInfo = $"{saveNadeName} {playerpos} {playerangle}";
+		
+			File.AppendAllLines(savednadesPath, new[] { nadeInfo });
+		
+			ReplyToUserCommand(player, $"Lineup '{saveNadeName}' saved successfully!");
+			player.PrintToCenter($"Lineup '{saveNadeName}' saved successfully!");
+			ReplyToUserCommand(player, $"Lineup Code: {saveNadeName} {playerpos} {playerangle}");
+		}
+		else
+		{
+			ReplyToUserCommand(player, $"Usage: !savenade <Nade123>");
+		}
+	}
+	
+	private void HandleImportNadeCommand(CCSPlayerController? player, string saveNadeName)
+	{
+		if (!isPractice || player == null) return;
+		
+		if (!IsPlayerAdmin(player)) return;
+		
+		if (!string.IsNullOrWhiteSpace(saveNadeName))
+		{
+			
+			// add that into a savedNades list that contains the saveNadeName, playerpos, playerangle
+			string savednadesfileName = "MatchZy/savednades.cfg";
+			string savednadesPath = Path.Join(Server.GameDirectory + "/csgo/cfg", savednadesfileName);
+		
+			if (!File.Exists(savednadesPath)) File.WriteAllLines(savednadesPath, new[] { "Name Location Viewangle" });
+		
+			// Append saveNadeName playerpos playerangle to a new line and save to savednades.cfg
+			var nadeInfo = saveNadeName;
+		
+			File.AppendAllLines(savednadesPath, new[] { nadeInfo });
+		
+			ReplyToUserCommand(player, $"Lineup '{saveNadeName}' saved successfully!");
+			player.PrintToCenter($"Lineup '{saveNadeName}' saved successfully!");
+			ReplyToUserCommand(player, $"To load it use !loadnade {saveNadeName}");
+		}
+		else
+		{
+			ReplyToUserCommand(player, $"Usage: !importnade <CODE>");
+		}
+	}
+	
+	private void HandleListNadesCommand(CCSPlayerController? player, string nadeFilter)
+	{
+		if (!isPractice || player == null) return;
+		
+		if (!IsPlayerAdmin(player)) return;
+		
+		// Read the file
+		string savedNadesFileName = "MatchZy/savednades.cfg";
+		string savedNadesPath = Path.Combine(Server.GameDirectory, "csgo", "cfg", savedNadesFileName);
+		
+		if (File.Exists(savedNadesPath))
+		{
+			// Read all lines from the file
+			string[] lines = File.ReadAllLines(savedNadesPath);
+		
+			// Skip the first line
+			for (int i = 1; i < lines.Length; i++)
+			{
+				string line = lines[i];
+			
+				// Split the line into words
+				string[] words = line.Split(' ');
+			
+				if (!string.IsNullOrWhiteSpace(nadeFilter))
+				{
+					// Check if the first word contains the nadeFilter
+					if (words.Length > 0 && words[0].Contains(nadeFilter))
+					{
+						ReplyToUserCommand(player, $"!loadnade {words[0]}");
+					}
+				}
+				else
+				{
+					// If the filter is empty, just return every first word of the line
+					if (words.Length > 0)
+					{
+						ReplyToUserCommand(player, $"!loadnade {words[0]}");
+					}
+				}
+			}
+		}
+		else
+		{
+			ReplyToUserCommand(player, "There are no saved nades!.");
+		}
+	}
+
+	
+	private void HandleLoadNadeCommand(CCSPlayerController? player, string loadNadeName)
+	{
+		if (!isPractice || player == null) return;
+		
+		if (!IsPlayerAdmin(player)) return;
+		
+		string savednadesfileName = "MatchZy/savednades.cfg";
+		string savednadesPath = Path.Join(Server.GameDirectory + "/csgo/cfg", savednadesfileName);
+		
+		if (!string.IsNullOrWhiteSpace(loadNadeName) && File.Exists(savednadesPath))
+		{
+			// Read the savednades.cfg, ignore the very first line of the file
+			var lines = File.ReadAllLines(savednadesPath).Skip(1);
+		
+			// Find the line that matches loadNadeName
+			var nadeLine = lines.FirstOrDefault(line => line.StartsWith(loadNadeName));
+		
+			if (nadeLine != null)
+			{
+				// Split the line into parts
+				var parts = nadeLine.Split(' ');
+			
+				if (parts.Length == 7)
+				{
+					// Parse the numbers to create a Vector and QAngle
+					float x = float.Parse(parts[1], System.Globalization.CultureInfo.InvariantCulture);
+					float y = float.Parse(parts[2], System.Globalization.CultureInfo.InvariantCulture);
+					float z = float.Parse(parts[3], System.Globalization.CultureInfo.InvariantCulture);
+			
+					Vector loadedPlayerPos = new Vector(x, y, z);
+			
+					float pitch = float.Parse(parts[4], System.Globalization.CultureInfo.InvariantCulture);
+					float yaw = float.Parse(parts[5], System.Globalization.CultureInfo.InvariantCulture);
+					float roll = float.Parse(parts[6], System.Globalization.CultureInfo.InvariantCulture);
+			
+					QAngle loadedPlayerAngle = new QAngle(pitch, yaw, roll);
+			
+					ReplyToUserCommand(player, $"Lineup '{loadNadeName}' loaded successfully!");
+					player.PrintToCenter($"Lineup '{loadNadeName}' loaded successfully!");
+					ReplyToUserCommand(player, $"Lineup Code: {loadNadeName} {loadedPlayerPos} {loadedPlayerAngle}");
+					
+					player.PlayerPawn.Value.Teleport(loadedPlayerPos, loadedPlayerAngle, new Vector(0, 0, 0));
+					return;
+				}
+			}
+		
+			ReplyToUserCommand(player, $"Nade not found! Usage: !loadnade <Nade123>");
+		}
+		else
+		{
+			ReplyToUserCommand(player, $"Nade not found! Usage: !loadnade <Nade123>");
+		}
+	}
+
 
         [ConsoleCommand("css_prac", "Starts practice mode")]
         public void OnPracCommand(CCSPlayerController? player, CommandInfo? command)
@@ -128,6 +297,32 @@ namespace MatchZy
 
             StartPracticeMode();
         }
+	
+	// need to find a way to either grab ents or CSS needs a DoEntFire() function
+	//[ConsoleCommand("css_killsmoke", "Kills all Smokes, HE and Molly ents")]
+        //public void OnKillsmokeCommand(CCSPlayerController? player, CommandInfo? command)
+        //{
+        //    Log($"[.killsmoke] Sent by: {player.UserId}");
+	//    if (!IsPlayerAdmin(player))
+	//    { 
+	//	Log($"[.killsmoke] failed cuz not admin");
+	//	return;
+	//    }
+	//    
+        //    if (matchStarted)
+        //    {
+        //        ReplyToUserCommand(player, "Cannot kill Smokes when a match has been started!");
+        //        return;
+        //    }
+	//    
+	//    Server.ExecuteCommand("ent_fire smokegrenade_projectile kill");
+	//    Server.ExecuteCommand("ent_fire molotov_projectile kill");
+	//    Server.ExecuteCommand("ent_fire flashbang_projectile kill");
+	//    Server.ExecuteCommand("ent_fire hegrenade_projectile kill");
+	//    Server.ExecuteCommand("ent_fire decoy_projectile kill");
+	//    Log($"[.killsmoke] killed all smokes"); 
+        //}
+
 
         [ConsoleCommand("css_spawn", "Teleport to provided spawn")]
         public void OnSpawnCommand(CCSPlayerController? player, CommandInfo command)
