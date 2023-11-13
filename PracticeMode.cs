@@ -117,7 +117,6 @@ namespace MatchZy
             }
         }
 	
-	
 	private void HandleSaveNadeCommand(CCSPlayerController? player, string saveNadeName)
 	{
 		if (!isPractice || player == null) return;
@@ -141,13 +140,13 @@ namespace MatchZy
 		
 			File.AppendAllLines(savednadesPath, new[] { nadeInfo });
 		
-			ReplyToUserCommand(player, $"Lineup '{saveNadeName}' saved successfully!");
-			player.PrintToCenter($"Lineup '{saveNadeName}' saved successfully!");
-			ReplyToUserCommand(player, $"Lineup Code: {saveNadeName} {playerpos} {playerangle}");
+			ReplyToUserCommand(player, $"Lineup \x06'{saveNadeName}' \x0Dsaved successfully!");
+			player.PrintToCenter($"Lineup \x06'{saveNadeName}' \x0Dsaved successfully!");
+			ReplyToUserCommand(player, $"Lineup Code: \x06{saveNadeName} {playerpos} {playerangle}");
 		}
 		else
 		{
-			ReplyToUserCommand(player, $"Usage: !savenade <Nade123>");
+			ReplyToUserCommand(player, $"Usage: .savenade <Nade123>");
 		}
 	}
 	
@@ -171,13 +170,13 @@ namespace MatchZy
 		
 			File.AppendAllLines(savednadesPath, new[] { nadeInfo });
 		
-			ReplyToUserCommand(player, $"Lineup '{saveNadeName}' saved successfully!");
-			player.PrintToCenter($"Lineup '{saveNadeName}' saved successfully!");
-			ReplyToUserCommand(player, $"To load it use !loadnade {saveNadeName}");
+			ReplyToUserCommand(player, $" \x0DLineup \x06'{saveNadeName}' \x0Dsaved successfully!");
+			player.PrintToCenter($" \x0DLineup \x06'{saveNadeName}' \x0Dsaved successfully!");
+			ReplyToUserCommand(player, $" \x0DTo load it use \x06.loadnade {saveNadeName}");
 		}
 		else
 		{
-			ReplyToUserCommand(player, $"Usage: !importnade <CODE>");
+			ReplyToUserCommand(player, $"Usage: .importnade <CODE>");
 		}
 	}
 	
@@ -191,6 +190,14 @@ namespace MatchZy
 		string savedNadesFileName = "MatchZy/savednades.cfg";
 		string savedNadesPath = Path.Combine(Server.GameDirectory, "csgo", "cfg", savedNadesFileName);
 		
+		if (!string.IsNullOrWhiteSpace(nadeFilter))
+		{
+			ReplyToUserCommand(player, $" \x0D All saved lineups filtered by '{nadeFilter}':");
+		}
+		else
+		{
+			ReplyToUserCommand(player, $" \x0D All saved lineups:");
+		}	
 		if (File.Exists(savedNadesPath))
 		{
 			// Read all lines from the file
@@ -209,7 +216,7 @@ namespace MatchZy
 					// Check if the first word contains the nadeFilter
 					if (words.Length > 0 && words[0].Contains(nadeFilter))
 					{
-						ReplyToUserCommand(player, $"!loadnade {words[0]}");
+						ReplyToUserCommand(player, $" \x0D.loadnade \x06{words[0]}");
 					}
 				}
 				else
@@ -217,7 +224,7 @@ namespace MatchZy
 					// If the filter is empty, just return every first word of the line
 					if (words.Length > 0)
 					{
-						ReplyToUserCommand(player, $"!loadnade {words[0]}");
+						ReplyToUserCommand(player, $"\x0D.loadnade \x06{words[0]}");
 					}
 				}
 			}
@@ -266,20 +273,20 @@ namespace MatchZy
 			
 					QAngle loadedPlayerAngle = new QAngle(pitch, yaw, roll);
 			
-					ReplyToUserCommand(player, $"Lineup '{loadNadeName}' loaded successfully!");
-					player.PrintToCenter($"Lineup '{loadNadeName}' loaded successfully!");
-					ReplyToUserCommand(player, $"Lineup Code: {loadNadeName} {loadedPlayerPos} {loadedPlayerAngle}");
+					ReplyToUserCommand(player, $" \x0DLineup \x06'{loadNadeName}' \x0Dloaded successfully!");
+					player.PrintToCenter($" \x0DLineup \x06'{loadNadeName}' \x0Dloaded successfully!");
+					ReplyToUserCommand(player, $" \x0DLineup Code: \x06{loadNadeName} {loadedPlayerPos} {loadedPlayerAngle}");
 					
 					player.PlayerPawn.Value.Teleport(loadedPlayerPos, loadedPlayerAngle, new Vector(0, 0, 0));
 					return;
 				}
 			}
 		
-			ReplyToUserCommand(player, $"Nade not found! Usage: !loadnade <Nade123>");
+			ReplyToUserCommand(player, $"Nade not found! Usage: .loadnade <Nade123>");
 		}
 		else
 		{
-			ReplyToUserCommand(player, $"Nade not found! Usage: !loadnade <Nade123>");
+			ReplyToUserCommand(player, $"Nade not found! Usage: .loadnade <Nade123>");
 		}
 	}
 
@@ -292,6 +299,12 @@ namespace MatchZy
             if (matchStarted)
             {
                 ReplyToUserCommand(player, "Practice Mode cannot be started when a match has been started!");
+                return;
+            }
+	    
+	    if (isPractice)
+            {
+                StartMatchMode();
                 return;
             }
 
