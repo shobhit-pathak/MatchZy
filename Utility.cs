@@ -401,7 +401,9 @@ namespace MatchZy
             if (player == null) return;
             if (!IsPlayerAdmin(player)) return;
 
-            if (Server.IsMapValid(mapName)) {
+            if (long.TryParse(mapName, out _)) { // Check if mapName is a long for workshop map ids
+                Server.ExecuteCommand($"host_workshop_map \"{mapName}\"");
+            } else if (Server.IsMapValid(mapName)) {
                 Server.ExecuteCommand($"changelevel \"{mapName}\"");
             } else {
                 player.PrintToChat($"{chatPrefix} Invalid map name!");
