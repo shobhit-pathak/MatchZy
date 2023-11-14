@@ -4,6 +4,7 @@ using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Timers;
+using System.Text.Json;
 
 
 namespace MatchZy
@@ -32,15 +33,15 @@ namespace MatchZy
                 string stopTeamName = "";
                 string remainingStopTeam = "";
                 if (player.TeamNum == 2) {
-                    stopTeamName = T_TEAM_NAME;
-                    remainingStopTeam = CT_TEAM_NAME;
+                    stopTeamName = reverseTeamSides["TERRORIST"].teamName;
+                    remainingStopTeam = reverseTeamSides["CT"].teamName;
                     if (!stopData["t"]) {
                         stopData["t"] = true;
                     }
                     
                 } else if (player.TeamNum == 3) {
-                    stopTeamName = CT_TEAM_NAME;
-                    remainingStopTeam = T_TEAM_NAME;
+                    stopTeamName = reverseTeamSides["CT"].teamName;
+                    remainingStopTeam = reverseTeamSides["TERRORIST"].teamName;
                     if (!stopData["ct"]) {
                         stopData["ct"] = true;
                     }
@@ -87,7 +88,7 @@ namespace MatchZy
                 if (int.TryParse(commandArg, out int roundNumber) && roundNumber >= 0) {
                     string round = roundNumber.ToString("D2");
                     string requiredBackupFileName = $"matchzy_{liveMatchId}_round{round}.txt";
-                    RestoreRoundBackup(player, requiredBackupFileName);
+                    RestoreRoundBackup(player, requiredBackupFileName, round);
                 }
                 else {
                     ReplyToUserCommand(player, $"Invalid value for restore command. Please specify a valid non-negative number. Usage: !restore <round>");
@@ -98,12 +99,64 @@ namespace MatchZy
             }
         }
 
-        private void RestoreRoundBackup(CCSPlayerController? player, string fileName) {
+        private void RestoreRoundBackup(CCSPlayerController? player, string fileName, string round="") {
             if (!File.Exists(Path.Join(Server.GameDirectory + "/csgo/", fileName))) {
                 ReplyToUserCommand(player, $"Backup file {fileName} does not exist, please make sure you are restoring a valid backup.");
                 return;
             }
             Server.ExecuteCommand($"mp_backup_restore_load_file {fileName}");
+
+            (int t1score, int t2score) = GetTeamsScore();
+
+            if (round == "") {
+                round = (t1score + t2score).ToString("D2");
+            }
+
+            string matchZyBackupFileName = $"matchzy_data_backup_{liveMatchId}_round_{round}.json";
+            string filePath = Server.GameDirectory + "/csgo/MatchZyDataBackup/" + matchZyBackupFileName;
+
+            if (File.Exists(filePath)) {
+                Dictionary<string, string> backupData = new();
+                try {
+                    using (StreamReader fileReader = File.OpenText(filePath)) {
+                        string jsonContent = fileReader.ReadToEnd();
+                        if (!string.IsNullOrEmpty(jsonContent)) {
+                            JsonSerializerOptions options = new()
+                            {
+                                AllowTrailingCommas = true,
+                            };
+                            backupData = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonContent, options) ?? new Dictionary<string, string>();
+                        }
+                        else {
+                            // Handle the case where the JSON content is empty or null
+                            backupData = new Dictionary<string, string>();
+                        }
+                    }
+                    
+                    foreach (var kvp in backupData) {
+
+                        if (kvp.Key == "team1_side") {
+                            // This means round is being restored after sides were swapped, hence we swap sides in our records as well!
+                            if (kvp.Value == "CT" && teamSides[matchzyTeam1] != "CT") {
+                                (teamSides[matchzyTeam1], teamSides[matchzyTeam2]) = (teamSides[matchzyTeam2], teamSides[matchzyTeam1]);
+                                (reverseTeamSides["CT"], reverseTeamSides["TERRORIST"]) = (reverseTeamSides["TERRORIST"], reverseTeamSides["CT"]);
+                            } else if (kvp.Value == "TERRORIST" && teamSides[matchzyTeam1] != "TERRORIST") {
+                                (teamSides[matchzyTeam1], teamSides[matchzyTeam2]) = (teamSides[matchzyTeam2], teamSides[matchzyTeam1]);
+                                (reverseTeamSides["CT"], reverseTeamSides["TERRORIST"]) = (reverseTeamSides["TERRORIST"], reverseTeamSides["CT"]);
+                            }
+                            Server.ExecuteCommand($"mp_teamname_1 {matchzyTeam1.teamName}");
+                            Server.ExecuteCommand($"mp_teamname_2 {matchzyTeam2.teamName}");
+                        }
+                    }
+                }
+                catch (Exception e) {
+                    Log($"[RestoreRoundBackup FATAL] An error occurred: {e.Message}");
+                }
+            }
+            else {
+                Log($"[RestoreRoundBackup FATAL] Required backup data file does not exist! File: {filePath}");
+            }
+
             Server.PrintToChatAll($"{chatPrefix} Backup file restored successfully: {fileName}");
             if (pauseAfterRoundRestore) {
                 Server.ExecuteCommand("mp_pause_match;");
@@ -112,8 +165,52 @@ namespace MatchZy
                 isPaused = true;
                 unpauseData["pauseTeam"] = "RoundRestore";
                 if (pausedStateTimer == null) {
-                    pausedStateTimer = AddTimer(defaultChatTimerDelay, SendPausedStateMessage, TimerFlags.REPEAT);
+                    pausedStateTimer = AddTimer(chatTimerDelay, SendPausedStateMessage, TimerFlags.REPEAT);
                 }
+            }
+        }
+
+        public void CreateMatchZyRoundDataBackup()
+        {
+            if (!isMatchLive) return;
+            try
+            {
+                (int t1score, int t2score) = GetTeamsScore();
+                string round = (t1score + t2score).ToString("D2");
+                string matchZyBackupFileName = $"matchzy_data_backup_{liveMatchId}_round_{round}.json";
+                string filePath = Server.GameDirectory + "/csgo/MatchZyDataBackup/" + matchZyBackupFileName;
+                string? directoryPath = Path.GetDirectoryName(filePath);
+                if (directoryPath != null)
+                {
+                    if (!Directory.Exists(directoryPath))
+                    {
+                        Directory.CreateDirectory(directoryPath);
+                    }
+                }
+
+                Dictionary<string, string> roundData = new()
+                    {
+                        { "team1_name", matchzyTeam1.teamName },
+                        { "team1_flag", matchzyTeam1.teamFlag },
+                        { "team1_tag", matchzyTeam1.teamTag },
+                        { "team1_side", teamSides[matchzyTeam1] },
+                        { "team2_name", matchzyTeam2.teamName },
+                        { "team2_flag", matchzyTeam2.teamFlag },
+                        { "team2_tag", matchzyTeam2.teamTag },
+                        { "team2_side", teamSides[matchzyTeam2] },
+                    };
+                JsonSerializerOptions options = new()
+                {
+                    WriteIndented = true,
+                };
+                string defaultJson = JsonSerializer.Serialize(roundData, options);
+
+                File.WriteAllText(filePath, defaultJson);
+
+            }
+            catch (Exception e)
+            {
+                Log($"[CreateMatchZyRoundDataBackup FATAL] Error creating the JSON file: {e.Message}");
             }
         }
     }

@@ -11,15 +11,17 @@ using CounterStrikeSharp.API.Modules.Events;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Utils;
 using CounterStrikeSharp.API.Modules.Timers;
+using CounterStrikeSharp.API.Core.Attributes;
 
 
 namespace MatchZy
 {
+    [MinimumApiVersion(30)]
     public partial class MatchZy : BasePlugin
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.2.0-alpha";
+        public override string ModuleVersion => "0.3.0-alpha";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -45,12 +47,6 @@ namespace MatchZy
             { "pauseTeam", "" }
         };
 
-        // Team Data
-        // Using default names for now, because there is no way to get Cvar values which are required to set and swap team names whenever required.
-        // TODO: Implement a better team management logic
-        public string CT_TEAM_NAME = "Counter-Terrorist";
-        public string T_TEAM_NAME = "Terrorist";
-
         // Knife Data
         public int knifeWinner = 0;
         public string knifeWinnerName = "";
@@ -67,7 +63,10 @@ namespace MatchZy
         public CounterStrikeSharp.API.Modules.Timers.Timer? unreadyPlayerMessageTimer = null;
         public CounterStrikeSharp.API.Modules.Timers.Timer? sideSelectionMessageTimer = null;
         public CounterStrikeSharp.API.Modules.Timers.Timer? pausedStateTimer = null;
-        public const int defaultChatTimerDelay = 12; // Each message is kept in chat display for ~13 seconds, hence setting default chat timer to 12 seconds.
+
+        // Each message is kept in chat display for ~13 seconds, hence setting default chat timer to 12 seconds.
+        // Configurable using matchzy_chat_messages_timer_delay <seconds>
+        public int chatTimerDelay = 12;
 
         // Game Config
         public bool isKnifeRequired = true;
@@ -183,6 +182,11 @@ namespace MatchZy
                 return HookResult.Continue;
             });
 
+           RegisterEventHandler<EventRoundStart>((@event, info) => {
+                HandlePostRoundStartEvent(@event);
+                return HookResult.Continue;
+            });
+
             RegisterEventHandler<EventRoundEnd>((@event, info) => {
                 Log($"[EventRoundEnd PRE] Winner: {@event.Winner}, Reason: {@event.Reason}");
                 if (isKnifeRound) {
@@ -233,10 +237,36 @@ namespace MatchZy
                 return HookResult.Continue;
             });
 
+            RegisterEventHandler<EventPlayerHurt>((@event, info) =>
+			{
+				CCSPlayerController attacker = @event.Attacker;
+
+				if (!attacker.IsValid || attacker.IsBot && !(@event.DmgHealth > 0 || @event.DmgArmor > 0))
+					return HookResult.Continue;
+                if (matchStarted) {
+                    if (@event.Userid.TeamNum != attacker.TeamNum)
+                    {
+                        int targetId = (int)@event.Userid.UserId!;
+
+                        UpdatePlayerDamageInfo(@event, targetId);
+                    }
+                }
+
+				return HookResult.Continue;
+			});
+
             RegisterEventHandler<EventPlayerChat>((@event, info) => {
 
-                var playerUserId = NativeAPI.GetUseridFromIndex(@event.Userid);
-                Log($"[EventPlayerChat] UserId(Index): {@event.Userid} playerUserId: {playerUserId} Message: {@event.Text}");
+                int currentVersion = Api.GetVersion();
+                int index = @event.Userid;
+                // From APIVersion 50 and above, EventPlayerChat userid property will be a "slot", rather than an entity index 
+                // Player index is slot + 1
+                if (currentVersion >= 50)
+                {
+                    index += 1;
+                }
+                var playerUserId = NativeAPI.GetUseridFromIndex(index);
+                Log($"[EventPlayerChat] UserId(Index): {index} playerUserId: {playerUserId} Message: {@event.Text}");
 
                 var originalMessage = @event.Text.Trim();
                 var message = @event.Text.Trim().ToLower();

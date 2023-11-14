@@ -28,6 +28,8 @@ MatchZy can solve a lot of match management requirements. It provides basic comm
 - Knife round (With expected logic, i.e., team with most players win. If same number of players, then team with HP advantage wins. If same HP, winner is decided randomly)
 - Start live match (after side selection is done by knife winner. Knife round can also be disabled).
 - Automatically starts demo recording and stop recording when match is ended (Make sure you have tv_enable 1)
+- Players whitelisting
+- Damage report after every round
 - Support for round restore (Currently using the vanilla valve's backup system)
 - Ability to create admin and allowing them access to admin commands
 - Database Stats and CSV Stats! MatchZy stores data and stats of all the matches in a local SQLite database and also creates a CSV file for detailed stats of every player in that match!
@@ -68,6 +70,8 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.map <mapname>` Changes the map
 - `.asay <message>` Say as an admin in all chat
 - `.reload_admins` Reloads admins from `admins.json`
+- `.team1 <name>` Sets name for Team 1 (CT by default)
+- `.team2 <name>` Sets name for Team 2 (Terrorist by default)
 - `.prac` Starts Practice Mode
 - `.exitprac` Exits from practice mode and loads Match mode.
 
@@ -119,6 +123,11 @@ matchzy_pause_after_restore true
 // Available Colors: {Default}, {Darkred}, {Green}, {LightYellow}, {LightBlue}, {Olive}, {Lime}, {Red}, {Purple}, {Grey}, {Yellow}, {Gold}, {Silver}, {Blue}, {DarkBlue}
 // {BlueGrey}, {Magenta} and {LightRed}. Make sure to end your prefix with {Default} to avoid coloring the complete messages in your prefix color
 matchzy_chat_prefix [{Green}MatchZy{Default}]
+
+// Number of seconds of delay before sending reminder messages from MatchZy (like unready message, paused message, etc).
+// Default: 12 (Because each message is kept in chat for ~13 seconds)
+// Note: Changing this timer wont affect the active timer, so if you change this setting in warmup, you will have to restart warmup to make the change effective
+matchzy_chat_messages_timer_delay 12
 ```
 
 

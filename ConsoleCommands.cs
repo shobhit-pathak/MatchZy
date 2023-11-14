@@ -32,6 +32,7 @@ namespace MatchZy
                         player.PrintToChat($"{chatPrefix} You have been marked ready!");
                     }
                     CheckLiveRequired();
+                    HandleClanTags();
                 }
             }
         }
@@ -51,6 +52,7 @@ namespace MatchZy
                         playerReadyStatus[player.UserId.Value] = false;
                         player.PrintToChat($"{chatPrefix} You have been marked unready!");
                     }
+                    HandleClanTags();
                 }
             }
         }
@@ -76,6 +78,7 @@ namespace MatchZy
             if (isSideSelectionPhase) {
                 if (player.TeamNum == knifeWinner) {
                     Server.ExecuteCommand("mp_swapteams;");
+                    SwapSidesInTeamData(true);
                     Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} has decided to switch!");
                     StartLive();
                 }
@@ -119,15 +122,15 @@ namespace MatchZy
                 string unpauseTeamName = "Admin";
                 string remainingUnpauseTeam = "Admin";
                 if (player?.TeamNum == 2) {
-                    unpauseTeamName = T_TEAM_NAME;
-                    remainingUnpauseTeam = CT_TEAM_NAME;
+                    unpauseTeamName = reverseTeamSides["TERRORIST"].teamName;
+                    remainingUnpauseTeam = reverseTeamSides["CT"].teamName;
                     if (!(bool)unpauseData["t"]) {
                         unpauseData["t"] = true;
                     }
                     
                 } else if (player?.TeamNum == 3) {
-                    unpauseTeamName = CT_TEAM_NAME;
-                    remainingUnpauseTeam = T_TEAM_NAME;
+                    unpauseTeamName = reverseTeamSides["CT"].teamName;
+                    remainingUnpauseTeam = reverseTeamSides["TERRORIST"].teamName;
                     if (!(bool)unpauseData["ct"]) {
                         unpauseData["ct"] = true;
                     }
