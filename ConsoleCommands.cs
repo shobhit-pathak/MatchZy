@@ -16,7 +16,7 @@ namespace MatchZy
 {
     public partial class MatchZy
     {
-        [ConsoleCommand("css_wl", "Toggles Whitelist")]
+        [ConsoleCommand("css_whitelist", "Toggles Whitelist")]
         public void OnWLCommand(CCSPlayerController? player, CommandInfo? command) {            
             if (IsPlayerAdmin(player)) {
                 isWhitelistRequired = !isWhitelistRequired;

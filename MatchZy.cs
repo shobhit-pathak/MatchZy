@@ -121,32 +121,41 @@ namespace MatchZy
                 { ".exitprac", (player, commandInfo) => OnMatchCommand(player, commandInfo) },
                 { ".stop", (player, commandInfo) => OnStopCommand(player, commandInfo) }
             };
-            
-            RegisterListener<Listeners.OnClientConnected>((slot =>
-	        {
-		        var player = Utilities.GetPlayerFromSlot(slot);
-		        if(player.IsBot) return;
-		        var steamId = player.SteamID;
-		
-		        string whitelistfileName = "MatchZy/whitelist.cfg";
-		        string whitelistPath = Path.Join(Server.GameDirectory + "/csgo/cfg", whitelistfileName);
-		
-		        if(!File.Exists(whitelistPath)) File.WriteAllLines(whitelistPath, new []{"Steamid1", "Steamid2"});
-		
-		        var whiteList = File.ReadAllLines(whitelistPath);
-	
-		        if (isWhitelistRequired == true)
-		        {
-			        if (!whiteList.Contains(steamId.ToString()))
-			        {
-				        Server.ExecuteCommand($"kickid {player.UserId}");
-			        }
-		        }
-	         }));
 
             RegisterEventHandler<EventPlayerConnectFull>((@event, info) => {
                 Log($"[FULL CONNECT] Player ID: {@event.Userid.UserId}, Name: {@event.Userid.PlayerName} has connected!");
                 var player = @event.Userid;
+
+                // Handling whitelisted players
+                if(!player.IsBot) 
+                {
+                    var steamId = player.SteamID;
+            
+                    string whitelistfileName = "MatchZy/whitelist.cfg";
+                    string whitelistPath = Path.Join(Server.GameDirectory + "/csgo/cfg", whitelistfileName);
+                    string? directoryPath = Path.GetDirectoryName(whitelistPath);
+                    if (directoryPath != null)
+                    {
+                        if (!Directory.Exists(directoryPath))
+                        {
+                            Directory.CreateDirectory(directoryPath);
+                        }
+                    }
+                    if(!File.Exists(whitelistPath)) File.WriteAllLines(whitelistPath, new []{"Steamid1", "Steamid2"});
+            
+                    var whiteList = File.ReadAllLines(whitelistPath);
+        
+                    if (isWhitelistRequired == true)
+                    {
+                        if (!whiteList.Contains(steamId.ToString()))
+                        {
+                            Log($"[EventPlayerConnectFull] KICKING PLAYER STEAMID: {steamId}, Name: {@event.Userid.PlayerName} (Not whitelisted!)");
+                            Server.ExecuteCommand($"kickid {player.UserId}");
+                            return HookResult.Continue;
+                        }
+                    }
+                }
+
                 player.PrintToChat($"{chatPrefix} Welcome to the server!");
                 if (@event.Userid.UserId.HasValue) {
                     

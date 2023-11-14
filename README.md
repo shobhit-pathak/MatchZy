@@ -65,6 +65,7 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.unpause` Force unpauses the match.
 - `.restore <round>` Restores the backup of provided round number.
 - `.knife` Toggles the knife round. If disabled, match will directly go from Warmup phase to Live phase.
+- `.whitelist` Toggles whitelisting of players. To whitelist a player, add the steam64id in `cfg/MatchZy/whitelist.cfg`
 - `.readyrequired <number>` Sets the number of ready players required to start the match. If set to 0, all connected players will have to ready-up to start the match.
 - `.settings` Displays the current setting, like whether knife is enabled or not, value of readyrequired  players, etc.
 - `.map <mapname>` Changes the map
@@ -97,6 +98,10 @@ Content of the file should be something like mentioned below, it also has descri
 // This config file is executed when MatchZy plugin is loaded
 // Do not add commands other than matchzy config console variables
 // More configurations and variables will be coming in future updates.
+
+// Whether whitelist is enabled by default or not. Default value: false
+// This is the default value, but whitelist can be toggled by admin using .whitelist command
+matchzy_whitelist_enabled_default false
 
 // Whether knife round is enabled by default or not. Default value: true
 // This is the default value, but knife can be toggled by admin using .knife command
@@ -137,6 +142,15 @@ Again, inside `csgo/cfg/MatchZy`, files named `warmup.cfg`, `knife.cfg`, `live.c
 You can modify these files according to your requirements.
 
 If these configs are not found in the expected location, MatchZy executes the default configs which are present in the code.
+
+### Whitelisting players
+Again, inside `csgo/cfg/MatchZy`, there will be a file called `whitelist.cfg`. You can add Steam64 id of whitelisted players like mentioned in the below example:
+
+```
+76561198264582284
+steamid2
+steamid3
+```
 
 ## Match/Players Stats and Data
 
