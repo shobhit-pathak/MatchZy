@@ -169,10 +169,6 @@ There is a scope of improvement here, like having the match score in the CSV fil
 
 ## What's missing? Limitations?
 
-- Configuring team names (Currently default names like Counter-Terrorist and Terrorist will be used. This is because CSSharp does not provide access to ConVars yet, which is required to maintain team names and perform operations on them, like swapping team names interally after side switch in halftimes)
-	
-    - Though you can manually configure team names using mp_teamname_1 and mp_teamname_2 commands, but they will not be reflected in Stats due to above mentioned reason.
-
 - Locking players in a team (Since this is a very important requirement for matches, this will be done soon!)
 - Configuring a match using JSON file and/or HTTP Request. (This is also an important requirement and will be implemented once the above points are closed!)
 - Sending events and data on a webhook. (I'll be looking into this as well asap, so that we can build a web panel around MatchZy though which we can configure matches and receive events and stats.)
