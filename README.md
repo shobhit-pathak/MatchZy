@@ -28,7 +28,7 @@ MatchZy can solve a lot of match management requirements. It provides basic comm
 - Knife round (With expected logic, i.e., team with most players win. If same number of players, then team with HP advantage wins. If same HP, winner is decided randomly)
 - Start live match (after side selection is done by knife winner. Knife round can also be disabled).
 - Automatically starts demo recording and stop recording when match is ended (Make sure you have tv_enable 1)
-- Players whitelisting
+- Players whitelisting (Thanks to [DEAFPS](https://github.com/DEAFPS)!)
 - Damage report after every round
 - Support for round restore (Currently using the vanilla valve's backup system)
 - Ability to create admin and allowing them access to admin commands
@@ -205,3 +205,4 @@ MIT
 * [AlliedModders and community](https://alliedmods.net/) - They are the reason this whole plugin was possible! They are very helpful and inspire a lot!
 * [LOTGaming](https://lotgaming.xyz/) - Helped me a lot with initial testing and provided servers on different systems and locations!
 * [CHR15cs](https://github.com/CHR15cs) - Helped me a lot with the practice mode!
+* [K4ryuu](https://github.com/K4ryuu) - Awesome job on damage report!
