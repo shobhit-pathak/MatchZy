@@ -147,7 +147,7 @@ If these configs are not found in the expected location, MatchZy executes the de
 Again, inside `csgo/cfg/MatchZy`, there will be a file called `whitelist.cfg`. You can add Steam64 id of whitelisted players like mentioned in the below example:
 
 ```
-76561198264582284
+76561198154367261
 steamid2
 steamid3
 ```
