@@ -71,6 +71,7 @@ namespace MatchZy
         // Game Config
         public bool isKnifeRequired = true;
         public int minimumReadyRequired = 2; // Number of ready players required start the match. If set to 0, all connected players have to ready-up to start the match.
+        public bool isWhitelistRequired = false;
 
         // User command - action map
         public Dictionary<string, Action<CCSPlayerController?, CommandInfo?>>? commandActions;
@@ -111,6 +112,7 @@ namespace MatchZy
                 { ".start", (player, commandInfo) => OnStartCommand(player, commandInfo) },
                 { ".restart", (player, commandInfo) => OnRestartMatchCommand(player, commandInfo) },
                 { ".settings", (player, commandInfo) => OnMatchSettingsCommand(player, commandInfo) },
+                { ".whitelist", (player, commandInfo) => OnWLCommand(player, commandInfo) },
                 { ".reload_admins", (player, commandInfo) => OnReloadAdmins(player, commandInfo) },
                 { ".prac", (player, commandInfo) => OnPracCommand(player, commandInfo) },
                 { ".bot", (player, commandInfo) => OnBotCommand(player, commandInfo) },
@@ -119,6 +121,28 @@ namespace MatchZy
                 { ".exitprac", (player, commandInfo) => OnMatchCommand(player, commandInfo) },
                 { ".stop", (player, commandInfo) => OnStopCommand(player, commandInfo) }
             };
+            
+            RegisterListener<Listeners.OnClientConnected>((slot =>
+	        {
+		        var player = Utilities.GetPlayerFromSlot(slot);
+		        if(player.IsBot) return;
+		        var steamId = player.SteamID;
+		
+		        string whitelistfileName = "MatchZy/whitelist.cfg";
+		        string whitelistPath = Path.Join(Server.GameDirectory + "/csgo/cfg", whitelistfileName);
+		
+		        if(!File.Exists(whitelistPath)) File.WriteAllLines(whitelistPath, new []{"Steamid1", "Steamid2"});
+		
+		        var whiteList = File.ReadAllLines(whitelistPath);
+	
+		        if (isWhitelistRequired == true)
+		        {
+			        if (!whiteList.Contains(steamId.ToString()))
+			        {
+				        Server.ExecuteCommand($"kickid {player.UserId}");
+			        }
+		        }
+	         }));
 
             RegisterEventHandler<EventPlayerConnectFull>((@event, info) => {
                 Log($"[FULL CONNECT] Player ID: {@event.Userid.UserId}, Name: {@event.Userid.PlayerName} has connected!");
