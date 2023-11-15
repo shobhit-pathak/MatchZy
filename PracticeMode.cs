@@ -121,8 +121,6 @@ namespace MatchZy
 	{
 		if (!isPractice || player == null) return;
 		
-		if (!IsPlayerAdmin(player)) return;
-		
 		if (!string.IsNullOrWhiteSpace(saveNadeName))
 		{
 			// Split the saveNadeName into two strings
@@ -148,8 +146,12 @@ namespace MatchZy
 			var existingLines = File.ReadAllLines(savednadesPath);
 			if (existingLines.Any(line => line.StartsWith(lineupName + " ")))
 			{
-				ReplyToUserCommand(player, $" \x0DLineup \x06'{lineupName}'\x0D already exists!");
-				ReplyToUserCommand(player, $" \x0DYou can use \x06'.deletenade <name>'\x0D to delete it!");
+				ReplyToUserCommand(player, $" \x0DLineup \x06'{lineupName}'\x0D already exists! Please use a different name!");
+				
+				if (IsPlayerAdmin(player))
+				{
+					ReplyToUserCommand(player, $" \x0DYou can use \x06'.deletenade {lineupName}'\x0D to delete it!");
+				}
 				return;
 			}
 		
@@ -188,7 +190,7 @@ namespace MatchZy
 		
 			// Read all existing lines from the file
 			var existingLines = File.ReadAllLines(savednadesPath).ToList();
-		
+			
 			// Find and remove the line with the specified lineupName
 			bool lineupFound = false;
 			for (int i = 1; i < existingLines.Count; i++) // Start from index 1 to skip the header line
@@ -225,8 +227,6 @@ namespace MatchZy
 	{
 		if (!isPractice || player == null) return;
 		
-		if (!IsPlayerAdmin(player)) return;
-		
 		if (!string.IsNullOrWhiteSpace(saveNadeName))
 		{
 			
@@ -235,7 +235,23 @@ namespace MatchZy
 			string savednadesPath = Path.Join(Server.GameDirectory + "/csgo/cfg", savednadesfileName);
 		
 			if (!File.Exists(savednadesPath)) File.WriteAllLines(savednadesPath, new[] { "Name Location Viewangle" });
-		
+			
+			// Check if lineupName already exists in the file
+			var existingLines = File.ReadAllLines(savednadesPath);
+
+			string[] importName = saveNadeName.Split(' ');
+			
+			if (existingLines.Any(line => line.StartsWith(importName[0] + " ")))
+			{
+				ReplyToUserCommand(player, $" \x0DLineup \x06'{importName[0]}'\x0D already exists! Please use a different name in the code!");
+				
+				if (IsPlayerAdmin(player))
+				{
+					ReplyToUserCommand(player, $" \x0DYou can use \x06'.deletenade {importName[0]}'\x0D to delete it!");
+				}
+				return;
+			}
+			
 			// Append saveNadeName playerpos playerangle to a new line and save to savednades.cfg
 			var nadeInfo = saveNadeName;
 		
@@ -254,8 +270,6 @@ namespace MatchZy
 	private void HandleListNadesCommand(CCSPlayerController? player, string nadeFilter)
 	{
 		if (!isPractice || player == null) return;
-		
-		if (!IsPlayerAdmin(player)) return;
 		
 		// Read the file
 		string savedNadesFileName = "MatchZy/savednades.cfg";
@@ -310,8 +324,6 @@ namespace MatchZy
 	private void HandleLoadNadeCommand(CCSPlayerController? player, string loadNadeName)
 	{
 		if (!isPractice || player == null) return;
-		
-		if (!IsPlayerAdmin(player)) return;
 		
 		string savednadesfileName = "MatchZy/savednades.cfg";
 		string savednadesPath = Path.Join(Server.GameDirectory + "/csgo/cfg", savednadesfileName);
@@ -377,8 +389,6 @@ namespace MatchZy
         public void OnGodCommand(CCSPlayerController? player, CommandInfo? command)
         {
             if (!isPractice || player == null) return;
-		
-			if (!IsPlayerAdmin(player)) return;
 	    
 			int currentHP = player.PlayerPawn.Value.Health;
 			
@@ -410,40 +420,14 @@ namespace MatchZy
                 return;
             }
 	    
-	    if (isPractice)
-            {
-                StartMatchMode();
-                return;
-            }
-
-            StartPracticeMode();
-        }
+			if (isPractice)
+				{
+					StartMatchMode();
+					return;
+				}
 	
-	// need to find a way to either grab ents or CSS needs a DoEntFire() function
-	//[ConsoleCommand("css_killsmoke", "Kills all Smokes, HE and Molly ents")]
-        //public void OnKillsmokeCommand(CCSPlayerController? player, CommandInfo? command)
-        //{
-        //    Log($"[.killsmoke] Sent by: {player.UserId}");
-	//    if (!IsPlayerAdmin(player))
-	//    { 
-	//	Log($"[.killsmoke] failed cuz not admin");
-	//	return;
-	//    }
-	//    
-        //    if (matchStarted)
-        //    {
-        //        ReplyToUserCommand(player, "Cannot kill Smokes when a match has been started!");
-        //        return;
-        //    }
-	//    
-	//    Server.ExecuteCommand("ent_fire smokegrenade_projectile kill");
-	//    Server.ExecuteCommand("ent_fire molotov_projectile kill");
-	//    Server.ExecuteCommand("ent_fire flashbang_projectile kill");
-	//    Server.ExecuteCommand("ent_fire hegrenade_projectile kill");
-	//    Server.ExecuteCommand("ent_fire decoy_projectile kill");
-	//    Log($"[.killsmoke] killed all smokes"); 
-        //}
-
+				StartPracticeMode();
+        }
 
         [ConsoleCommand("css_spawn", "Teleport to provided spawn")]
         public void OnSpawnCommand(CCSPlayerController? player, CommandInfo command)
