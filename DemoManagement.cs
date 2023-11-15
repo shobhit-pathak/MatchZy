@@ -10,7 +10,7 @@ namespace MatchZy
         public void StartDemoRecording()
         {
             string formattedTime = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss").Replace(" ", "_");
-            string demoFileName = $"{formattedTime}_{liveMatchId}_{Server.MapName}_{CT_TEAM_NAME.Replace(" ", "_")}_vs_{T_TEAM_NAME.Replace(" ", "_")}";
+            string demoFileName = $"{formattedTime}_{liveMatchId}_{Server.MapName}_{matchzyTeam1.teamName.Replace(" ", "_")}_vs_{matchzyTeam2.teamName.Replace(" ", "_")}";
             try
             {
                 string? directoryPath = Path.GetDirectoryName(Path.Join(Server.GameDirectory + "/csgo/", demoPath));

@@ -104,5 +104,29 @@ namespace MatchZy
             Log($"[PREFIX CHANGE] chatPrefix: {chatPrefix}");
         }
 
+        [ConsoleCommand("matchzy_chat_messages_timer_delay", "Number of seconds of delay before sending reminder messages from MatchZy (like unready message, paused message, etc). Default: 12")]
+        public void MatchZyChatMessagesTimerDelay(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+
+            if (command.ArgCount >= 2)
+            {
+                string commandArg = command.ArgByIndex(1);
+                if (!string.IsNullOrWhiteSpace(commandArg))
+                {
+                    if (int.TryParse(commandArg, out int chatTimerDelayValue) && chatTimerDelayValue >= 0)
+                    {
+                        chatTimerDelay = chatTimerDelayValue;
+                    }
+                    else
+                    {
+                        ReplyToUserCommand(player, $"Invalid value for matchzy_chat_messages_timer_delay. Please specify a valid non-negative number.");
+                    }
+                }
+            } else if (command.ArgCount == 1) {
+                ReplyToUserCommand(player, $"matchzy_chat_messages_timer_delay = {chatTimerDelay}");
+            }
+        }
+
     }
 }
