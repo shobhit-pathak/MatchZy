@@ -116,7 +116,7 @@ namespace MatchZy
                 { ".reload_admins", (player, commandInfo) => OnReloadAdmins(player, commandInfo) },
                 { ".prac", (player, commandInfo) => OnPracCommand(player, commandInfo) },
                 { ".bot", (player, commandInfo) => OnBotCommand(player, commandInfo) },
-		//{ ".killsmoke", (player, commandInfo) => OnKillsmokeCommand(player, commandInfo) },
+		{ ".god", (player, commandInfo) => OnGodCommand(player, commandInfo) },
                 { ".nobots", (player, commandInfo) => OnNoBotsCommand(player, commandInfo) },
                 { ".match", (player, commandInfo) => OnMatchCommand(player, commandInfo) },
                 { ".exitprac", (player, commandInfo) => OnMatchCommand(player, commandInfo) },

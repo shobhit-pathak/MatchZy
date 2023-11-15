@@ -125,9 +125,6 @@ namespace MatchZy
 		
 		if (!string.IsNullOrWhiteSpace(saveNadeName))
 		{
-			// Get map name
-			//string mapName = GetMapName();
-			
 			// Split the saveNadeName into two strings
 			string[] saveNadeNameParts = saveNadeName.Split(' ', 2);
 		
@@ -375,7 +372,16 @@ namespace MatchZy
 			ReplyToUserCommand(player, $"Nade not found! Usage: .loadnade <name>");
 		}
 	}
-
+	
+	[ConsoleCommand("css_god", "Sets Infinite health for player")]
+        public void OnGodCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!isPractice || player == null) return;
+		
+	    if (!IsPlayerAdmin(player)) return;
+	    
+	    player.PlayerPawn.Value.Health = 2147483647; // max 32bit int
+        }
 
         [ConsoleCommand("css_prac", "Starts practice mode")]
         public void OnPracCommand(CCSPlayerController? player, CommandInfo? command)
