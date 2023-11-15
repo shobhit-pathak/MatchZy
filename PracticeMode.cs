@@ -125,6 +125,18 @@ namespace MatchZy
 		
 		if (!string.IsNullOrWhiteSpace(saveNadeName))
 		{
+			// Get map name
+			string mapName = GetMapName()
+			
+			// Split the saveNadeName into two strings
+			string[] saveNadeNameParts = saveNadeName.Split(' ', 2);
+		
+			// The first word
+			string lineupName = saveNadeNameParts[0];
+		
+			// The remaining words (if any)
+			string lineupDesc = saveNadeNameParts.Length > 1 ? saveNadeNameParts[1] : "";
+		
 			// Save current player pos and ang into a local
 			QAngle playerangle = player.PlayerPawn.Value.EyeAngles;
 			Vector playerpos = player.Pawn.Value.CBodyComponent!.SceneNode.AbsOrigin;
@@ -135,20 +147,82 @@ namespace MatchZy
 		
 			if (!File.Exists(savednadesPath)) File.WriteAllLines(savednadesPath, new[] { "Name Location Viewangle" });
 		
+			// Check if lineupName already exists in the file
+			var existingLines = File.ReadAllLines(savednadesPath);
+			if (existingLines.Any(line => line.StartsWith(lineupName + " ")))
+			{
+				ReplyToUserCommand(player, $" \x0DLineup \x06'{lineupName}'\x0D already exists!");
+				ReplyToUserCommand(player, $" \x0DYou can use \x06'.deletenade <name>'\x0D to delete it!");
+				return;
+			}
+		
 			// Append saveNadeName playerpos playerangle to a new line and save to savednades.cfg
-			var nadeInfo = $"{saveNadeName} {playerpos} {playerangle}";
+			var nadeInfo = $"{lineupName} {playerpos} {playerangle} {lineupDesc}";
 		
 			File.AppendAllLines(savednadesPath, new[] { nadeInfo });
 		
-			ReplyToUserCommand(player, $"Lineup \x06'{saveNadeName}' \x0Dsaved successfully!");
-			player.PrintToCenter($"Lineup \x06'{saveNadeName}' \x0Dsaved successfully!");
-			ReplyToUserCommand(player, $"Lineup Code: \x06{saveNadeName} {playerpos} {playerangle}");
+			ReplyToUserCommand(player, $" \x0DLineup \x06'{lineupName}' \x0Dsaved successfully!");
+			player.PrintToCenter($" \x0DLineup \x06'{lineupName}' \x0Dsaved successfully!");
+			ReplyToUserCommand(player, $" \x0DLineup Code: \x06{lineupName} {playerpos} {playerangle}");
 		}
 		else
 		{
-			ReplyToUserCommand(player, $"Usage: .savenade <Nade123>");
+			ReplyToUserCommand(player, $"Usage: .savenade <name>");
 		}
 	}
+	
+	private void HandleDeleteNadeCommand(CCSPlayerController? player, string saveNadeName)
+	{
+		if (!isPractice || player == null) return;
+		
+		if (!IsPlayerAdmin(player)) return;
+		
+		if (!string.IsNullOrWhiteSpace(saveNadeName))
+		{
+			// Construct the path to the savednades.cfg file
+			string savednadesfileName = "MatchZy/savednades.cfg";
+			string savednadesPath = Path.Join(Server.GameDirectory + "/csgo/cfg", savednadesfileName);
+		
+			if (!File.Exists(savednadesPath))
+			{
+				ReplyToUserCommand(player, $"The file '{savednadesfileName}' does not exist.");
+				return;
+			}
+		
+			// Read all existing lines from the file
+			var existingLines = File.ReadAllLines(savednadesPath).ToList();
+		
+			// Find and remove the line with the specified lineupName
+			bool lineupFound = false;
+			for (int i = 1; i < existingLines.Count; i++) // Start from index 1 to skip the header line
+			{
+				if (existingLines[i].StartsWith(saveNadeName + " "))
+				{
+					existingLines.RemoveAt(i);
+					lineupFound = true;
+					break;
+				}
+			}
+		
+			if (lineupFound)
+			{
+				// Save the modified lines back to the file
+				File.WriteAllLines(savednadesPath, existingLines);
+				ReplyToUserCommand(player, $" \x0DLineup \x06'{saveNadeName}'\x0D deleted successfully!");
+				}
+				else
+				{
+				ReplyToUserCommand(player, $" \x0DLineup \x06'{saveNadeName}'\x0D is not saved.");
+				}
+			}
+			else
+			{
+				ReplyToUserCommand(player, $"Usage: .deletenade <name>");
+			}
+	}
+
+
+
 	
 	private void HandleImportNadeCommand(CCSPlayerController? player, string saveNadeName)
 	{
@@ -258,8 +332,15 @@ namespace MatchZy
 				// Split the line into parts
 				var parts = nadeLine.Split(' ');
 			
-				if (parts.Length == 7)
+				if (parts.Length >= 7)
 				{
+					// Concatenate parts 7 and beyond into a separate string
+					string lineupDesc = string.Join(" ", parts.Skip(7));
+			
+					// Keep parts 1 to 6 as they are
+					string loadedPlayerPosString = string.Join(" ", parts.Take(4));
+					string loadedPlayerAngleString = string.Join(" ", parts.Skip(4).Take(3));
+			
 					// Parse the numbers to create a Vector and QAngle
 					float x = float.Parse(parts[1], System.Globalization.CultureInfo.InvariantCulture);
 					float y = float.Parse(parts[2], System.Globalization.CultureInfo.InvariantCulture);
@@ -273,20 +354,25 @@ namespace MatchZy
 			
 					QAngle loadedPlayerAngle = new QAngle(pitch, yaw, roll);
 			
-					ReplyToUserCommand(player, $" \x0DLineup \x06'{loadNadeName}' \x0Dloaded successfully!");
-					player.PrintToCenter($" \x0DLineup \x06'{loadNadeName}' \x0Dloaded successfully!");
-					ReplyToUserCommand(player, $" \x0DLineup Code: \x06{loadNadeName} {loadedPlayerPos} {loadedPlayerAngle}");
+					ReplyToUserCommand(player, $" \x0D Lineup \x06'{loadNadeName}' \x0Dloaded successfully!");
 					
+					if (!string.IsNullOrWhiteSpace(lineupDesc))
+					{
+						player.PrintToCenter($"{lineupDesc}");
+						ReplyToUserCommand(player, $" \x0D Description: \x06'{lineupDesc}'");
+					}
+					
+			
 					player.PlayerPawn.Value.Teleport(loadedPlayerPos, loadedPlayerAngle, new Vector(0, 0, 0));
 					return;
 				}
 			}
 		
-			ReplyToUserCommand(player, $"Nade not found! Usage: .loadnade <Nade123>");
+			ReplyToUserCommand(player, $"Nade not found! Usage: .loadnade <name>");
 		}
 		else
 		{
-			ReplyToUserCommand(player, $"Nade not found! Usage: .loadnade <Nade123>");
+			ReplyToUserCommand(player, $"Nade not found! Usage: .loadnade <name>");
 		}
 	}
 
