@@ -360,6 +360,12 @@ namespace MatchZy
 		    HandleSaveNadeCommand(player, commandArg);
 		    
                 }
+		if (message.StartsWith(".deletenade")) {
+                    string command = ".deletenade";
+                    string commandArg = message.Substring(command.Length).Trim();
+		    HandleDeleteNadeCommand(player, commandArg);
+		    
+                }
 		if (message.StartsWith(".importnade")) {
                     string command = ".importnade";
                     string commandArg = message.Substring(command.Length).Trim();
