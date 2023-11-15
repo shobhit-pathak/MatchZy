@@ -126,7 +126,7 @@ namespace MatchZy
 		if (!string.IsNullOrWhiteSpace(saveNadeName))
 		{
 			// Get map name
-			string mapName = GetMapName();
+			//string mapName = GetMapName();
 			
 			// Split the saveNadeName into two strings
 			string[] saveNadeNameParts = saveNadeName.Split(' ', 2);
