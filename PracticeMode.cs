@@ -294,7 +294,10 @@ namespace MatchZy
         [ConsoleCommand("css_prac", "Starts practice mode")]
         public void OnPracCommand(CCSPlayerController? player, CommandInfo? command)
         {
-            if (!IsPlayerAdmin(player)) return;
+            if (!IsPlayerAdmin(player)) {
+                SendPlayerNotAdminMessage(player);
+                return;
+            }
 
             if (matchStarted)
             {

@@ -8,7 +8,7 @@ MatchZy is a plugin for CS2 (Counter Strike 2) for running and managing practice
 ## Installation
 * Install Metamod (https://cs2.poggu.me/metamod/installation/)
 * Install CounterStrikeSharp (CSSharp) (https://docs.cssharp.dev/guides/getting-started/). (**Note**: This step can be skipped if you install [MatchZy with CSSharp release](https://github.com/shobhit-pathak/MatchZy/releases/))
-	* Go to this link: https://github.com/roflmuffin/CounterStrikeSharp/actions/runs/6760222837
+	* Go to this link: https://github.com/roflmuffin/CounterStrikeSharp/releases
 	* Scroll down and download 'counterstrikesharp-with-runtime'
 	* Extract the addons folder to the csgo/ directory of the dedicated server. The contents of your addons folder should contain both the counterstrikesharp folder and the metamod folder
 	* Verify the installation by typing `meta list` on server console. You should see CounterStrikeSharp plugin by Roflmuffin
@@ -28,6 +28,8 @@ MatchZy can solve a lot of match management requirements. It provides basic comm
 - Knife round (With expected logic, i.e., team with most players win. If same number of players, then team with HP advantage wins. If same HP, winner is decided randomly)
 - Start live match (after side selection is done by knife winner. Knife round can also be disabled).
 - Automatically starts demo recording and stop recording when match is ended (Make sure you have tv_enable 1)
+- Players whitelisting (Thanks to [DEAFPS](https://github.com/DEAFPS)!)
+- Damage report after every round
 - Support for round restore (Currently using the vanilla valve's backup system)
 - Ability to create admin and allowing them access to admin commands
 - Database Stats and CSV Stats! MatchZy stores data and stats of all the matches in a local SQLite database and also creates a CSV file for detailed stats of every player in that match!
@@ -63,11 +65,14 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.unpause` Force unpauses the match.
 - `.restore <round>` Restores the backup of provided round number.
 - `.knife` Toggles the knife round. If disabled, match will directly go from Warmup phase to Live phase.
+- `.whitelist` Toggles whitelisting of players. To whitelist a player, add the steam64id in `cfg/MatchZy/whitelist.cfg`
 - `.readyrequired <number>` Sets the number of ready players required to start the match. If set to 0, all connected players will have to ready-up to start the match.
 - `.settings` Displays the current setting, like whether knife is enabled or not, value of readyrequired  players, etc.
 - `.map <mapname>` Changes the map
 - `.asay <message>` Say as an admin in all chat
 - `.reload_admins` Reloads admins from `admins.json`
+- `.team1 <name>` Sets name for Team 1 (CT by default)
+- `.team2 <name>` Sets name for Team 2 (Terrorist by default)
 - `.prac` Starts Practice Mode
 - `.exitprac` Exits from practice mode and loads Match mode.
 
@@ -94,6 +99,10 @@ Content of the file should be something like mentioned below, it also has descri
 // Do not add commands other than matchzy config console variables
 // More configurations and variables will be coming in future updates.
 
+// Whether whitelist is enabled by default or not. Default value: false
+// This is the default value, but whitelist can be toggled by admin using .whitelist command
+matchzy_whitelist_enabled_default false
+
 // Whether knife round is enabled by default or not. Default value: true
 // This is the default value, but knife can be toggled by admin using .knife command
 matchzy_knife_enabled_default true
@@ -119,6 +128,11 @@ matchzy_pause_after_restore true
 // Available Colors: {Default}, {Darkred}, {Green}, {LightYellow}, {LightBlue}, {Olive}, {Lime}, {Red}, {Purple}, {Grey}, {Yellow}, {Gold}, {Silver}, {Blue}, {DarkBlue}
 // {BlueGrey}, {Magenta} and {LightRed}. Make sure to end your prefix with {Default} to avoid coloring the complete messages in your prefix color
 matchzy_chat_prefix [{Green}MatchZy{Default}]
+
+// Number of seconds of delay before sending reminder messages from MatchZy (like unready message, paused message, etc).
+// Default: 12 (Because each message is kept in chat for ~13 seconds)
+// Note: Changing this timer wont affect the active timer, so if you change this setting in warmup, you will have to restart warmup to make the change effective
+matchzy_chat_messages_timer_delay 12
 ```
 
 
@@ -128,6 +142,15 @@ Again, inside `csgo/cfg/MatchZy`, files named `warmup.cfg`, `knife.cfg`, `live.c
 You can modify these files according to your requirements.
 
 If these configs are not found in the expected location, MatchZy executes the default configs which are present in the code.
+
+### Whitelisting players
+Again, inside `csgo/cfg/MatchZy`, there will be a file called `whitelist.cfg`. You can add Steam64 id of whitelisted players like mentioned in the below example:
+
+```
+76561198154367261
+steamid2
+steamid3
+```
 
 ## Match/Players Stats and Data
 
@@ -145,10 +168,6 @@ There is a scope of improvement here, like having the match score in the CSV fil
 
 
 ## What's missing? Limitations?
-
-- Configuring team names (Currently default names like Counter-Terrorist and Terrorist will be used. This is because CSSharp does not provide access to ConVars yet, which is required to maintain team names and perform operations on them, like swapping team names interally after side switch in halftimes)
-	
-    - Though you can manually configure team names using mp_teamname_1 and mp_teamname_2 commands, but they will not be reflected in Stats due to above mentioned reason.
 
 - Locking players in a team (Since this is a very important requirement for matches, this will be done soon!)
 - Configuring a match using JSON file and/or HTTP Request. (This is also an important requirement and will be implemented once the above points are closed!)
@@ -182,3 +201,4 @@ MIT
 * [AlliedModders and community](https://alliedmods.net/) - They are the reason this whole plugin was possible! They are very helpful and inspire a lot!
 * [LOTGaming](https://lotgaming.xyz/) - Helped me a lot with initial testing and provided servers on different systems and locations!
 * [CHR15cs](https://github.com/CHR15cs) - Helped me a lot with the practice mode!
+* [K4ryuu](https://github.com/K4ryuu) - Awesome job on damage report!

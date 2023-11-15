@@ -93,15 +93,15 @@ namespace MatchZy
             }
         }
 
-        public long InitMatch(string ctTeamName, string tTeamName, string serverIp)
+        public long InitMatch(string team1name, string team2name, string serverIp)
         {
             try
             {
                 string mapName = Server.MapName;
                 connection.Execute(@"
                     INSERT INTO matchzy_match_data (start_time, map_name, team1_name, team2_name, server_ip)
-                    VALUES (datetime('now'), @mapName, @ctTeamName, @tTeamName, @serverIp)",
-                    new { mapName, ctTeamName, tTeamName, serverIp });
+                    VALUES (datetime('now'), @mapName, @team1name, @team2name, @serverIp)",
+                    new { mapName, team1name, team2name, serverIp });
 
                 // Retrieve the last inserted match_id
                 long matchId = connection.ExecuteScalar<long>("SELECT last_insert_rowid()");
@@ -116,15 +116,32 @@ namespace MatchZy
             }
         }
 
-        public void SetMatchEndData(long matchId, string winnerName, int ctScore, int tScore)
+        public void UpdateTeamData(int matchId, string team1name, string team2name) {
+            try
+            {
+                connection.Execute(@"
+                    UPDATE matchzy_match_data
+                    SET team1_name = @team1name, team2_name = @team2name
+                    WHERE matchid = @matchId",
+                    new { matchId, team1name, team2name });
+
+                Log($"[UpdateTeamData] Data updated for matchId: {matchId} team1name: {team1name} team2name: {team2name}");
+            }
+            catch (Exception ex)
+            {
+                Log($"[UpdateTeamData - FATAL] Error updating data of matchId: {matchId} [ERROR]: {ex.Message}");
+            }
+        }
+
+        public void SetMatchEndData(long matchId, string winnerName, int t1score, int t2score)
         {
             try
             {
                 connection.Execute(@"
                     UPDATE matchzy_match_data
-                    SET winner = @winnerName, end_time = datetime('now'), team2_score = @tScore, team1_score = @ctScore
+                    SET winner = @winnerName, end_time = datetime('now'), team1_score = @t1score, team2_score = @t2score
                     WHERE matchid = @matchId",
-                    new { matchId, winnerName, tScore, ctScore });
+                    new { matchId, winnerName, t1score, t2score });
 
                 Log($"[SetMatchEndData] Data updated for matchId: {matchId} winnerName: {winnerName}");
             }
@@ -252,7 +269,7 @@ namespace MatchZy
                 using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture)))
                 {
                     IEnumerable<dynamic> playerStatsData = connection.Query(
-                        "SELECT * FROM matchzy_player_stats WHERE matchid = @MatchId", new { MatchId = matchId });
+                        "SELECT * FROM matchzy_player_stats WHERE matchid = @MatchId ORDER BY team, kills DESC", new { MatchId = matchId });
 
                     // Use the first data row to get the column names
                     dynamic? firstDataRow = playerStatsData.FirstOrDefault();
