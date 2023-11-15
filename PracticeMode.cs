@@ -378,9 +378,22 @@ namespace MatchZy
         {
             if (!isPractice || player == null) return;
 		
-	    if (!IsPlayerAdmin(player)) return;
+			if (!IsPlayerAdmin(player)) return;
 	    
-	    player.PlayerPawn.Value.Health = 2147483647; // max 32bit int
+			int currentHP = player.PlayerPawn.Value.Health;
+			
+			if(currentHP > 100)
+			{
+				player.PlayerPawn.Value.Health = 100;
+				ReplyToUserCommand(player, $"God mode disabled!");
+				return;
+			}
+			else
+			{
+				player.PlayerPawn.Value.Health = 2147483647; // max 32bit int
+				ReplyToUserCommand(player, $"God mode enabled!");
+				return;
+			}
         }
 
         [ConsoleCommand("css_prac", "Starts practice mode")]
