@@ -16,7 +16,7 @@ namespace MatchZy
 {
     public partial class MatchZy
     {
-        [ConsoleCommand("css_whitelist", "Toggles Whitelist")]
+        [ConsoleCommand("css_whitelist", "Toggles Whitelisting of players")]
         public void OnWLCommand(CCSPlayerController? player, CommandInfo? command) {            
             if (IsPlayerAdmin(player)) {
                 isWhitelistRequired = !isWhitelistRequired;
@@ -26,6 +26,8 @@ namespace MatchZy
                 } else {
                     player.PrintToChat($"{chatPrefix} Whitelist is now {ChatColors.Green}{WLStatus}{ChatColors.Default}!");
                 }
+            } else {
+                SendPlayerNotAdminMessage(player);
             }
         }
         

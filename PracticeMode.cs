@@ -69,20 +69,29 @@ namespace MatchZy
                         { (byte)CsTeam.Terrorist, new List<Position>() }
                     };
 
-            var spawnsct = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_counterterrorist");
+            int minPriority = 1;
+
+            var spawnsct = Utilities.FindAllEntitiesByDesignerName<SpawnPoint>("info_player_counterterrorist");
+            foreach (var spawn in spawnsct)
+            {
+                if (spawn.IsValid && spawn.Enabled && spawn.Priority < minPriority)
+                {
+                    minPriority = spawn.Priority;
+                }
+            }
 
             foreach (var spawn in spawnsct)
             {
-                if (spawn.IsValid)
+                if (spawn.IsValid && spawn.Enabled && spawn.Priority == minPriority)
                 {
                     spawnsData[(byte)CsTeam.CounterTerrorist].Add(new Position(spawn.CBodyComponent?.SceneNode?.AbsOrigin, spawn.CBodyComponent?.SceneNode?.AbsRotation));
                 }
             }
 
-            var spawnst = Utilities.FindAllEntitiesByDesignerName<CBaseEntity>("info_player_terrorist");
+            var spawnst = Utilities.FindAllEntitiesByDesignerName<SpawnPoint>("info_player_terrorist");
             foreach (var spawn in spawnst)
             {
-                if (spawn.IsValid)
+                if (spawn.IsValid && spawn.Enabled && spawn.Priority == minPriority)
                 {
                     spawnsData[(byte)CsTeam.Terrorist].Add(new Position(spawn.CBodyComponent?.SceneNode?.AbsOrigin, spawn.CBodyComponent?.SceneNode?.AbsRotation));
                 }
@@ -101,7 +110,7 @@ namespace MatchZy
                     spawnNumber -= 1;
                     if (spawnsData.ContainsKey(teamNum) && spawnsData[teamNum].Count <= spawnNumber) return;
                     player.PlayerPawn.Value.Teleport(spawnsData[teamNum][spawnNumber].PlayerPosition, spawnsData[teamNum][spawnNumber].PlayerAngle, new Vector(0, 0, 0));
-
+                    ReplyToUserCommand(player, $"Moved to spawn: {spawnNumber+1}/{spawnsData[teamNum].Count}");
                 }
                 else
                 {
@@ -284,6 +293,66 @@ namespace MatchZy
             if (!isPractice || player == null) return;
             Server.ExecuteCommand("bot_kick");
             pracUsedBots = new Dictionary<int, Dictionary<string, object>>();
+        }
+
+        [ConsoleCommand("css_ff", "Fast forwards the timescale to 20 seconds")]
+        public void OnFFCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!isPractice || player == null) return;
+
+            Dictionary<int, MoveType_t> preFastForwardMoveTypes = new();
+
+            foreach (var key in playerData.Keys) {
+                preFastForwardMoveTypes[key] = playerData[key].PlayerPawn.Value.MoveType;
+                playerData[key].PlayerPawn.Value.MoveType = MoveType_t.MOVETYPE_NONE;
+            }
+
+            Server.PrintToChatAll($"{chatPrefix} Fastforwarding 20 seconds!");
+            Server.ExecuteCommand("host_timescale 10");
+            AddTimer(20.0f, () => {
+                ResetFastForward(preFastForwardMoveTypes);
+            });
+
+        }
+
+        [ConsoleCommand("css_fastforward", "Fast forwards the timescale to 20 seconds")]
+        public void OnFastForwardCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            OnFFCommand(player, command);
+        }
+
+        public void ResetFastForward(Dictionary<int, MoveType_t> preFastForwardMoveTypes) {
+            if (!isPractice) return;
+            Server.ExecuteCommand("host_timescale 1");
+            foreach (var key in playerData.Keys) {
+                playerData[key].PlayerPawn.Value.MoveType = preFastForwardMoveTypes[key];
+            }
+        }
+
+        [ConsoleCommand("css_clear", "Removes all the available granades")]
+        public void OnClearCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            RemoveGrenadeEntities();
+        }
+
+        public void RemoveGrenadeEntities()
+        {
+            if (!isPractice) return;
+            var smokes = Utilities.FindAllEntitiesByDesignerName<CSmokeGrenadeProjectile>("smokegrenade_projectile");
+            foreach (var entity in smokes)
+            {
+                entity?.Remove();
+            }
+            var mollys = Utilities.FindAllEntitiesByDesignerName<CSmokeGrenadeProjectile>("molotov_projectile");
+            foreach (var entity in mollys)
+            {
+                entity?.Remove();
+            }
+            var inferno = Utilities.FindAllEntitiesByDesignerName<CSmokeGrenadeProjectile>("inferno");
+            foreach (var entity in inferno)
+            {
+                entity?.Remove();
+            }
         }
 
         public void ExecUnpracCommands() {

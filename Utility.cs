@@ -254,8 +254,10 @@ namespace MatchZy
             int count = 0;
             int totalHealth = 0;
             foreach (var key in playerData.Keys) {
+                if (team == 2 && reverseTeamSides["TERRORIST"].coach == playerData[key]) continue;
+                if (team == 3 && reverseTeamSides["CT"].coach == playerData[key]) continue;
                 if (playerData[key].TeamNum == team) {
-                    count++;
+                    if (playerData[key].PlayerPawn.Value.Health > 0) count++;
                     totalHealth += playerData[key].PlayerPawn.Value.Health;
                 }
             }
@@ -308,15 +310,22 @@ namespace MatchZy
             pracUsedBots = new Dictionary<int, Dictionary<string, object>>();
             Server.ExecuteCommand("mp_unpause_match");
             
-
             matchzyTeam1.teamName = "Counter-Terrorist";
             matchzyTeam2.teamName = "Terrorist";
+
+            if (matchzyTeam1.coach != null) matchzyTeam1.coach.Clan = "";
+            if (matchzyTeam2.coach != null) matchzyTeam2.coach.Clan = "";
+
+            matchzyTeam1.coach = null;
+            matchzyTeam2.coach = null;
 
             Server.ExecuteCommand($"mp_teamname_1 {matchzyTeam1.teamName}");
             Server.ExecuteCommand($"mp_teamname_2 {matchzyTeam2.teamName}");
 
-            Dictionary<Team, string> teamSides = new();
-            Dictionary<string, Team> reverseTeamSides = new();
+            teamSides[matchzyTeam1] = "CT";
+            teamSides[matchzyTeam2] = "TERRORIST";
+            reverseTeamSides["CT"] = matchzyTeam1;
+            reverseTeamSides["TERRORIST"] = matchzyTeam2;
 
             KillPhaseTimers();
             UpdatePlayersMap();
@@ -481,6 +490,7 @@ namespace MatchZy
                 foreach (var key in playerData.Keys) {
                     if (playerData[key].TeamNum == 3) {
                         matchzyTeam1.teamName = "team_" + playerData[key].PlayerName.Replace(" ", "_");
+                        if (matchzyTeam1.coach != null) matchzyTeam1.coach.Clan = $"[{matchzyTeam1.teamName} COACH]";
                         break;
                     }
                 }
@@ -494,6 +504,7 @@ namespace MatchZy
                 foreach (var key in playerData.Keys) {
                     if (playerData[key].TeamNum == 2) {
                         matchzyTeam2.teamName = "team_" + playerData[key].PlayerName.Replace(" ", "_");
+                        if (matchzyTeam2.coach != null) matchzyTeam2.coach.Clan = $"[{matchzyTeam2.teamName} COACH]";
                         break;
                     }
                 }
@@ -590,7 +601,46 @@ namespace MatchZy
         }
 
         public void HandlePostRoundStartEvent(EventRoundStart @event) {
+            HandleCoaches();
             CreateMatchZyRoundDataBackup();
+            InitPlayerDamageInfo();
+        }
+
+        public void HandlePostRoundFreezeEndEvent(EventRoundFreezeEnd @event)
+        {
+            List<CCSPlayerController?> coaches = new List<CCSPlayerController?>
+            {
+                matchzyTeam1.coach,
+                matchzyTeam2.coach
+            };
+
+            foreach (var coach in coaches) 
+            {
+                if (coach == null) continue;
+                AddTimer(1.0f, () => HandleCoachTeam(coach));
+            }
+        }
+
+        private void HandleCoachTeam(CCSPlayerController playerController)
+        {
+            CsTeam oldTeam = CsTeam.Spectator;
+            if (matchzyTeam1.coach == playerController) {
+                if (teamSides[matchzyTeam1] == "CT") {
+                    oldTeam = CsTeam.CounterTerrorist;
+                } else if (teamSides[matchzyTeam1] == "TERRORIST") {
+                    oldTeam = CsTeam.Terrorist;
+                }
+            }
+            if (matchzyTeam2.coach == playerController) {
+                if (teamSides[matchzyTeam2] == "CT") {
+                    oldTeam = CsTeam.CounterTerrorist;
+                } else if (teamSides[matchzyTeam2] == "TERRORIST") {
+                    oldTeam = CsTeam.Terrorist;
+                }
+            }
+            playerController.ChangeTeam(CsTeam.Spectator);
+            playerController.ChangeTeam(oldTeam);
+            if (playerController.InGameMoneyServices != null) playerController.InGameMoneyServices.Account = 0;
         }
 
         private void HandlePostRoundEndEvent(EventRoundEnd @event) {

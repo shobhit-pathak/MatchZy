@@ -89,6 +89,11 @@ namespace MatchZy
             // This sets default config ConVars
             Server.ExecuteCommand("execifexists MatchZy/config.cfg");
 
+            teamSides[matchzyTeam1] = "CT";
+            teamSides[matchzyTeam2] = "TERRORIST";
+            reverseTeamSides["CT"] = matchzyTeam1;
+            reverseTeamSides["TERRORIST"] = matchzyTeam2;
+
             if (!hotReload) {
                 StartWarmup();
             } else {
@@ -98,28 +103,32 @@ namespace MatchZy
             }
 
             commandActions = new Dictionary<string, Action<CCSPlayerController?, CommandInfo?>> {
-                { ".ready", (player, commandInfo) => OnPlayerReady(player, commandInfo) },
-                { ".r", (player, commandInfo) => OnPlayerReady(player, commandInfo) },
-                { ".unready", (player, commandInfo) => OnPlayerUnReady(player, commandInfo) },
-                { ".ur", (player, commandInfo) => OnPlayerUnReady(player, commandInfo) },
-                { ".stay", (player, commandInfo) => OnTeamStay(player, commandInfo) },
-                { ".switch", (player, commandInfo) => OnTeamSwitch(player, commandInfo) },
-                { ".tech", (player, commandInfo) => OnPauseCommand(player, commandInfo) },
-                { ".pause", (player, commandInfo) => OnPauseCommand(player, commandInfo) },
-                { ".unpause", (player, commandInfo) => OnUnpauseCommand(player, commandInfo) },
-                { ".tac", (player, commandInfo) => OnTacCommand(player, commandInfo) },
-                { ".knife", (player, commandInfo) => OnKifeCommand(player, commandInfo) },
-                { ".start", (player, commandInfo) => OnStartCommand(player, commandInfo) },
-                { ".restart", (player, commandInfo) => OnRestartMatchCommand(player, commandInfo) },
-                { ".settings", (player, commandInfo) => OnMatchSettingsCommand(player, commandInfo) },
-                { ".whitelist", (player, commandInfo) => OnWLCommand(player, commandInfo) },
-                { ".reload_admins", (player, commandInfo) => OnReloadAdmins(player, commandInfo) },
-                { ".prac", (player, commandInfo) => OnPracCommand(player, commandInfo) },
-                { ".bot", (player, commandInfo) => OnBotCommand(player, commandInfo) },
-                { ".nobots", (player, commandInfo) => OnNoBotsCommand(player, commandInfo) },
-                { ".match", (player, commandInfo) => OnMatchCommand(player, commandInfo) },
-                { ".exitprac", (player, commandInfo) => OnMatchCommand(player, commandInfo) },
-                { ".stop", (player, commandInfo) => OnStopCommand(player, commandInfo) }
+                { ".ready", OnPlayerReady },
+                { ".r", OnPlayerReady },
+                { ".unready", OnPlayerUnReady },
+                { ".ur", OnPlayerUnReady },
+                { ".stay", OnTeamStay },
+                { ".switch", OnTeamSwitch },
+                { ".tech", OnPauseCommand },
+                { ".pause", OnPauseCommand },
+                { ".unpause", OnUnpauseCommand },
+                { ".tac", OnTacCommand },
+                { ".knife", OnKifeCommand },
+                { ".start", OnStartCommand },
+                { ".restart", OnRestartMatchCommand },
+                { ".settings", OnMatchSettingsCommand },
+                { ".whitelist", OnWLCommand },
+                { ".reload_admins", OnReloadAdmins },
+                { ".prac", OnPracCommand },
+                { ".bot", OnBotCommand },
+                { ".nobots", OnNoBotsCommand },
+                { ".ff", OnFastForwardCommand },
+                { ".fastforward", OnFastForwardCommand },
+                { ".clear", OnClearCommand },
+                { ".match", OnMatchCommand },
+                { ".uncoach", OnUnCoachCommand },
+                { ".exitprac", OnMatchCommand },
+                { ".stop", OnStopCommand }
             };
 
             RegisterEventHandler<EventPlayerConnectFull>((@event, info) => {
@@ -181,14 +190,23 @@ namespace MatchZy
             });
 
             RegisterEventHandler<EventPlayerDisconnect>((@event, info) => {
-                Log($"[EventPlayerDisconnect] Player ID: {@event.Userid.UserId}, Name: {@event.Userid.PlayerName} has disconnected!");
-                if (@event.Userid.UserId.HasValue) {
-                    if (playerReadyStatus.ContainsKey(@event.Userid.UserId.Value)) {
-                        playerReadyStatus.Remove(@event.Userid.UserId.Value);
+                CCSPlayerController player = @event.Userid;
+                Log($"[EventPlayerDisconnect] Player ID: {player.UserId}, Name: {player.PlayerName} has disconnected!");
+                if (player.UserId.HasValue) {
+                    if (playerReadyStatus.ContainsKey(player.UserId.Value)) {
+                        playerReadyStatus.Remove(player.UserId.Value);
                         connectedPlayers--;
                     }
-                    if (playerData.ContainsKey(@event.Userid.UserId.Value)) {
-                        playerData.Remove(@event.Userid.UserId.Value);
+                    if (playerData.ContainsKey(player.UserId.Value)) {
+                        playerData.Remove(player.UserId.Value);
+                    }
+                    
+                    if (matchzyTeam1.coach == player) {
+                        matchzyTeam1.coach = null;
+                        player.Clan = "";
+                    } else if (matchzyTeam2.coach == player) {
+                        matchzyTeam2.coach = null;
+                        player.Clan = "";
                     }
                 }
 
@@ -219,6 +237,21 @@ namespace MatchZy
                 HandlePostRoundStartEvent(@event);
                 return HookResult.Continue;
             });
+
+            RegisterEventHandler<EventRoundFreezeEnd>((@event, info) => {
+                HandlePostRoundFreezeEndEvent(@event);
+                return HookResult.Continue;
+            });
+
+            RegisterEventHandler<EventPlayerTeam>((@event, info) => {
+                CCSPlayerController player = @event.Userid;
+
+                if (matchzyTeam1.coach == player || matchzyTeam2.coach == player) {
+                    @event.Silent = true;
+                    return HookResult.Changed;
+                }
+                return HookResult.Continue;
+            }, HookMode.Pre);
 
             RegisterEventHandler<EventRoundEnd>((@event, info) => {
                 Log($"[EventRoundEnd PRE] Winner: {@event.Winner}, Reason: {@event.Reason}");
@@ -392,7 +425,22 @@ namespace MatchZy
                         SendPlayerNotAdminMessage(player);
                     }
                 }
+                if (message.StartsWith(".coach")) {
+                    string command = ".coach";
+                    string coachSide = message.Substring(command.Length).Trim();
 
+                    HandleCoachCommand(player, coachSide);
+                }
+
+                return HookResult.Continue;
+            });
+
+            RegisterEventHandler<EventPlayerBlind>((@event, info) =>
+            {
+                if (isPractice && @event.Userid.SteamID != @event.Attacker.SteamID)
+                {
+                    @event.Attacker.PrintToChat($"{chatPrefix} Flashed {@event.Userid.PlayerName}. Blind time: {@event.BlindDuration} seconds");
+                }
                 return HookResult.Continue;
             });
 
