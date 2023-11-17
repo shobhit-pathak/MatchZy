@@ -23,16 +23,17 @@ MatchZy is a plugin for CS2 (Counter Strike 2) for running and managing practice
 MatchZy can solve a lot of match management requirements. It provides basic commands like `!ready`, `!unready`, `!pause`, `!unpause`, `!tac`, `!stop`, etc, provides matches stats, and much more!
 
 **Feature higlights:**
-- Practice Mode with `.bot`, `.spawn`, `.ctspawn`, `.tspawn`, `.nobots` and `.exitprac` commands!
+- Practice Mode with `.bot`, `.spawn`, `.ctspawn`, `.tspawn`, `.nobots`, `.clear`, `.exitprac` and many more commands!
 - Warmup with infinite money 🤑
 - Knife round (With expected logic, i.e., team with most players win. If same number of players, then team with HP advantage wins. If same HP, winner is decided randomly)
 - Start live match (after side selection is done by knife winner. Knife round can also be disabled).
 - Automatically starts demo recording and stop recording when match is ended (Make sure you have tv_enable 1)
 - Players whitelisting (Thanks to [DEAFPS](https://github.com/DEAFPS)!)
+- Coaching system
 - Damage report after every round
 - Support for round restore (Currently using the vanilla valve's backup system)
 - Ability to create admin and allowing them access to admin commands
-- Database Stats and CSV Stats! MatchZy stores data and stats of all the matches in a local SQLite database and also creates a CSV file for detailed stats of every player in that match!
+- Database Stats and CSV Stats! MatchZy stores data and stats of all the matches in a local SQLite database (MySQL Database is also supported!) and also creates a CSV file for detailed stats of every player in that match!
 - Provides easy configuration
 - And much more!!
 
@@ -43,19 +44,29 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.ready` Marks the player ready
 - `.unready` Marks the player unready
 - `.pause` Pauses the match in freezetime.
+- `.tech` Pauses the match in freezetime.
 - `.unpause` Request for unpausing the match. Both teams need to type .unpause to unpause the match
 - `.stay` Stays on the same side (For knife winner, after the knife round)
 - `.switch` Switches the side (For knife winner, after the knife round)
 - `.stop` Restore the backup of the current round (Both teams need to type .stop to restore the current round)
 - `.tac` Starts a tactical timeout
+- `.coach <side>` Starts coaching the specified side. Example: `.coach t` to start coaching terrorist side!
 
 ### Practice Mode Commands
 
-- `.spawn <number>` Spawns to the provided spawn number of same team
-- `.ctspawn <number>` Spawns to the provided spawn number of CT
-- `.tspawn <number>` Spawns to the provided spawn number of T
+- `.spawn <number>` Spawns to the provided competitive spawn number of same team
+- `.ctspawn <number>` Spawns to the provided competitive spawn number of CT
+- `.tspawn <number>` Spawns to the provided competitive spawn number of T
 - `.bot` Adds a bot on user's current position
 - `.nobots` Removes all the bots
+- `.clear` Clears all the active smokes, molotoves and incendiaries
+- `.fastforward` Fastforwards the server time to 20 seconds
+- `.god` Turns on god mode
+- `.savenade <name> <optional description>` Saves a lineup
+- `.loadnade <name>` Loads a lineup
+- `.deletenade <name>` Deletes a lineup from file
+- `.importnade <code>` Upon saving a lineup a code will be printed to chat, alternatively those can be retrieved from the savednades.cfg
+- `.listnades <optional filter>` Lists either all saved lineups ever or if given a filter only those that match the filter
 
 ### Admin Commands
 
@@ -156,12 +167,28 @@ steamid3
 
 ### Database Stats
 
-MatchZy comes with a default database (SQLite), which configures itself automatically.
+MatchZy comes with a default database (SQLite), which configures itself automatically. MySQL Database can also be used with MatchZy!
 Currently we are using 2 tables, `matchzy_match_data` and `matchzy_player_stats`. As their names suggest, `matchzy_match_data` holds the data of every match, like matchid, team names, scores, etc.
 Whereas, `matchzy_player_stats` stores data/stats of every player who played in that match. It stores data like matchid, kills, deaths, assists, and other important stats!
 
+### Using MySQL Database with MatchZy
+
+To use MySQL Database with MatchZy, open `csgo/cfg/MatchZy/database.json` file. It's content will be like this:
+```
+{
+    "DatabaseType": "SQLite",
+    "MySqlHost": "your_mysql_host",
+    "MySqlDatabase": "your_mysql_database",
+    "MySqlUsername": "your_mysql_username",
+    "MySqlPassword": "your_mysql_password",
+    "MySqlPort": 3306
+}
+```
+Here, change the `DatabaseType` from `SQLite` to `MySQL` and then fill-up all the other details like host, database, username, etc.
+MySQL Database is useful for those who wants to use a common database across multiple servers!
+
 ### CSV Stats
-Once a match is over, data is pulled from the SQLite database and a CSV file is written in the folder:
+Once a match is over, data is pulled from the database and a CSV file is written in the folder:
 `csgo/MatchZy_Stats`. This folder will contain CSV file for each match (file name pattern: `match_data_{matchid}.csv`) and it will have the same data which is present in `matchzy_player_stats`.
 
 There is a scope of improvement here, like having the match score in the CSV file or atleast in the file name patter. I'll make this change soon!
@@ -202,3 +229,4 @@ MIT
 * [LOTGaming](https://lotgaming.xyz/) - Helped me a lot with initial testing and provided servers on different systems and locations!
 * [CHR15cs](https://github.com/CHR15cs) - Helped me a lot with the practice mode!
 * [K4ryuu](https://github.com/K4ryuu) - Awesome job on damage report!
+* [DEAFPS](https://github.com/DEAFPS) - Great contribution for Practice mode!

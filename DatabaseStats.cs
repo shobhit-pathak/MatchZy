@@ -29,7 +29,6 @@ namespace MatchZy
             {
                 SetDatabaseConfig(directory);
 
-                // DatabaseType databaseType = DatabaseType.MySQL;
                 if (databaseType == DatabaseType.SQLite)
                 {
                     connection =
