@@ -116,6 +116,7 @@ namespace MatchZy
                 { ".reload_admins", (player, commandInfo) => OnReloadAdmins(player, commandInfo) },
                 { ".prac", (player, commandInfo) => OnPracCommand(player, commandInfo) },
                 { ".bot", (player, commandInfo) => OnBotCommand(player, commandInfo) },
+		{ ".god", (player, commandInfo) => OnGodCommand(player, commandInfo) },
                 { ".nobots", (player, commandInfo) => OnNoBotsCommand(player, commandInfo) },
                 { ".match", (player, commandInfo) => OnMatchCommand(player, commandInfo) },
                 { ".exitprac", (player, commandInfo) => OnMatchCommand(player, commandInfo) },
@@ -157,6 +158,7 @@ namespace MatchZy
                 }
 
                 player.PrintToChat($"{chatPrefix} Welcome to the server!");
+		player.PrintToCenter($"{chatPrefix} Welcome to the server!");
                 if (@event.Userid.UserId.HasValue) {
                     
                     playerData[@event.Userid.UserId.Value] = @event.Userid;
@@ -351,6 +353,36 @@ namespace MatchZy
                     } else {
                         SendPlayerNotAdminMessage(player);
                     }
+                }
+		if (message.StartsWith(".savenade")) {
+                    string command = ".savenade";
+                    string commandArg = message.Substring(command.Length).Trim();
+		    HandleSaveNadeCommand(player, commandArg);
+		    
+                }
+		if (message.StartsWith(".deletenade")) {
+                    string command = ".deletenade";
+                    string commandArg = message.Substring(command.Length).Trim();
+		    HandleDeleteNadeCommand(player, commandArg);
+		    
+                }
+		if (message.StartsWith(".importnade")) {
+                    string command = ".importnade";
+                    string commandArg = message.Substring(command.Length).Trim();
+		    HandleImportNadeCommand(player, commandArg);
+		    
+                }
+		if (message.StartsWith(".listnades")) {
+                    string command = ".listnades";
+                    string commandArg = message.Substring(command.Length).Trim();
+		    HandleListNadesCommand(player, commandArg);
+		    
+                }
+		if (message.StartsWith(".loadnade")) {
+                    string command = ".loadnade";
+                    string commandArg = message.Substring(command.Length).Trim();
+		    HandleLoadNadeCommand(player, commandArg);
+		    
                 }
                 if (message.StartsWith(".spawn")) {
                     string command = ".spawn";
