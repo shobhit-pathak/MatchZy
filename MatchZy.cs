@@ -167,7 +167,7 @@ namespace MatchZy
                 }
 
                 player.PrintToChat($"{chatPrefix} Welcome to the server!");
-		player.PrintToCenter($"{chatPrefix} Welcome to the server!");
+
                 if (@event.Userid.UserId.HasValue) {
                     
                     playerData[@event.Userid.UserId.Value] = @event.Userid;
