@@ -185,6 +185,7 @@ namespace MatchZy
                     // Start Warmup when first player connect and match is not started.
                     if (GetRealPlayersCount() == 1) {
                         Log($"[FULL CONNECT] First player has connected, starting warmup!");
+                        ExecUnpracCommands();
                         StartWarmup();
                     }
                 }
