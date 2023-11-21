@@ -15,6 +15,8 @@ namespace MatchZy
         public bool pauseAfterRoundRestore = true;
         public string lastBackupFileName = "";
 
+        public bool isRoundRestoring = false;
+
         public Dictionary<string, bool> stopData = new Dictionary<string, bool> {
             { "ct", false },
             { "t", false }
@@ -132,17 +134,17 @@ namespace MatchZy
                             backupData = new Dictionary<string, string>();
                         }
                     }
+
+                    isRoundRestoring = true;
                     
                     foreach (var kvp in backupData) {
 
                         if (kvp.Key == "team1_side") {
                             // This means round is being restored after sides were swapped, hence we swap sides in our records as well!
                             if (kvp.Value == "CT" && teamSides[matchzyTeam1] != "CT") {
-                                (teamSides[matchzyTeam1], teamSides[matchzyTeam2]) = (teamSides[matchzyTeam2], teamSides[matchzyTeam1]);
-                                (reverseTeamSides["CT"], reverseTeamSides["TERRORIST"]) = (reverseTeamSides["TERRORIST"], reverseTeamSides["CT"]);
+                                SwapSidesInTeamData(false);
                             } else if (kvp.Value == "TERRORIST" && teamSides[matchzyTeam1] != "TERRORIST") {
-                                (teamSides[matchzyTeam1], teamSides[matchzyTeam2]) = (teamSides[matchzyTeam2], teamSides[matchzyTeam1]);
-                                (reverseTeamSides["CT"], reverseTeamSides["TERRORIST"]) = (reverseTeamSides["TERRORIST"], reverseTeamSides["CT"]);
+                                SwapSidesInTeamData(false);
                             }
                             Server.ExecuteCommand($"mp_teamname_1 {matchzyTeam1.teamName}");
                             Server.ExecuteCommand($"mp_teamname_2 {matchzyTeam2.teamName}");

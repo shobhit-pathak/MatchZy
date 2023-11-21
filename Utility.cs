@@ -621,7 +621,7 @@ namespace MatchZy
             }
         }
 
-        private void HandleCoachTeam(CCSPlayerController playerController)
+        private void HandleCoachTeam(CCSPlayerController playerController, bool isFreezeTime = false)
         {
             CsTeam oldTeam = CsTeam.Spectator;
             if (matchzyTeam1.coach == playerController) {
@@ -638,8 +638,10 @@ namespace MatchZy
                     oldTeam = CsTeam.Terrorist;
                 }
             }
-            playerController.ChangeTeam(CsTeam.Spectator);
-            playerController.ChangeTeam(oldTeam);
+            if (!(isFreezeTime && playerController.TeamNum == (int)oldTeam)) {
+                playerController.ChangeTeam(CsTeam.Spectator);
+                playerController.ChangeTeam(oldTeam);
+            }
             if (playerController.InGameMoneyServices != null) playerController.InGameMoneyServices.Account = 0;
         }
 
@@ -666,29 +668,41 @@ namespace MatchZy
                 stopData["ct"] = false;
                 stopData["t"] = false;
 
-                // Handling OTs and side swaps (Referred from Get5)
-                var gameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
-                int roundsPlayed = gameRules.TotalRoundsPlayed;
+                bool swapRequired = IsTeamSwapRequired();
 
-                int roundsPerHalf = ConVar.Find("mp_maxrounds").GetPrimitiveValue<int>() / 2;
-                int roundsPerOTHalf = ConVar.Find("mp_overtime_maxrounds").GetPrimitiveValue<int>() / 2;
+                // If isRoundRestoring is true, sides will be swapped from round restore if required!
+                if (swapRequired && !isRoundRestoring) {
+                    SwapSidesInTeamData(false);
+                }
 
-                bool halftimeEnabled = ConVar.Find("mp_halftime").GetPrimitiveValue<bool>();
+                isRoundRestoring = false;
+            }
+        }
 
-                if (halftimeEnabled) {
-                    if (roundsPlayed == roundsPerHalf) {
-                        SwapSidesInTeamData(false);
-                    }
-                    // Now in OT.
-                    if (roundsPlayed >= 2 * roundsPerHalf) {
-                        int otround = roundsPlayed - 2 * roundsPerHalf;  // round 33 -> round 3, etc.
-                        // Do side swaps at OT halves (rounds 3, 9, ...)
-                        if ((otround + roundsPerOTHalf) % (2 * roundsPerOTHalf) == 0) {
-                            SwapSidesInTeamData(false);
-                        }
+        public bool IsTeamSwapRequired() {
+            // Handling OTs and side swaps (Referred from Get5)
+            var gameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
+            int roundsPlayed = gameRules.TotalRoundsPlayed;
+
+            int roundsPerHalf = ConVar.Find("mp_maxrounds").GetPrimitiveValue<int>() / 2;
+            int roundsPerOTHalf = ConVar.Find("mp_overtime_maxrounds").GetPrimitiveValue<int>() / 2;
+
+            bool halftimeEnabled = ConVar.Find("mp_halftime").GetPrimitiveValue<bool>();
+
+            if (halftimeEnabled) {
+                if (roundsPlayed == roundsPerHalf) {
+                    return true;
+                }
+                // Now in OT.
+                if (roundsPlayed >= 2 * roundsPerHalf) {
+                    int otround = roundsPlayed - 2 * roundsPerHalf;  // round 33 -> round 3, etc.
+                    // Do side swaps at OT halves (rounds 3, 9, ...)
+                    if ((otround + roundsPerOTHalf) % (2 * roundsPerOTHalf) == 0) {
+                        return true;
                     }
                 }
             }
+            return false;
         }
 
         private void ReplyToUserCommand(CCSPlayerController? player, string message, bool console = false)

@@ -111,7 +111,7 @@ namespace MatchZy
                 if (coach == null) continue;
                 Log($"Found coach: {coach.PlayerName}");
                 coach.InGameMoneyServices!.Account = 0;
-                AddTimer(0.5f, () => HandleCoachTeam(coach));
+                AddTimer(0.5f, () => HandleCoachTeam(coach, true));
                 // AddTimer(1, () => {
                 //     Server.ExecuteCommand("mp_suicide_penalty 0; mp_death_drop_gun 0");
                 //     coach.PlayerPawn.Value.CommitSuicide(false, true);
