@@ -160,23 +160,23 @@ namespace MatchZy
 
             if (!string.IsNullOrWhiteSpace(saveNadeName))
             {
-                
+                // Split string into 2 parts
                 string[] lineupUserString = saveNadeName.Split(' ');
                 string lineupName = lineupUserString[0];
                 string lineupDesc = string.Join(" ", lineupUserString, 1, lineupUserString.Length - 1);
 
-                
+                // Get player info: steamid, pos, ang
                 string playerSteamID = player.SteamID.ToString();
                 QAngle playerAngle = player.PlayerPawn.Value.EyeAngles;
                 Vector playerPos = player.Pawn.Value.CBodyComponent!.SceneNode.AbsOrigin;
                 string currentMapName = Server.MapName;
                 string nadeType = GetNadeType(player.PlayerPawn.Value.WeaponServices.ActiveWeapon.Value.DesignerName);
 
-                
+                // Define the file path
                 string savednadesfileName = "MatchZy/savednades.json";
                 string savednadesPath = Path.Join(Server.GameDirectory + "/csgo/cfg", savednadesfileName);
 
-                
+                // Check if the file exists, if not, create it with an empty JSON object
                 if (!File.Exists(savednadesPath))
                 {
                     File.WriteAllText(savednadesPath, "{}");
@@ -184,24 +184,24 @@ namespace MatchZy
 
                 try
                 {
-                    
+                    // Read existing JSON content
                     string existingJson = File.ReadAllText(savednadesPath);
 
                     Console.WriteLine($"{player}");
 
-                    
+                    // Deserialize the existing JSON content
                     var savedNadesDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, Dictionary<string, string>>>>(existingJson)
                                         ?? new Dictionary<string, Dictionary<string, Dictionary<string, string>>>();
 
-                    
+                    // Check if the lineup name already exists for the given SteamID
                     if (savedNadesDict.ContainsKey(playerSteamID) && savedNadesDict[playerSteamID].ContainsKey(lineupName))
                     {
-                        
+                        // Lineup already exists, reply to the user and return
                         ReplyToUserCommand(player, $"Lineup already exists! Please use a different name or use .delnade <nade>");
                         return;
                     }
 
-                    
+                    // Update or add the new lineup information
                     if (!savedNadesDict.ContainsKey(playerSteamID))
                     {
                         savedNadesDict[playerSteamID] = new Dictionary<string, Dictionary<string, string>>();
@@ -216,13 +216,13 @@ namespace MatchZy
                         { "Type", nadeType }
                     };
 
-                    
+                    // Serialize the updated dictionary back to JSON
                     string updatedJson = JsonSerializer.Serialize(savedNadesDict, new JsonSerializerOptions { WriteIndented = true });
 
-                    
+                    // Write the updated JSON content back to the file
                     File.WriteAllText(savednadesPath, updatedJson);
 
-                    
+                    //Reply to user
                     ReplyToUserCommand(player, $" \x0DLineup \x06'{lineupName}' \x0Dsaved successfully!");
 					player.PrintToCenter($"Lineup '{lineupName}' saved successfully!");
 					ReplyToUserCommand(player, $" \x0DLineup Code: \x06{lineupName} {playerPos} {playerAngle}");
@@ -242,38 +242,36 @@ namespace MatchZy
         {
             if (!isPractice || player == null) return;
 
-            if (!IsPlayerAdmin(player)) return;
-
             if (!string.IsNullOrWhiteSpace(saveNadeName))
             {
-                
+                // Grab player steamid
                 string playerSteamID = player.SteamID.ToString();
 
-                
+                // Define the file path
                 string savednadesfileName = "MatchZy/savednades.json";
                 string savednadesPath = Path.Join(Server.GameDirectory + "/csgo/cfg", savednadesfileName);
 
                 try
                 {
-                    
+                    // Read existing JSON content
                     string existingJson = File.ReadAllText(savednadesPath);
 
-                    
+                    //Console.WriteLine($"Existing JSON Content: {existingJson}");
 
-                    
+                    // Deserialize the existing JSON content
                     var savedNadesDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, Dictionary<string, string>>>>(existingJson)
                                         ?? new Dictionary<string, Dictionary<string, Dictionary<string, string>>>();
 
-                    
+                    // Check if the lineup exists for the given SteamID and name
                     if (savedNadesDict.ContainsKey(playerSteamID) && savedNadesDict[playerSteamID].ContainsKey(saveNadeName))
                     {
-                        
+                        // Remove the specified lineup
                         savedNadesDict[playerSteamID].Remove(saveNadeName);
 
-                        
+                        // Serialize the updated dictionary back to JSON
                         string updatedJson = JsonSerializer.Serialize(savedNadesDict, new JsonSerializerOptions { WriteIndented = true });
 
-                        
+                        // Write the updated JSON content back to the file
                         File.WriteAllText(savednadesPath, updatedJson);
 
                         ReplyToUserCommand(player, $"Lineup '{saveNadeName}' deleted successfully.");
@@ -302,42 +300,42 @@ namespace MatchZy
             {
                 try
                 {
-                    
+                    // Split the code into parts
                     string[] parts = saveNadeCode.Split(' ');
 
-                    
+                    // Check if there are enough parts
                     if (parts.Length == 7)
                     {
-                        
+                        // Extract name, pos, and ang from the parts
                         string lineupName = parts[0].Trim();
-                        string[] posAng = parts.Skip(1).Select(p => p.Replace(",", "")).ToArray(); 
+                        string[] posAng = parts.Skip(1).Select(p => p.Replace(",", "")).ToArray(); // Replace ',' with '' for proper parsing
 
-                        
+                        // Get player info: steamid
                         string playerSteamID = player.SteamID.ToString();
                         string currentMapName = Server.MapName;
 
-                        
+                        // Define the file path
                         string savednadesfileName = "MatchZy/savednades.json";
                         string savednadesPath = Path.Join(Server.GameDirectory + "/csgo/cfg", savednadesfileName);
 
-                        
+                        // Read existing JSON content
                         string existingJson = File.ReadAllText(savednadesPath);
 
-                        
+                        //Console.WriteLine($"Existing JSON Content: {existingJson}");
 
-                        
+                        // Deserialize the existing JSON content
                         var savedNadesDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, Dictionary<string, string>>>>(existingJson)
                                             ?? new Dictionary<string, Dictionary<string, Dictionary<string, string>>>();
 
-                        
+                        // Check if the lineup name already exists for the given SteamID
                         if (savedNadesDict.ContainsKey(playerSteamID) && savedNadesDict[playerSteamID].ContainsKey(lineupName))
                         {
-                            
+                            // Lineup already exists, reply to the user and return
                             ReplyToUserCommand(player, $"Lineup '{lineupName}' already exists! Please use a different name or use .delnade <nade>");
                             return;
                         }
 
-                        
+                        // Update or add the new lineup information
                         if (!savedNadesDict.ContainsKey(playerSteamID))
                         {
                             savedNadesDict[playerSteamID] = new Dictionary<string, Dictionary<string, string>>();
@@ -351,10 +349,10 @@ namespace MatchZy
                             { "Map", currentMapName }
                         };
 
-                        
+                        // Serialize the updated dictionary back to JSON
                         string updatedJson = JsonSerializer.Serialize(savedNadesDict, new JsonSerializerOptions { WriteIndented = true });
 
-                        
+                        // Write the updated JSON content back to the file
                         File.WriteAllText(savednadesPath, updatedJson);
 
                         ReplyToUserCommand(player, $"Lineup '{lineupName}' imported and saved successfully.");
@@ -379,27 +377,27 @@ namespace MatchZy
         {
             if (!isPractice || player == null) return;
 
-            
+            // Define the file path
             string savednadesfileName = "MatchZy/savednades.json";
             string savednadesPath = Path.Join(Server.GameDirectory + "/csgo/cfg", savednadesfileName);
 
             try
             {
-                
+                // Read existing JSON content
                 string existingJson = File.ReadAllText(savednadesPath);
 
-                
+                //Console.WriteLine($"Existing JSON Content: {existingJson}");
 
-                
+                // Deserialize the existing JSON content
                 var savedNadesDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, Dictionary<string, string>>>>(existingJson)
                                     ?? new Dictionary<string, Dictionary<string, Dictionary<string, string>>>();
 
                 ReplyToUserCommand(player, $"\x0D-----All Saved Lineups for \x06{Server.MapName}\x0D-----");
 
-                
+                // List lineups for the specified player
                 ListLineups(player, "default", Server.MapName, savedNadesDict, nadeFilter);
 
-                
+                // List lineups for the current player
                 ListLineups(player, player.SteamID.ToString(), Server.MapName, savedNadesDict, nadeFilter);
             }
             catch (JsonException ex)
@@ -415,11 +413,11 @@ namespace MatchZy
             {
                 foreach (var kvp in savedNadesDict[steamID])
                 {
-                    
+                    // Check if a filter is provided, and if so, apply the filter
                     if ((string.IsNullOrWhiteSpace(nadeFilter) || kvp.Key.Contains(nadeFilter, StringComparison.OrdinalIgnoreCase))
                         && kvp.Value.ContainsKey("Map") && kvp.Value["Map"] == mapName)
                     {
-                        
+                        // Format and reply with the lineup name
                         ReplyToUserCommand(player, $"\x06[{kvp.Value["Type"]}] \x0D.loadnade \x06{kvp.Key}");
                     }
                 }
@@ -437,49 +435,49 @@ namespace MatchZy
 
             if (!string.IsNullOrWhiteSpace(loadNadeName))
             {
-                
+                // Get player info: steamid
                 string playerSteamID = player.SteamID.ToString();
 
-                
+                // Define the file path
                 string savednadesfileName = "MatchZy/savednades.json";
                 string savednadesPath = Path.Join(Server.GameDirectory + "/csgo/cfg", savednadesfileName);
 
                 try
                 {
-                    
+                    // Read existing JSON content
                     string existingJson = File.ReadAllText(savednadesPath);
 
-                    
+                    //Console.WriteLine($"Existing JSON Content: {existingJson}");
 
-                    
+                    // Deserialize the existing JSON content
                     var savedNadesDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, Dictionary<string, string>>>>(existingJson)
                                         ?? new Dictionary<string, Dictionary<string, Dictionary<string, string>>>();
 
                     bool lineupFound = false;
                     bool lineupOnWrongMap = false;
 
-                    
+                    // Check for the lineup in the player's steamID and the fixed steamID
                     foreach (string currentSteamID in new[] { playerSteamID, "default" })
                     {
                         if (savedNadesDict.ContainsKey(currentSteamID) && savedNadesDict[currentSteamID].ContainsKey(loadNadeName))
                         {
                             var lineupInfo = savedNadesDict[currentSteamID][loadNadeName];
 
-                            
+                            // Check if the lineup contains the "Map" key and if it matches the current map
                             if (lineupInfo.ContainsKey("Map") && lineupInfo["Map"] == Server.MapName)
                             {
-                                
+                                // Extract position and angle from the lineup information
                                 string[] posArray = lineupInfo["LineupPos"].Split(' ');
                                 string[] angArray = lineupInfo["LineupAng"].Split(' ');
 
-                                
+                                // Parse position and angle
                                 Vector loadedPlayerPos = new Vector(float.Parse(posArray[0]), float.Parse(posArray[1]), float.Parse(posArray[2]));
                                 QAngle loadedPlayerAngle = new QAngle(float.Parse(angArray[0]), float.Parse(angArray[1]), float.Parse(angArray[2]));
 
-                                
+                                // Teleport player
                                 player.PlayerPawn.Value.Teleport(loadedPlayerPos, loadedPlayerAngle, new Vector(0, 0, 0));
 
-                                
+                                // Change player inv slot
                                 switch (lineupInfo["Type"])
                                 {
                                     case "Flash":
@@ -502,10 +500,10 @@ namespace MatchZy
                                         break;
                                 }
 
-                                
+                                // Extract description, if available
                                 string lineupDesc = lineupInfo.ContainsKey("Desc") ? lineupInfo["Desc"] : null;
 
-                                
+                                // Print messages
                                 ReplyToUserCommand(player, $" \x0D Lineup \x06'{loadNadeName}' \x0Dloaded successfully!");
 
                                 if (!string.IsNullOrWhiteSpace(lineupDesc))
@@ -527,7 +525,7 @@ namespace MatchZy
 
                     if (!lineupFound && !lineupOnWrongMap)
                     {
-                        
+                        // Lineup not found
                         ReplyToUserCommand(player, $"Nade '{loadNadeName}' not found!");
                     }
                 }
