@@ -95,7 +95,8 @@ All the configuration files related to MatchZy can be found in `csgo/cfg/MatchZy
 ### Creating Admins
 There are two ways to create an admin for MatchZy; you can choose the most convenient one according to your preference.
 
-1. Using CSSharp's Admin system:
+**1. Using CSSharp's Admin system:**
+
 You can create a new entry in the `/addons/counterstrikesharp/configs/admins.json` file with `@css/generic` generic flag like mentioned in the below example:
 ```
 {
@@ -114,7 +115,8 @@ You can create a new entry in the `/addons/counterstrikesharp/configs/admins.jso
 }
 ```
 
-2. Using MatchZy's Admin system:
+**2. Using MatchZy's Admin system:**
+
 Inside `csgo/cfg/MatchZy`, a file named `admins.json` should be present. If it is not there, it will be automatically created when the plugin is loaded. You can add Steam64 id of admins in that JSON file like mentioned in the below example:
 
 ```
