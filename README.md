@@ -86,12 +86,37 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.team2 <name>` Sets name for Team 2 (Terrorist by default)
 - `.prac` Starts Practice Mode
 - `.exitprac` Exits from practice mode and loads Match mode.
+- `.rcon <command>` Sends command to the server
 
 ## Configuration
 
 All the configuration files related to MatchZy can be found in `csgo/cfg/MatchZy` (If you have extracted the contents properly, `MatchZy` folder should be there inside the cfg folder).
 
 ### Creating Admins
+There are two ways to create an admin for MatchZy; you can choose the most convenient one according to your preference.
+
+**1. Using CSSharp's Admin system:**
+
+You can create a new entry in the `/addons/counterstrikesharp/configs/admins.json` file with `@css/generic` generic flag like mentioned in the below example:
+```
+{
+  "WD-": {
+    "identity": "76561198154367261",
+    "flags": [
+      "@css/generic"
+    ]
+  },
+  "Another admin": {
+    "identity": "SteamID 2",
+    "flags": [
+      "@css/generic"
+    ]
+  }
+}
+```
+
+**2. Using MatchZy's Admin system:**
+
 Inside `csgo/cfg/MatchZy`, a file named `admins.json` should be present. If it is not there, it will be automatically created when the plugin is loaded. You can add Steam64 id of admins in that JSON file like mentioned in the below example:
 
 ```
