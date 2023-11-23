@@ -13,7 +13,6 @@ using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Utils;
 using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Cvars;
-using CounterStrikeSharp.API.Modules.Admin;
 
 
 namespace MatchZy
@@ -84,9 +83,6 @@ namespace MatchZy
         }
 
         private bool IsPlayerAdmin(CCSPlayerController? player) {
-            List<string> userPermissions = new() {"@css/generic"};
-            bool isAdmin = AdminManager.PlayerHasPermissions(player, userPermissions.ToArray());
-            if (isAdmin) return isAdmin;
             if (player == null) return true; // Sent via server, hence should be treated as an admin.
             if (loadedAdmins.ContainsKey(player.SteamID.ToString())) {
                 return true;
