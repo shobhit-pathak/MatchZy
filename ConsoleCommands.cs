@@ -259,7 +259,11 @@ namespace MatchZy
                 return;
             }
             string currentMapName = Server.MapName;
-            Server.ExecuteCommand($"changelevel \"{currentMapName}\"");
+            if (Server.IsMapValid(currentMapName)) {
+                Server.ExecuteCommand($"changelevel \"{currentMapName}\"");
+            } else {
+                player.PrintToChat($"{chatPrefix} Cant reload a workshop map!");
+            }
         }
 
         [ConsoleCommand("css_start", "Force starts the match")]
