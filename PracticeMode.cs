@@ -187,8 +187,6 @@ namespace MatchZy
                     // Read existing JSON content
                     string existingJson = File.ReadAllText(savednadesPath);
 
-                    Console.WriteLine($"{player}");
-
                     // Deserialize the existing JSON content
                     var savedNadesDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, Dictionary<string, string>>>>(existingJson)
                                         ?? new Dictionary<string, Dictionary<string, Dictionary<string, string>>>();
@@ -229,7 +227,7 @@ namespace MatchZy
                 }
                 catch (JsonException ex)
                 {
-                    Console.WriteLine($"Error handling JSON: {ex.Message}");
+                    Log($"Error handling JSON: {ex.Message}");
                 }
             }
             else
@@ -283,7 +281,7 @@ namespace MatchZy
                 }
                 catch (JsonException ex)
                 {
-                    Console.WriteLine($"Error handling JSON: {ex.Message}");
+                    Log($"Error handling JSON: {ex.Message}");
                 }
             }
             else
@@ -364,7 +362,7 @@ namespace MatchZy
                 }
                 catch (JsonException ex)
                 {
-                    Console.WriteLine($"Error handling JSON: {ex.Message}");
+                    Log($"Error handling JSON: {ex.Message}");
                 }
             }
             else
@@ -402,7 +400,7 @@ namespace MatchZy
             }
             catch (JsonException ex)
             {
-                Console.WriteLine($"Error handling JSON: {ex.Message}");
+                Log($"Error handling JSON: {ex.Message}");
                 ReplyToUserCommand(player, $"Error handling JSON. Please check the server logs.");
             }
         }
@@ -531,7 +529,7 @@ namespace MatchZy
                 }
                 catch (JsonException ex)
                 {
-                    Console.WriteLine($"Error handling JSON: {ex.Message}");
+                    Log($"Error handling JSON: {ex.Message}");
                 }
             }
             else
