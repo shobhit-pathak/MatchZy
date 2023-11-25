@@ -66,7 +66,7 @@ namespace MatchZy
 
         [ConsoleCommand("css_restore", "Restores the specified round")]
         public void OnRestoreCommand(CCSPlayerController? player, CommandInfo command) {
-            if (IsPlayerAdmin(player)) {
+            if (IsPlayerAdmin(player, "css_restore", "@css/config")) {
                 if (command.ArgCount >= 2) {
                     string commandArg = command.ArgByIndex(1);
                     HandleRestoreCommand(player, commandArg);
@@ -80,7 +80,7 @@ namespace MatchZy
         }
 
         private void HandleRestoreCommand(CCSPlayerController? player, string commandArg) {
-            if (!IsPlayerAdmin(player)) {
+            if (!IsPlayerAdmin(player, "css_restore", "@css/config")) {
                 SendPlayerNotAdminMessage(player);
                 return;
             }

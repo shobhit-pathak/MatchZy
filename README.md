@@ -17,7 +17,7 @@ MatchZy is a plugin for CS2 (Counter Strike 2) for running and managing practice
 	* Download the latest [MatchZy release](https://github.com/shobhit-pathak/MatchZy/releases/) and extract the files to the csgo/ directory of the dedicated server.
 	* Verify the installation by typing `css_plugins list` and you should see MatchZy by WD- listed there.
 
-**Note**: CSSharp plugin is only for servers on Linux systems.
+**Note**: If you want to use MatchZy on Windows server, you will need Windows build of `counterstrikesharp` which is available on its [releases page](https://github.com/roflmuffin/CounterStrikeSharp/releases)
 
 ## What can MatchZy do?
 MatchZy can solve a lot of match management requirements. It provides basic commands like `!ready`, `!unready`, `!pause`, `!unpause`, `!tac`, `!stop`, etc, provides matches stats, and much more!
@@ -72,10 +72,11 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 
 - `.start` Force starts a match.
 - `.restart` Force restarts/resets a match.
-- `.pause` Pauses the match as an admin (Players cannot unpause the admin-paused match).
-- `.unpause` Force unpauses the match.
+- `.forcepause` Pauses the match as an admin (Players cannot unpause the admin-paused match). (`.fp` for shorter command)
+- `.forceunpause` Force unpauses the match. (`.fup` for shorter command)
 - `.restore <round>` Restores the backup of provided round number.
 - `.knife` Toggles the knife round. If disabled, match will directly go from Warmup phase to Live phase.
+- `.playout` Toggles playout (If playout is enabled, all rounds would be played irrespective of winner. Useful in scrims!)
 - `.whitelist` Toggles whitelisting of players. To whitelist a player, add the steam64id in `cfg/MatchZy/whitelist.cfg`
 - `.readyrequired <number>` Sets the number of ready players required to start the match. If set to 0, all connected players will have to ready-up to start the match.
 - `.settings` Displays the current setting, like whether knife is enabled or not, value of readyrequired  players, etc.
@@ -96,23 +97,33 @@ All the configuration files related to MatchZy can be found in `csgo/cfg/MatchZy
 There are two ways to create an admin for MatchZy; you can choose the most convenient one according to your preference.
 
 1. Using CSSharp's Admin system:
-You can create a new entry in the `/addons/counterstrikesharp/configs/admins.json` file with `@css/generic` generic flag like mentioned in the below example:
+You can create a new entry in the `/addons/counterstrikesharp/configs/admins.json` file with appropirate flags like mentioned in the below example:
 ```
 {
   "WD-": {
     "identity": "76561198154367261",
     "flags": [
-      "@css/generic"
+      "@css/root"
     ]
   },
   "Another admin": {
     "identity": "SteamID 2",
     "flags": [
-      "@css/generic"
+      "@css/config",
+      "@css/rcon
     ]
   }
 }
 ```
+
+Flag-wise permissions:
+
+- `@css/root`: Grants access to all admin commands
+- `@css/config`: Grants access to config related admin commands
+- `@custom/prac`: Grants access to practice related admin commands
+- `@css/map`: Grants access to change map and toggle practice mode
+- `@css/rcon`: Grants access to trigger RCON commands using `!rcon <command>`
+- `@css/chat`: Grants access to send admin chat messages using `!asay <message>`
 
 2. Using MatchZy's Admin system:
 Inside `csgo/cfg/MatchZy`, a file named `admins.json` should be present. If it is not there, it will be automatically created when the plugin is loaded. You can add Steam64 id of admins in that JSON file like mentioned in the below example:
@@ -163,10 +174,18 @@ matchzy_pause_after_restore true
 // {BlueGrey}, {Magenta} and {LightRed}. Make sure to end your prefix with {Default} to avoid coloring the complete messages in your prefix color
 matchzy_chat_prefix [{Green}MatchZy{Default}]
 
+// Chat prefix to show whenever an admin sends message using .asay <message>. Default value: [{Red}ADMIN{Default}]
+// Avaiable Colors are mentioned above
+matchzy_admin_chat_prefix [{Red}ADMIN{Default}]
+
 // Number of seconds of delay before sending reminder messages from MatchZy (like unready message, paused message, etc).
 // Default: 12 (Because each message is kept in chat for ~13 seconds)
 // Note: Changing this timer wont affect the active timer, so if you change this setting in warmup, you will have to restart warmup to make the change effective
 matchzy_chat_messages_timer_delay 12
+
+// Whether playout (play max rounds) is enabled. Default value: false
+// This is the default value, but playout can be toggled by admin using .playout command
+matchzy_playout_enabled_default false
 ```
 
 

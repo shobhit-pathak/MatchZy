@@ -18,7 +18,7 @@ namespace MatchZy
     {
         [ConsoleCommand("css_whitelist", "Toggles Whitelisting of players")]
         public void OnWLCommand(CCSPlayerController? player, CommandInfo? command) {            
-            if (IsPlayerAdmin(player)) {
+            if (IsPlayerAdmin(player, "css_whitelist", "@css/config")) {
                 isWhitelistRequired = !isWhitelistRequired;
                 string WLStatus = isWhitelistRequired ? "Enabled" : "Disabled";
                 if (player == null) {
@@ -110,30 +110,27 @@ namespace MatchZy
             PauseMatch(player, command);
         }
 
+        [ConsoleCommand("css_fp", "Pause the matchas an admin")]
+        [ConsoleCommand("css_forcepause", "Pause the match as an admin")]
+        public void OnForcePauseCommand(CCSPlayerController? player, CommandInfo? command) {            
+            ForcePauseMatch(player, command);
+        }
+
+        [ConsoleCommand("css_fup", "Pause the matchas an admin")]
+        [ConsoleCommand("css_forceunpause", "Pause the match as an admin")]
+        public void OnForceUnpauseCommand(CCSPlayerController? player, CommandInfo? command) {            
+            ForceUnpauseMatch(player, command);
+        }
+
         [ConsoleCommand("css_unpause", "Unpause the match")]
         public void OnUnpauseCommand(CCSPlayerController? player, CommandInfo? command) {
             if (isMatchLive && isPaused) {
                 var pauseTeamName = unpauseData["pauseTeam"];
-                var playerAdmin = IsPlayerAdmin(player);
-                if ((string)pauseTeamName == "Admin" && !(bool)playerAdmin) {
+                if ((string)pauseTeamName == "Admin") {
                     player?.PrintToChat($"{chatPrefix} Match has been paused by an admin, hence it can be unpaused by an admin only.");
                     return;
                 }
-                if ((bool)playerAdmin) {
-                    Server.PrintToChatAll($"{chatPrefix} An admin has unpaused the match, resuming the match!");
-                    Server.ExecuteCommand("mp_unpause_match;");
-                    isPaused = false;
-                    unpauseData["ct"] = false;
-                    unpauseData["t"] = false;
-                    if (!isPaused && pausedStateTimer != null) {
-                        pausedStateTimer.Kill();
-                        pausedStateTimer = null;
-                    }
-                    if (player == null) {
-                        Server.PrintToConsole("[MatchZy] An admin has unpaused the match, resuming the match!");
-                    }
-                    return;
-                }
+
                 string unpauseTeamName = "Admin";
                 string remainingUnpauseTeam = "Admin";
                 if (player?.TeamNum == 2) {
@@ -190,7 +187,7 @@ namespace MatchZy
 
         [ConsoleCommand("css_knife", "Toggles knife round for the match")]
         public void OnKifeCommand(CCSPlayerController? player, CommandInfo? command) {            
-            if (IsPlayerAdmin(player)) {
+            if (IsPlayerAdmin(player, "css_knife", "@css/config")) {
                 isKnifeRequired = !isKnifeRequired;
                 string knifeStatus = isKnifeRequired ? "Enabled" : "Disabled";
                 if (player == null) {
@@ -205,7 +202,7 @@ namespace MatchZy
 
         [ConsoleCommand("css_readyrequired", "Sets number of ready players required to start the match")]
         public void OnReadyRequiredCommand(CCSPlayerController? player, CommandInfo command) {
-            if (IsPlayerAdmin(player)) {
+            if (IsPlayerAdmin(player, "css_readyrequired", "@css/config")) {
                 if (command.ArgCount >= 2) {
                     string commandArg = command.ArgByIndex(1);
                     HandleReadyRequiredCommand(player, commandArg);
@@ -223,9 +220,13 @@ namespace MatchZy
         public void OnMatchSettingsCommand(CCSPlayerController? player, CommandInfo? command) {
             if (player == null) return;
 
-            if (IsPlayerAdmin(player)) {
+            if (IsPlayerAdmin(player, "css_settings", "@css/config")) {
                 string knifeStatus = isKnifeRequired ? "Enabled" : "Disabled";
-                player.PrintToChat($"{chatPrefix} Current Settings: Knife: {ChatColors.Green}{knifeStatus}{ChatColors.Default}, Minimum Ready Required: {ChatColors.Green}{minimumReadyRequired}{ChatColors.Default}");
+                string playoutStatus = isPlayOutEnabled ? "Enabled" : "Disabled";
+                player.PrintToChat($"{chatPrefix} Current Settings:");
+                player.PrintToChat($"{chatPrefix} Knife: {ChatColors.Green}{knifeStatus}{ChatColors.Default}");
+                player.PrintToChat($"{chatPrefix} Minimum Ready Required: {ChatColors.Green}{minimumReadyRequired}{ChatColors.Default}");
+                player.PrintToChat($"{chatPrefix} Playout: {ChatColors.Green}{playoutStatus}{ChatColors.Default}");
             } else {
                 SendPlayerNotAdminMessage(player);
             }
@@ -233,7 +234,7 @@ namespace MatchZy
 
         [ConsoleCommand("css_restart", "Restarts the match")]
         public void OnRestartMatchCommand(CCSPlayerController? player, CommandInfo? command) {
-            if (IsPlayerAdmin(player)) {
+            if (IsPlayerAdmin(player, "css_restart", "@css/config")) {
                 if (!isPractice) {
                     ResetMatch();
                 } else {
@@ -255,7 +256,7 @@ namespace MatchZy
         public void OnStartCommand(CCSPlayerController? player, CommandInfo? command) {
             if (player == null) return;
             
-            if (IsPlayerAdmin(player)) {
+            if (IsPlayerAdmin(player, "css_start", "@css/config")) {
                 if (isPractice) {
                     ReplyToUserCommand(player, "Cannot start a match while in practice mode. Please use .exitprac command to exit practice mode first!");
                     return;
@@ -275,10 +276,10 @@ namespace MatchZy
         public void OnAdminSay(CCSPlayerController? player, CommandInfo? command) {
             if (command == null) return;
             if (player == null) {
-                Server.PrintToChatAll($"[{ChatColors.Red}ADMIN{ChatColors.Default}] {command.ArgString}");
+                Server.PrintToChatAll($"{adminChatPrefix} {command.ArgString}");
                 return;
             }
-            if (!IsPlayerAdmin(player)) {
+            if (!IsPlayerAdmin(player, "css_asay", "@css/chat")) {
                 SendPlayerNotAdminMessage(player);
                 return;
             }
@@ -286,12 +287,12 @@ namespace MatchZy
             for (int i = 1; i < command.ArgCount; i++) {
                 message += command.ArgByIndex(i) + " ";
             }
-            Server.PrintToChatAll($"[{ChatColors.Red}ADMIN{ChatColors.Default}] {message}");
+            Server.PrintToChatAll($"{adminChatPrefix} {message}");
         }
 
         [ConsoleCommand("reload_admins", "Reload admins of MatchZy")]
         public void OnReloadAdmins(CCSPlayerController? player, CommandInfo? command) {
-            if (IsPlayerAdmin(player)) {
+            if (IsPlayerAdmin(player, "reload_admins", "@css/config")) {
                 LoadAdmins();
                 UpdatePlayersMap();
             } else {
@@ -302,7 +303,7 @@ namespace MatchZy
         [ConsoleCommand("css_match", "Starts match mode")]
         public void OnMatchCommand(CCSPlayerController? player, CommandInfo? command)
         {
-            if (!IsPlayerAdmin(player)) {
+            if (!IsPlayerAdmin(player, "css_match", "@css/map", "@custom/prac")) {
                 SendPlayerNotAdminMessage(player);
                 return;
             }
@@ -318,7 +319,7 @@ namespace MatchZy
         [ConsoleCommand("css_exitprac", "Starts match mode")]
         public void OnExitPracCommand(CCSPlayerController? player, CommandInfo? command)
         {
-            if (!IsPlayerAdmin(player)) {
+            if (!IsPlayerAdmin(player, "css_exitprac", "@css/map", "@custom/prac")) {
                 SendPlayerNotAdminMessage(player);
                 return;
             }
@@ -334,7 +335,7 @@ namespace MatchZy
         [ConsoleCommand("css_rcon", "Triggers provided command on the server")]
         public void OnRconCommand(CCSPlayerController? player, CommandInfo command)
         {
-            if (!IsPlayerAdmin(player)) {
+            if (!IsPlayerAdmin(player, "css_rcon", "@css/rcon")) {
                 SendPlayerNotAdminMessage(player);
                 return;
             }
@@ -342,5 +343,32 @@ namespace MatchZy
             ReplyToUserCommand(player, "Command sent successfully!");
         }
 
+        [ConsoleCommand("css_help", "Triggers provided command on the server")]
+        public void OnHelpCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            SendAvailableCommandsMessage(player);
+        }
+
+        [ConsoleCommand("css_playout", "Toggles playout (Playing of max rounds)")]
+        public void OnPlayoutCommand(CCSPlayerController? player, CommandInfo? command) {            
+            if (IsPlayerAdmin(player, "css_playout", "@css/config")) {
+                isPlayOutEnabled = !isPlayOutEnabled;
+                string playoutStatus = isPlayOutEnabled? "Enabled" : "Disabled";
+                if (player == null) {
+                    ReplyToUserCommand(player, $"Playout is now {playoutStatus}!");
+                } else {
+                    player.PrintToChat($"{chatPrefix} Playout is now {ChatColors.Green}{playoutStatus}{ChatColors.Default}!");
+                }
+                
+                if (isPlayOutEnabled) {
+                    Server.ExecuteCommand("mp_match_can_clinch false");
+                } else {
+                    Server.ExecuteCommand("mp_match_can_clinch true");
+                }
+                
+            } else {
+                SendPlayerNotAdminMessage(player);
+            }
+        }
     }
 }

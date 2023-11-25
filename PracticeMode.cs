@@ -157,7 +157,7 @@ namespace MatchZy
 			{
 				ReplyToUserCommand(player, $" \x0DLineup \x06'{lineupName}'\x0D already exists! Please use a different name!");
 				
-				if (IsPlayerAdmin(player))
+				if (IsPlayerAdmin(player, "css_savenade", "@custom/prac"))
 				{
 					ReplyToUserCommand(player, $" \x0DYou can use \x06'.deletenade {lineupName}'\x0D to delete it!");
 				}
@@ -183,7 +183,7 @@ namespace MatchZy
 	{
 		if (!isPractice || player == null) return;
 		
-		if (!IsPlayerAdmin(player)) return;
+		if (!IsPlayerAdmin(player, "css_deletenade", "@custom/prac")) return;
 		
 		if (!string.IsNullOrWhiteSpace(saveNadeName))
 		{
@@ -254,7 +254,7 @@ namespace MatchZy
 			{
 				ReplyToUserCommand(player, $" \x0DLineup \x06'{importName[0]}'\x0D already exists! Please use a different name in the code!");
 				
-				if (IsPlayerAdmin(player))
+				if (IsPlayerAdmin(player, "css_importnade", "@custom/prac"))
 				{
 					ReplyToUserCommand(player, $" \x0DYou can use \x06'.deletenade {importName[0]}'\x0D to delete it!");
 				}
@@ -418,7 +418,7 @@ namespace MatchZy
         [ConsoleCommand("css_prac", "Starts practice mode")]
         public void OnPracCommand(CCSPlayerController? player, CommandInfo? command)
         {
-            if (!IsPlayerAdmin(player)) {
+            if (!IsPlayerAdmin(player, "css_prac", "@css/map", "@custom/prac")) {
                 SendPlayerNotAdminMessage(player);
                 return;
             }
@@ -529,7 +529,7 @@ namespace MatchZy
             bool unusedBotFound = false;
             foreach (var tempPlayer in playerEntities)
             {
-                if (!tempPlayer.IsBot) continue;
+                if (!tempPlayer.IsBot || tempPlayer.IsHLTV) continue;
                 if (tempPlayer.UserId.HasValue)
                 {
                     if (!pracUsedBots.ContainsKey(tempPlayer.UserId.Value) && unusedBotFound)

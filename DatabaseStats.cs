@@ -250,6 +250,22 @@ namespace MatchZy
             }
         }
 
+        public void UpdateMatchStats(long matchId, int t1score, int t2score)
+        {
+            try
+            {
+                string sqlQuery = $@"
+                    UPDATE matchzy_match_data
+                    SET team1_score = @t1score, team2_score = @t2score
+                    WHERE matchid = @matchId";
+
+                connection.Execute(sqlQuery, new { matchId, t1score, t2score });
+            }
+            catch (Exception ex)
+            {
+                Log($"[UpdatePlayerStats - FATAL] Error updating data of matchId: {matchId} [ERROR]: {ex.Message}");
+            }
+        }
 
         public void UpdatePlayerStats(long matchId, string ctTeamName, string tTeamName, Dictionary<int, CCSPlayerController> playerData)
         {
