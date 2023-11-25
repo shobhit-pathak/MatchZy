@@ -315,7 +315,7 @@ namespace MatchZy
                     if (victim.IsBot) {
                         int damage = @event.DmgHealth;
                         int postDamageHealth = @event.Health;
-                        @event.Attacker.PrintToChat($"{chatPrefix} {damage} to BOT {victim.PlayerName}({postDamageHealth} health)");
+                        @event.Attacker.PrintToChat($"{chatPrefix} {damage} damage to BOT {victim.PlayerName}({postDamageHealth} health)");
                     }
                     return HookResult.Continue;
                 }
