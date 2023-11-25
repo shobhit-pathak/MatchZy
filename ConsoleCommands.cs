@@ -253,7 +253,7 @@ namespace MatchZy
         }
 
         [ConsoleCommand("css_rmap", "Reloads the current map")]
-        private void OnMapReloadCommand(CCSPlayerController? player, CommandInfo command) {
+        private void OnMapReloadCommand(CCSPlayerController? player, CommandInfo? command) {
             if (player == null) return;
             if (!IsPlayerAdmin(player)) {
                 SendPlayerNotAdminMessage(player);
