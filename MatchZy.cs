@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -116,6 +116,7 @@ namespace MatchZy
                 { ".knife", OnKifeCommand },
                 { ".start", OnStartCommand },
                 { ".restart", OnRestartMatchCommand },
+                { ".reloadmap", OnMapReloadCommand },
                 { ".settings", OnMatchSettingsCommand },
                 { ".whitelist", OnWLCommand },
                 { ".reload_admins", OnReloadAdmins },
@@ -388,35 +389,35 @@ namespace MatchZy
                         SendPlayerNotAdminMessage(player);
                     }
                 }
-		if (message.StartsWith(".savenade")) {
+                if (message.StartsWith(".savenade"))
+                {
                     string command = ".savenade";
                     string commandArg = message.Substring(command.Length).Trim();
-		    HandleSaveNadeCommand(player, commandArg);
-		    
+                    HandleSaveNadeCommand(player, commandArg);
                 }
-		if (message.StartsWith(".deletenade")) {
-                    string command = ".deletenade";
+                if (message.StartsWith(".delnade"))
+                {
+                    string command = ".delnade";
                     string commandArg = message.Substring(command.Length).Trim();
-		    HandleDeleteNadeCommand(player, commandArg);
-		    
+                    HandleDeleteNadeCommand(player, commandArg);
                 }
-		if (message.StartsWith(".importnade")) {
+                if (message.StartsWith(".importnade"))
+                {
                     string command = ".importnade";
                     string commandArg = message.Substring(command.Length).Trim();
-		    HandleImportNadeCommand(player, commandArg);
-		    
+                    HandleImportNadeCommand(player, commandArg);
                 }
-		if (message.StartsWith(".listnades")) {
+                if (message.StartsWith(".listnades"))
+                {
                     string command = ".listnades";
                     string commandArg = message.Substring(command.Length).Trim();
-		    HandleListNadesCommand(player, commandArg);
-		    
+                    HandleListNadesCommand(player, commandArg);
                 }
-		if (message.StartsWith(".loadnade")) {
+                if (message.StartsWith(".loadnade"))
+                {
                     string command = ".loadnade";
                     string commandArg = message.Substring(command.Length).Trim();
-		    HandleLoadNadeCommand(player, commandArg);
-		    
+                    HandleLoadNadeCommand(player, commandArg);
                 }
                 if (message.StartsWith(".spawn")) {
                     string command = ".spawn";
