@@ -252,6 +252,21 @@ namespace MatchZy
             HandleMapChangeCommand(player, mapName);
         }
 
+        [ConsoleCommand("css_rmap", "Reloads the current map")]
+        private void OnMapReloadCommand(CCSPlayerController? player, CommandInfo command) {
+            if (player == null) return;
+            if (!IsPlayerAdmin(player)) {
+                SendPlayerNotAdminMessage(player);
+                return;
+            }
+            string currentMapName = Server.MapName;
+            if (Server.IsMapValid(currentMapName)) {
+                Server.ExecuteCommand($"changelevel \"{currentMapName}\"");
+            } else {
+                player.PrintToChat($"{chatPrefix} Cant reload a workshop map!");
+            }
+        }
+
         [ConsoleCommand("css_start", "Force starts the match")]
         public void OnStartCommand(CCSPlayerController? player, CommandInfo? command) {
             if (player == null) return;
