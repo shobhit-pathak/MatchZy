@@ -130,7 +130,11 @@ namespace MatchZy
                 { ".uncoach", OnUnCoachCommand },
                 { ".exitprac", OnMatchCommand },
                 { ".stop", OnStopCommand },
-                { ".help", OnHelpCommand }
+                { ".help", OnHelpCommand },
+                { ".t", OnTCommand },
+                { ".ct", OnCTCommand },
+                { ".spec", OnSpecCommand },
+                { ".fas", OnFASCommand }
             };
 
             RegisterEventHandler<EventPlayerConnectFull>((@event, info) => {

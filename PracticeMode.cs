@@ -776,6 +776,47 @@ namespace MatchZy
             RemoveGrenadeEntities();
         }
 
+        [ConsoleCommand("css_t", "Switches team to Terrorist")]
+        public void OnTCommand(CCSPlayerController? player, CommandInfo? command) {
+            if (!isPractice || player == null) return;
+
+            SideSwitchCommand(player, CsTeam.Terrorist);
+        }
+
+        [ConsoleCommand("css_ct", "Switches team to Counter-Terrorist")]
+        public void OnCTCommand(CCSPlayerController? player, CommandInfo? command) {
+            if (!isPractice || player == null) return;
+
+            SideSwitchCommand(player, CsTeam.CounterTerrorist);
+        }
+
+        [ConsoleCommand("css_spec", "Switches team to Spectator")]
+        public void OnSpecCommand(CCSPlayerController? player, CommandInfo? command) {
+            if (!isPractice || player == null) return;
+
+            SideSwitchCommand(player, CsTeam.Spectator);
+        }
+
+        [ConsoleCommand("css_fas", "Switches all other players to spectator")]
+        public void OnFASCommand(CCSPlayerController? player, CommandInfo? command) {
+            if (!isPractice || player == null) return;
+
+            SideSwitchCommand(player, CsTeam.None);
+        }
+
+        // CsTeam.None is a special value to mean force all other players to spectator
+        private void SideSwitchCommand(CCSPlayerController player, CsTeam team) {
+          if (team > CsTeam.None) {
+            player.ChangeTeam(team);
+            return;
+          }
+          Utilities.GetPlayers().ForEach((x) => { 
+              if(x.IsValid && !x.IsBot && x.UserId != player.UserId) {
+                x.ChangeTeam(CsTeam.Spectator);
+              }
+            });
+        }
+
         public void RemoveGrenadeEntities()
         {
             if (!isPractice) return;
