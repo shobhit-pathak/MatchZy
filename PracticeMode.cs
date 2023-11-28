@@ -223,7 +223,7 @@ namespace MatchZy
                     //Reply to user
                     ReplyToUserCommand(player, $" \x0DLineup \x06'{lineupName}' \x0Dsaved successfully!");
 					player.PrintToCenter($"Lineup '{lineupName}' saved successfully!");
-					ReplyToUserCommand(player, $" \x0DLineup Code: \x06{lineupName} {playerPos} {playerAngle}");
+					Server.PrintToChatAll($"{chatPrefix} \x0D{player.PlayerName} Just saved a Lineup! Lineup Code: \x06{lineupName} {playerPos} {playerAngle}");
                 }
                 catch (JsonException ex)
                 {
