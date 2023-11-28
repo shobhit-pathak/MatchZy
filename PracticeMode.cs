@@ -807,6 +807,10 @@ namespace MatchZy
         // CsTeam.None is a special value to mean force all other players to spectator
         private void SideSwitchCommand(CCSPlayerController player, CsTeam team) {
           if (team > CsTeam.None) {
+            if(player.TeamNum == (byte)CsTeam.Spectator) {
+              ReplyToUserCommand(player, "Switching to a team from spectator is currently broken, use the team menu.");
+              return;
+            }
             player.ChangeTeam(team);
             return;
           }
