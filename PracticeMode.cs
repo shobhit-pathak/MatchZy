@@ -3,15 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
-using CounterStrikeSharp.API.Modules.Timers;
-using CounterStrikeSharp.API.Modules.Memory;
-
-using System;
-using System.IO;
-using System.Net.Http;
 using System.Text.Json;
-using System.Threading.Tasks;
-using System.Net.Mime;
 
 
 
@@ -41,6 +33,8 @@ namespace MatchZy
 
         // This map stores the bots which are being used in prac (probably spawned using .bot). Key is the userid of the bot.
         public Dictionary<int, Dictionary<string, object>> pracUsedBots = new Dictionary<int, Dictionary<string, object>>();
+
+        public bool isSpawningBot;
 
         public void StartPracticeMode()
         {
@@ -643,23 +637,21 @@ namespace MatchZy
         public void OnBotCommand(CCSPlayerController? player, CommandInfo? command)
         {
             if (!isPractice || player == null) return;
-            // Checking if any of the Position List is empty
-            if (spawnsData.Values.Any(list => list.Count == 0)) GetSpawns();
 
+            isSpawningBot = true;
             // !bot/.bot command is made using a lot of workarounds, as there is no direct way to create a bot entity and spawn it in CSSharp
             // Hence there can be some issues with this approach. This will be revamped when we will be able to create entities and manipulate them.
-            if (player.TeamNum == 2)
+            if (player.TeamNum == (byte)CsTeam.CounterTerrorist)
             {
                 Server.ExecuteCommand("bot_join_team T");
                 Server.ExecuteCommand("bot_add_t");
             }
-            else if (player.TeamNum == 3)
+            else if (player.TeamNum == (byte)CsTeam.Terrorist)
             {
                 Server.ExecuteCommand("bot_join_team CT");
                 Server.ExecuteCommand("bot_add_ct");
             }
             
-            // Adding a small timer so that bot can be added in the world
             // Once bot is added, we teleport it to the requested position
             AddTimer(0.1f, () => SpawnBot(player));
             Server.ExecuteCommand("bot_stop 1");
@@ -687,10 +679,8 @@ namespace MatchZy
                     {
                         continue;
                     }
-                    else
-                    {
-                        pracUsedBots[tempPlayer.UserId.Value] = new Dictionary<string, object>();
-                    }
+                    pracUsedBots[tempPlayer.UserId.Value] = new Dictionary<string, object>();
+                    Log($"Adding bot {tempPlayer.PlayerName} to pracUsedBots");
 
                     Position botOwnerPosition = new Position(botOwner.PlayerPawn.Value.CBodyComponent?.SceneNode?.AbsOrigin, botOwner.PlayerPawn.Value.CBodyComponent?.SceneNode?.AbsRotation);
                     // Add key-value pairs to the inner dictionary
@@ -705,6 +695,8 @@ namespace MatchZy
             if (!unusedBotFound) {
                 Server.PrintToChatAll($"{chatPrefix} Cannot add bots, the team is full! Use .nobots to remove the current bots.");
             }
+
+            isSpawningBot = false;
         }
 
         [GameEventHandler]
@@ -721,6 +713,14 @@ namespace MatchZy
                     {
                         player.PlayerPawn.Value.Teleport(botPosition.PlayerPosition, botPosition.PlayerAngle, new Vector(0, 0, 0));
                     }
+                }
+                else if (!isSpawningBot && !player.IsHLTV)
+                {
+                    // Bot has been spawned, but we didn't spawn it, so kick it.
+                    // This most often happens when a player changes team with bot_quota_mode set to fill
+                    // Extra bots from bot_add are already handled in SpawnBot
+                    Log($"Kicking bot {player.PlayerName} due to erroneous spawning");
+                    Server.ExecuteCommand($"bot_kick {player.PlayerName}");
                 }
             }
 
