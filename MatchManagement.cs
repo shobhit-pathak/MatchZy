@@ -35,7 +35,7 @@ namespace MatchZy
         }
 
         public void HandleTeamNameChangeCommand(CCSPlayerController? player, string teamName, int teamNum) {
-            if (!IsPlayerAdmin(player)) {
+            if (!IsPlayerAdmin(player, "css_team", "@css/config")) {
                 SendPlayerNotAdminMessage(player);
                 return;
             }

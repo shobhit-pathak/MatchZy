@@ -1,33 +1,25 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
-using CounterStrikeSharp.API.Modules.Entities;
-using CounterStrikeSharp.API.Modules.Events;
-using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Utils;
-using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Core.Attributes;
 
 
 namespace MatchZy
 {
-    [MinimumApiVersion(30)]
+    [MinimumApiVersion(68)]
     public partial class MatchZy : BasePlugin
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.4.1-alpha";
+        public override string ModuleVersion => "0.4.3-alpha";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
         public override string ModuleDescription => "A plugin for running and managing CS2 practice/pugs/scrims/matches!";
 
         public string chatPrefix = $"[{ChatColors.Green}MatchZy{ChatColors.Default}]";
+        public string adminChatPrefix = $"[{ChatColors.Red}ADMIN{ChatColors.Default}]";
 
         // Match phase data
         public bool isPractice = false;
@@ -73,6 +65,8 @@ namespace MatchZy
         public int minimumReadyRequired = 2; // Number of ready players required start the match. If set to 0, all connected players have to ready-up to start the match.
         public bool isWhitelistRequired = false;
 
+        public bool isPlayOutEnabled = false;
+
         // User command - action map
         public Dictionary<string, Action<CCSPlayerController?, CommandInfo?>>? commandActions;
 
@@ -112,10 +106,16 @@ namespace MatchZy
                 { ".tech", OnPauseCommand },
                 { ".pause", OnPauseCommand },
                 { ".unpause", OnUnpauseCommand },
+                { ".forcepause", OnForcePauseCommand },
+                { ".fp", OnForcePauseCommand },
+                { ".forceunpause", OnForceUnpauseCommand },
+                { ".fup", OnForceUnpauseCommand },
                 { ".tac", OnTacCommand },
                 { ".knife", OnKifeCommand },
+                { ".playout", OnPlayoutCommand },
                 { ".start", OnStartCommand },
                 { ".restart", OnRestartMatchCommand },
+                { ".reloadmap", OnMapReloadCommand },
                 { ".settings", OnMatchSettingsCommand },
                 { ".whitelist", OnWLCommand },
                 { ".reload_admins", OnReloadAdmins },
@@ -129,7 +129,8 @@ namespace MatchZy
                 { ".match", OnMatchCommand },
                 { ".uncoach", OnUnCoachCommand },
                 { ".exitprac", OnMatchCommand },
-                { ".stop", OnStopCommand }
+                { ".stop", OnStopCommand },
+                { ".help", OnHelpCommand }
             };
 
             RegisterEventHandler<EventPlayerConnectFull>((@event, info) => {
@@ -165,8 +166,6 @@ namespace MatchZy
                         }
                     }
                 }
-
-                player.PrintToChat($"{chatPrefix} Welcome to the server!");
 
                 if (@event.Userid.UserId.HasValue) {
                     
@@ -309,6 +308,17 @@ namespace MatchZy
             RegisterEventHandler<EventPlayerHurt>((@event, info) =>
 			{
 				CCSPlayerController attacker = @event.Attacker;
+                CCSPlayerController victim = @event.Userid;
+
+                if (isPractice)
+                {
+                    if (victim.IsBot) {
+                        int damage = @event.DmgHealth;
+                        int postDamageHealth = @event.Health;
+                        @event.Attacker.PrintToChat($"{chatPrefix} {damage} damage to BOT {victim.PlayerName}({postDamageHealth} health)");
+                    }
+                    return HookResult.Continue;
+                }
 
 				if (!attacker.IsValid || attacker.IsBot && !(@event.DmgHealth > 0 || @event.DmgArmor > 0))
 					return HookResult.Continue;
@@ -378,9 +388,9 @@ namespace MatchZy
                     string command = ".asay";
                     string commandArg = originalMessage.Substring(command.Length).Trim();
 
-                    if (IsPlayerAdmin(player)) {
+                    if (IsPlayerAdmin(player, "css_asay", "@css/chat")) {
                         if (commandArg != "") {
-                            Server.PrintToChatAll($"[{ChatColors.Red}ADMIN{ChatColors.Default}] {commandArg}");
+                            Server.PrintToChatAll($"{adminChatPrefix} {commandArg}");
                         } else {
                             ReplyToUserCommand(player, "Usage: .asay <message>");
                         }
@@ -388,35 +398,35 @@ namespace MatchZy
                         SendPlayerNotAdminMessage(player);
                     }
                 }
-		if (message.StartsWith(".savenade")) {
+                if (message.StartsWith(".savenade"))
+                {
                     string command = ".savenade";
                     string commandArg = message.Substring(command.Length).Trim();
-		    HandleSaveNadeCommand(player, commandArg);
-		    
+                    HandleSaveNadeCommand(player, commandArg);
                 }
-		if (message.StartsWith(".deletenade")) {
-                    string command = ".deletenade";
+                if (message.StartsWith(".delnade"))
+                {
+                    string command = ".delnade";
                     string commandArg = message.Substring(command.Length).Trim();
-		    HandleDeleteNadeCommand(player, commandArg);
-		    
+                    HandleDeleteNadeCommand(player, commandArg);
                 }
-		if (message.StartsWith(".importnade")) {
+                if (message.StartsWith(".importnade"))
+                {
                     string command = ".importnade";
                     string commandArg = message.Substring(command.Length).Trim();
-		    HandleImportNadeCommand(player, commandArg);
-		    
+                    HandleImportNadeCommand(player, commandArg);
                 }
-		if (message.StartsWith(".listnades")) {
+                if (message.StartsWith(".listnades"))
+                {
                     string command = ".listnades";
                     string commandArg = message.Substring(command.Length).Trim();
-		    HandleListNadesCommand(player, commandArg);
-		    
+                    HandleListNadesCommand(player, commandArg);
                 }
-		if (message.StartsWith(".loadnade")) {
+                if (message.StartsWith(".loadnade"))
+                {
                     string command = ".loadnade";
                     string commandArg = message.Substring(command.Length).Trim();
-		    HandleLoadNadeCommand(player, commandArg);
-		    
+                    HandleLoadNadeCommand(player, commandArg);
                 }
                 if (message.StartsWith(".spawn")) {
                     string command = ".spawn";
@@ -451,7 +461,7 @@ namespace MatchZy
                 if (originalMessage.StartsWith(".rcon")) {
                     string command = ".rcon";
                     string commandArg = originalMessage.Substring(command.Length).Trim();
-                    if (IsPlayerAdmin(player)) {
+                    if (IsPlayerAdmin(player, "css_rcon", "@css/rcon")) {
                         Server.ExecuteCommand(commandArg);
                         ReplyToUserCommand(player, "Command sent successfully!");
                     } else {
@@ -472,7 +482,8 @@ namespace MatchZy
             {
                 if (isPractice && @event.Userid.SteamID != @event.Attacker.SteamID)
                 {
-                    @event.Attacker.PrintToChat($"{chatPrefix} Flashed {@event.Userid.PlayerName}. Blind time: {@event.BlindDuration} seconds");
+                    double roundedBlindDuration = Math.Round(@event.BlindDuration, 2);
+                    @event.Attacker.PrintToChat($"{chatPrefix} Flashed {@event.Userid.PlayerName}. Blind time: {roundedBlindDuration} seconds");
                 }
                 return HookResult.Continue;
             });

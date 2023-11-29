@@ -3,7 +3,6 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
-using System.Text.RegularExpressions;
 
 
 namespace MatchZy
@@ -27,6 +26,15 @@ namespace MatchZy
             string args = command.ArgString;
 
             isKnifeRequired = bool.TryParse(args, out bool isKnifeRequiredValue) ? isKnifeRequiredValue : args != "0" && isKnifeRequired;
+        }
+
+        [ConsoleCommand("matchzy_playout_enabled_default", "Whether knife round is enabled by default or not. Default value: true")]
+        public void MatchZyPlayoutConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+            string args = command.ArgString;
+
+            isPlayOutEnabled = bool.TryParse(args, out bool isPlayOutEnabledValue) ? isPlayOutEnabledValue : args != "0" && isPlayOutEnabled;
         }
 
         [ConsoleCommand("matchzy_minimum_ready_required", "Minimum ready players required to start the match. Default: 1")]
@@ -86,22 +94,31 @@ namespace MatchZy
                 return;
             }
 
-            // Adding extra space before args if message starts with a color name
-            // This is because colors cannot be applied from 1st character, hence we make first character as an empty space
-            if (args.StartsWith('{')) args = " " + args;
+            args = GetColorTreatedString(args);
 
-            foreach (var field in typeof(ChatColors).GetFields())
-            {
-                string pattern = $"{{{field.Name}}}";
-                string replacement = field.GetValue(null).ToString();
-
-                // Create a case-insensitive regular expression pattern for the color name
-                string patternIgnoreCase = Regex.Escape(pattern);
-                args = Regex.Replace(args, patternIgnoreCase, replacement, RegexOptions.IgnoreCase);
-            }
             chatPrefix = args;
 
-            Log($"[PREFIX CHANGE] chatPrefix: {chatPrefix}");
+            Log($"[MatchZyChatPrefix] chatPrefix: {chatPrefix}");
+        }
+
+        [ConsoleCommand("matchzy_admin_chat_prefix", "Chat prefix to show whenever an admin sends message using .asay <message>. Default value: [{Green}MatchZy{Default}]")]
+        public void MatchZyAdminChatPrefix(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+
+            string args = command.ArgString.Trim();
+
+            if (string.IsNullOrEmpty(args))
+            {
+                chatPrefix = $"[{ChatColors.Red}ADMIN{ChatColors.Default}]";
+                return;
+            }
+
+            args = GetColorTreatedString(args);
+
+            adminChatPrefix = args;
+
+            Log($"[MatchZyAdminChatPrefix] adminChatPrefix: {adminChatPrefix}");
         }
 
         [ConsoleCommand("matchzy_chat_messages_timer_delay", "Number of seconds of delay before sending reminder messages from MatchZy (like unready message, paused message, etc). Default: 12")]

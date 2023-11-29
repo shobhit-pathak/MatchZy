@@ -1,18 +1,13 @@
-using System;
-using System.IO;
 using System.Text.Json;
-using System.Linq;
-using System.Threading.Tasks;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
-using CounterStrikeSharp.API.Modules.Entities;
-using CounterStrikeSharp.API.Modules.Events;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Utils;
 using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Cvars;
+using CounterStrikeSharp.API.Modules.Admin;
+using System.Text.RegularExpressions;
 
 
 namespace MatchZy
@@ -82,11 +77,15 @@ namespace MatchZy
             }
         }
 
-        private bool IsPlayerAdmin(CCSPlayerController? player) {
+        private bool IsPlayerAdmin(CCSPlayerController? player, string command = "", params string[] permissions) {
+            string[] updatedPermissions = permissions.Concat(new[] { "@css/root" }).ToArray();
+            RequiresPermissionsOr attr = new(updatedPermissions)
+            {
+                Command = command
+            };
+            if (attr.CanExecuteCommand(player)) return true; // Admin exists in admins.json of CSSharp
             if (player == null) return true; // Sent via server, hence should be treated as an admin.
-            if (loadedAdmins.ContainsKey(player.SteamID.ToString())) {
-                return true;
-            }
+            if (loadedAdmins.ContainsKey(player.SteamID.ToString())) return true; // Admin exists in admins.json of MatchZy
             return false;
         }
         
@@ -232,6 +231,15 @@ namespace MatchZy
             Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}LIVE!");
             Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}LIVE!");
             Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}LIVE!");
+
+            // Adding timer here to make sure that CFG execution is completed till then
+            AddTimer(1, () => {
+                if (isPlayOutEnabled) {
+                    Server.ExecuteCommand("mp_match_can_clinch false");
+                } else {
+                    Server.ExecuteCommand("mp_match_can_clinch true");
+                }
+            });
         }
 
         private void KillPhaseTimers() {
@@ -425,8 +433,13 @@ namespace MatchZy
 
         private void HandleMapChangeCommand(CCSPlayerController? player, string mapName) {
             if (player == null) return;
-            if (!IsPlayerAdmin(player)) {
+            if (!IsPlayerAdmin(player, "css_map", "@css/map")) {
                 SendPlayerNotAdminMessage(player);
+                return;
+            }
+
+            if (matchStarted) {
+                player.PrintToChat($"{chatPrefix} Map cannot be changed once the match is started!");
                 return;
             }
 
@@ -440,7 +453,7 @@ namespace MatchZy
         }
 
         private void HandleReadyRequiredCommand(CCSPlayerController? player, string commandArg) {
-            if (!IsPlayerAdmin(player)) {
+            if (!IsPlayerAdmin(player, "css_readyrequired", "@css/config")) {
                 SendPlayerNotAdminMessage(player);
                 return;
             }
@@ -653,6 +666,8 @@ namespace MatchZy
                 ShowDamageInfo();
 
                 database.UpdatePlayerStats(liveMatchId, reverseTeamSides["CT"].teamName, reverseTeamSides["TERRORIST"].teamName, playerData);
+                database.UpdateMatchStats(liveMatchId, t1score, t2score);
+
                 string round = (t1score + t2score).ToString("D2");
                 lastBackupFileName = $"matchzy_{liveMatchId}_round{round}.txt";
                 Log($"[HandlePostRoundEndEvent] Setting lastBackupFileName to {lastBackupFileName}");
@@ -724,32 +739,72 @@ namespace MatchZy
                 return;
             }
             if (isMatchLive && !isPaused) {
-                if (IsPlayerAdmin(player)) {
-                    unpauseData["pauseTeam"] = "Admin";
-                    Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}Admin{ChatColors.Default} has paused the match.");
-                    if (player == null) {
-                        Server.PrintToConsole($"[MatchZy] Admin has paused the match.");
-                    } 
+
+                string pauseTeamName = "Admin";
+                unpauseData["pauseTeam"] = "Admin";
+                if (player?.TeamNum == 2) {
+
+                    pauseTeamName = reverseTeamSides["TERRORIST"].teamName;
+                    unpauseData["pauseTeam"] = reverseTeamSides["TERRORIST"].teamName;
+                } else if (player?.TeamNum == 3) {
+                    pauseTeamName = reverseTeamSides["CT"].teamName;
+                    unpauseData["pauseTeam"] = reverseTeamSides["CT"].teamName;
                 } else {
-                    string pauseTeamName = "Admin";
-                    unpauseData["pauseTeam"] = "Admin";
-                    if (player?.TeamNum == 2) {
-
-                        pauseTeamName = reverseTeamSides["TERRORIST"].teamName;
-                        unpauseData["pauseTeam"] = reverseTeamSides["TERRORIST"].teamName;
-                    } else if (player?.TeamNum == 3) {
-                        pauseTeamName = reverseTeamSides["CT"].teamName;
-                        unpauseData["pauseTeam"] = reverseTeamSides["CT"].teamName;
-                    }          
-                    Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{pauseTeamName}{ChatColors.Default} has paused the match. Type .unpause to unpause the match");
+                    return;
                 }
+                Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{pauseTeamName}{ChatColors.Default} has paused the match. Type .unpause to unpause the match");
 
-                Server.ExecuteCommand("mp_pause_match;");
-                isPaused = true;
+                SetMatchPausedFlags();
+            }
+        }
 
-                if (pausedStateTimer == null) {
-                    pausedStateTimer = AddTimer(chatTimerDelay, SendPausedStateMessage, TimerFlags.REPEAT);
+        private void ForcePauseMatch(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!IsPlayerAdmin(player, "css_forcepause", "@css/config")) {
+                SendPlayerNotAdminMessage(player);
+                return;
+            }
+            if (isMatchLive && isPaused) {
+                ReplyToUserCommand(player, "Match is already paused!");
+                return;
+            }
+            unpauseData["pauseTeam"] = "Admin";
+            Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}Admin{ChatColors.Default} has paused the match.");
+            if (player == null) {
+                Server.PrintToConsole($"[MatchZy] Admin has paused the match.");
+            } 
+            SetMatchPausedFlags();
+        }
+
+        private void ForceUnpauseMatch(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (isMatchLive && isPaused) {
+                if (!IsPlayerAdmin(player, "css_forceunpause", "@css/config")) {
+                    SendPlayerNotAdminMessage(player);
+                    return;
                 }
+                Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}Admin{ChatColors.Default} has unpaused the match, resuming the match!");
+                Server.ExecuteCommand("mp_unpause_match;");
+                isPaused = false;
+                unpauseData["ct"] = false;
+                unpauseData["t"] = false;
+                if (!isPaused && pausedStateTimer != null) {
+                    pausedStateTimer.Kill();
+                    pausedStateTimer = null;
+                }
+                if (player == null) {
+                    Server.PrintToConsole("[MatchZy] Admin has unpaused the match, resuming the match!");
+                }
+            }
+        }
+
+        private void SetMatchPausedFlags()
+        {
+            Server.ExecuteCommand("mp_pause_match;");
+            isPaused = true;
+
+            if (pausedStateTimer == null) {
+                pausedStateTimer = AddTimer(chatTimerDelay, SendPausedStateMessage, TimerFlags.REPEAT);
             }
         }
 
@@ -762,7 +817,52 @@ namespace MatchZy
         }
 
         private void SendPlayerNotAdminMessage(CCSPlayerController? player) {
-            ReplyToUserCommand(player, "You must be admin in order to use this command!");
+            ReplyToUserCommand(player, "You do not have permission to use this command!");
+        }
+
+        private string GetColorTreatedString(string message)
+        {
+            // Adding extra space before args if message starts with a color name
+            // This is because colors cannot be applied from 1st character, hence we make first character as an empty space
+            if (message.StartsWith('{')) message = " " + message;
+
+            foreach (var field in typeof(ChatColors).GetFields())
+            {
+                string pattern = $"{{{field.Name}}}";
+                string replacement = field.GetValue(null).ToString();
+
+                // Create a case-insensitive regular expression pattern for the color name
+                string patternIgnoreCase = Regex.Escape(pattern);
+                message = Regex.Replace(message, patternIgnoreCase, replacement, RegexOptions.IgnoreCase);
+            }
+
+            return message;
+        }
+
+        private void SendAvailableCommandsMessage(CCSPlayerController? player)
+        {
+            if (isPractice)
+            {
+                ReplyToUserCommand(player, "Available commands: .spawn, .ctspawn, .tspawn, .bot, .nobots, .god, .clear, .fastforward");
+                ReplyToUserCommand(player, ".loadnade <name>, .savenade <name>, .importnade <code> .listnades <optional filter>");
+                return;
+            }
+            if (readyAvailable)
+            {
+                ReplyToUserCommand(player, "Available commands: !ready, !unready");
+                return;
+            }
+            if (isSideSelectionPhase)
+            {
+                ReplyToUserCommand(player, "Available commands: !stay, !switch");
+                return;
+            }
+            if (matchStarted)
+            {
+                string stopCommandMessage = isStopCommandAvailable ? ", !stop" : "";
+                ReplyToUserCommand(player, $"Available commands: !pause, !unpause, !tac, !tech{stopCommandMessage}");
+                return;
+            }
         }
 
         private void Log(string message) {
