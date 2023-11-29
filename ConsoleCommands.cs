@@ -30,6 +30,21 @@ namespace MatchZy
                 SendPlayerNotAdminMessage(player);
             }
         }
+
+        [ConsoleCommand("css_save_nades_as_global", "Toggles Global Lineups for players")]
+        public void OnSaveNadesAsGlobalCommand(CCSPlayerController? player, CommandInfo? command) {            
+            if (IsPlayerAdmin(player, "css_save_nades_as_global", "@css/config")) {
+                isSaveNadesAsGlobalEnabled = !isSaveNadesAsGlobalEnabled;
+                string GlobalNadesStatus = isSaveNadesAsGlobalEnabled ? "Enabled" : "Disabled";
+                if (player == null) {
+                    ReplyToUserCommand(player, $"Saving/Loading Lineups Globally is now {GlobalNadesStatus}!");
+                } else {
+                    player.PrintToChat($"{chatPrefix} Saving/Loading Lineups Globally is now {ChatColors.Green}{GlobalNadesStatus}{ChatColors.Default}!");
+                }
+            } else {
+                SendPlayerNotAdminMessage(player);
+            }
+        }
         
         [ConsoleCommand("css_ready", "Marks the player ready")]
         public void OnPlayerReady(CCSPlayerController? player, CommandInfo? command) {
