@@ -682,7 +682,6 @@ namespace MatchZy
                         continue;
                     }
                     pracUsedBots[tempPlayer.UserId.Value] = new Dictionary<string, object>();
-                    Log($"Adding bot {tempPlayer.PlayerName} to pracUsedBots");
 
                     Position botOwnerPosition = new Position(botOwner.PlayerPawn.Value.CBodyComponent?.SceneNode?.AbsOrigin, botOwner.PlayerPawn.Value.CBodyComponent?.SceneNode?.AbsRotation);
                     // Add key-value pairs to the inner dictionary
@@ -707,7 +706,6 @@ namespace MatchZy
 
 
             // Reference collision code: https://github.com/Source2ZE/CS2Fixes/blob/f009e399ff23a81915e5a2b2afda20da2ba93ada/src/events.cpp#L150
-            Log($"wobby state: {p1.PlayerPawn.Value.Collision.CollisionGroup}");
             p1.PlayerPawn.Value.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DEBRIS;
             p1.PlayerPawn.Value.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DEBRIS;
             p2.PlayerPawn.Value.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DEBRIS;
@@ -748,7 +746,6 @@ namespace MatchZy
             p1max = p1.Collision.Maxs + p1pos!;
             p2min = p2.Collision.Mins + p2pos!;
             p2max = p2.Collision.Maxs + p2pos!;
-            /* Log($"p1 ({p1min}, {p1max}), p2 ({p2min}, {p2max})"); */
 
             return p1min.X <= p2max.X && p1max.X >= p2min.X &&
                     p1min.Y <= p2max.Y && p1max.Y >= p2min.Y &&
