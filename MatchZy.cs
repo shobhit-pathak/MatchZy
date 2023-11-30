@@ -121,6 +121,8 @@ namespace MatchZy
                 { ".reload_admins", OnReloadAdmins },
                 { ".prac", OnPracCommand },
                 { ".bot", OnBotCommand },
+		{ ".ctbot", OnCtBotCommand },
+                { ".tbot", OnTBotCommand },
                 { ".nobots", OnNoBotsCommand },
                 { ".god", OnGodCommand },
                 { ".ff", OnFastForwardCommand },
