@@ -66,7 +66,7 @@ namespace MatchZy
             GetSpawns();
             Server.PrintToChatAll($"{chatPrefix} Practice mode loaded!");
             Server.PrintToChatAll($"{chatPrefix} Available commands:");
-	        Server.PrintToChatAll($"{chatPrefix} \x10.spawn, .ctspawn, .tspawn, .bot, .nobots, .exitprac");
+	        Server.PrintToChatAll($"{chatPrefix} \x10.spawn, .ctspawn, .tspawn, .bot, .ctbot, .tbot, .nobots, .exitprac");
 	        Server.PrintToChatAll($"{chatPrefix} \x10.loadnade <name>, .savenade <name>, .importnade <code> .listnades <optional filter>");
         }
 
@@ -639,7 +639,7 @@ namespace MatchZy
             }
         }
 
-        [ConsoleCommand("css_bot", "Teleport to spawn")]
+        [ConsoleCommand("css_bot", "Spawns and place a bot on player position")]
         public void OnBotCommand(CCSPlayerController? player, CommandInfo? command)
         {
             if (!isPractice || player == null) return;
@@ -659,6 +659,46 @@ namespace MatchZy
                 Server.ExecuteCommand("bot_add_ct");
             }
             
+            // Adding a small timer so that bot can be added in the world
+            // Once bot is added, we teleport it to the requested position
+            AddTimer(0.1f, () => SpawnBot(player));
+            Server.ExecuteCommand("bot_stop 1");
+            Server.ExecuteCommand("bot_freeze 1");
+            Server.ExecuteCommand("bot_zombie 1");
+        }
+
+	[ConsoleCommand("css_ctbot", "Spawns and place a CT bot on player position")]
+        public void OnCtBotCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!isPractice || player == null) return;
+            // Checking if any of the Position List is empty
+            if (spawnsData.Values.Any(list => list.Count == 0)) GetSpawns();
+
+            // !bot/.bot command is made using a lot of workarounds, as there is no direct way to create a bot entity and spawn it in CSSharp
+            // Hence there can be some issues with this approach. This will be revamped when we will be able to create entities and manipulate them.
+            Server.ExecuteCommand("bot_join_team CT");
+            Server.ExecuteCommand("bot_add_ct");
+
+            // Adding a small timer so that bot can be added in the world
+            // Once bot is added, we teleport it to the requested position
+            AddTimer(0.1f, () => SpawnBot(player));
+            Server.ExecuteCommand("bot_stop 1");
+            Server.ExecuteCommand("bot_freeze 1");
+            Server.ExecuteCommand("bot_zombie 1");
+        }
+
+        [ConsoleCommand("css_tbot", "Spawns and place a T bot on player position")]
+        public void OnTBotCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!isPractice || player == null) return;
+            // Checking if any of the Position List is empty
+            if (spawnsData.Values.Any(list => list.Count == 0)) GetSpawns();
+
+            // !bot/.bot command is made using a lot of workarounds, as there is no direct way to create a bot entity and spawn it in CSSharp
+            // Hence there can be some issues with this approach. This will be revamped when we will be able to create entities and manipulate them.
+            Server.ExecuteCommand("bot_join_team T");
+            Server.ExecuteCommand("bot_add_t");
+
             // Adding a small timer so that bot can be added in the world
             // Once bot is added, we teleport it to the requested position
             AddTimer(0.1f, () => SpawnBot(player));
