@@ -67,7 +67,8 @@ namespace MatchZy
             Server.PrintToChatAll($"{chatPrefix} Practice mode loaded!");
             Server.PrintToChatAll($"{chatPrefix} Available commands:");
 	        Server.PrintToChatAll($"{chatPrefix} \x10.spawn, .ctspawn, .tspawn, .bot, .nobots, .exitprac");
-	        Server.PrintToChatAll($"{chatPrefix} \x10.loadnade <name>, .savenade <name>, .importnade <code> .listnades <optional filter>");
+	        Server.PrintToChatAll($"{chatPrefix} \x10.loadnade <name>, .savenade <name>, .importnade <code>, .listnades <optional filter>");
+            Server.PrintToChatAll($"{chatPrefix} \x10.listnades <optional filter>, .delnade <name>, .globalnades");
         }
 
         public void GetSpawns()
