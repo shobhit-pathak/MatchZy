@@ -2,16 +2,10 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
-using CounterStrikeSharp.API.Modules.Utils;
+using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Timers;
-using CounterStrikeSharp.API.Modules.Memory;
-
-using System;
-using System.IO;
-using System.Net.Http;
+using CounterStrikeSharp.API.Modules.Utils;
 using System.Text.Json;
-using System.Threading.Tasks;
-using System.Net.Mime;
 
 
 
@@ -42,6 +36,8 @@ namespace MatchZy
         // This map stores the bots which are being used in prac (probably spawned using .bot). Key is the userid of the bot.
         public Dictionary<int, Dictionary<string, object>> pracUsedBots = new Dictionary<int, Dictionary<string, object>>();
 
+        public bool isSpawningBot;
+
         public void StartPracticeMode()
         {
             if (matchStarted) return;
@@ -61,7 +57,7 @@ namespace MatchZy
                 Log($"[StartWarmup] Starting Practice Mode! Practice CFG not found in {absolutePath}, using default CFG!");
                 Server.ExecuteCommand("""sv_cheats "true"; mp_force_pick_time "0"; bot_quota "0"; sv_showimpacts "1"; mp_limitteams "0"; sv_deadtalk "true"; sv_full_alltalk "true"; sv_ignoregrenaderadio "false"; mp_forcecamera "0"; sv_grenade_trajectory_prac_pipreview "true"; sv_grenade_trajectory_prac_trailtime "3"; sv_infinite_ammo "1"; weapon_auto_cleanup_time "15"; weapon_max_before_cleanup "30"; mp_buy_anywhere "1"; mp_maxmoney "9999999"; mp_startmoney "9999999";""");
                 Server.ExecuteCommand("""mp_weapons_allow_typecount "-1"; mp_death_drop_breachcharge "false"; mp_death_drop_defuser "false"; mp_death_drop_taser "false"; mp_drop_knife_enable "true"; mp_death_drop_grenade "0"; ammo_grenade_limit_total "5"; mp_defuser_allocation "2"; mp_free_armor "2"; mp_ct_default_grenades "weapon_incgrenade weapon_hegrenade weapon_smokegrenade weapon_flashbang weapon_decoy"; mp_ct_default_primary "weapon_m4a1";""");
-                Server.ExecuteCommand("""mp_t_default_grenades "weapon_molotov weapon_hegrenade weapon_smokegrenade weapon_flashbang weapon_decoy"; mp_t_default_primary "weapon_ak47"; mp_warmup_online_enabled "true"; mp_warmup_pausetimer "1"; mp_warmup_start; bot_quota_mode fill; mp_solid_teammates 2; mp_autoteambalance false; mp_teammates_are_enemies true;""");
+                Server.ExecuteCommand("""mp_t_default_grenades "weapon_molotov weapon_hegrenade weapon_smokegrenade weapon_flashbang weapon_decoy"; mp_t_default_primary "weapon_ak47"; mp_warmup_online_enabled "true"; mp_warmup_pausetimer "1"; mp_warmup_start; bot_quota_mode fill; mp_solid_teammates 2; mp_autoteambalance false; mp_teammates_are_enemies false;""");
             }
             GetSpawns();
             Server.PrintToChatAll($"{chatPrefix} Practice mode loaded!");
@@ -643,23 +639,21 @@ namespace MatchZy
         public void OnBotCommand(CCSPlayerController? player, CommandInfo? command)
         {
             if (!isPractice || player == null) return;
-            // Checking if any of the Position List is empty
-            if (spawnsData.Values.Any(list => list.Count == 0)) GetSpawns();
 
+            isSpawningBot = true;
             // !bot/.bot command is made using a lot of workarounds, as there is no direct way to create a bot entity and spawn it in CSSharp
             // Hence there can be some issues with this approach. This will be revamped when we will be able to create entities and manipulate them.
-            if (player.TeamNum == 2)
+            if (player.TeamNum == (byte)CsTeam.CounterTerrorist)
             {
                 Server.ExecuteCommand("bot_join_team T");
                 Server.ExecuteCommand("bot_add_t");
             }
-            else if (player.TeamNum == 3)
+            else if (player.TeamNum == (byte)CsTeam.Terrorist)
             {
                 Server.ExecuteCommand("bot_join_team CT");
                 Server.ExecuteCommand("bot_add_ct");
             }
             
-            // Adding a small timer so that bot can be added in the world
             // Once bot is added, we teleport it to the requested position
             AddTimer(0.1f, () => SpawnBot(player));
             Server.ExecuteCommand("bot_stop 1");
@@ -687,10 +681,7 @@ namespace MatchZy
                     {
                         continue;
                     }
-                    else
-                    {
-                        pracUsedBots[tempPlayer.UserId.Value] = new Dictionary<string, object>();
-                    }
+                    pracUsedBots[tempPlayer.UserId.Value] = new Dictionary<string, object>();
 
                     Position botOwnerPosition = new Position(botOwner.PlayerPawn.Value.CBodyComponent?.SceneNode?.AbsOrigin, botOwner.PlayerPawn.Value.CBodyComponent?.SceneNode?.AbsRotation);
                     // Add key-value pairs to the inner dictionary
@@ -699,12 +690,66 @@ namespace MatchZy
                     pracUsedBots[tempPlayer.UserId.Value]["owner"] = botOwner;
 
                     tempPlayer.PlayerPawn.Value.Teleport(botOwnerPosition.PlayerPosition, botOwnerPosition.PlayerAngle, new Vector(0, 0, 0));
+                    TemporarilyDisableCollisions(botOwner, tempPlayer);
                     unusedBotFound = true;
                 }
             }
             if (!unusedBotFound) {
                 Server.PrintToChatAll($"{chatPrefix} Cannot add bots, the team is full! Use .nobots to remove the current bots.");
             }
+
+            isSpawningBot = false;
+        }
+        private CounterStrikeSharp.API.Modules.Timers.Timer? timer;
+        public void TemporarilyDisableCollisions(CCSPlayerController p1, CCSPlayerController p2) 
+        {
+
+
+            // Reference collision code: https://github.com/Source2ZE/CS2Fixes/blob/f009e399ff23a81915e5a2b2afda20da2ba93ada/src/events.cpp#L150
+            p1.PlayerPawn.Value.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DEBRIS;
+            p1.PlayerPawn.Value.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DEBRIS;
+            p2.PlayerPawn.Value.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DEBRIS;
+            p2.PlayerPawn.Value.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DEBRIS;
+            // TODO: call CollisionRulesChanged
+            var p1p = p1.PlayerPawn;
+            var p2p = p2.PlayerPawn;
+            timer?.Kill();
+            timer = AddTimer(0.1f, () =>
+                    {
+                    if (!p1p.IsValid || !p2p.IsValid || !p1p.Value.IsValid || !p2p.Value.IsValid)
+                        {
+                            Log($"player handle invalid p1p {p1p.Value.IsValid} p2p {p2p.Value.IsValid}");
+                            timer?.Kill();
+                            return;
+                        }
+
+                        if (!DoPlayersCollide(p1p.Value, p2p.Value))
+                        {
+                            // Once they no longer collide 
+                            p1p.Value.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_PLAYER_MOVEMENT;
+                            p1p.Value.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_PLAYER_MOVEMENT;
+                            p2p.Value.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_PLAYER_MOVEMENT;
+                            p2p.Value.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_PLAYER_MOVEMENT;
+                            // TODO: call CollisionRulesChanged
+                            timer?.Kill();
+                        }
+
+                    }, TimerFlags.REPEAT | TimerFlags.STOP_ON_MAPCHANGE);
+        }
+
+        public bool DoPlayersCollide(CCSPlayerPawn p1, CCSPlayerPawn p2)
+        {
+            Vector p1min, p1max, p2min, p2max;
+            var p1pos = p1.AbsOrigin;
+            var p2pos = p2.AbsOrigin;
+            p1min = p1.Collision.Mins + p1pos!;
+            p1max = p1.Collision.Maxs + p1pos!;
+            p2min = p2.Collision.Mins + p2pos!;
+            p2max = p2.Collision.Maxs + p2pos!;
+
+            return p1min.X <= p2max.X && p1max.X >= p2min.X &&
+                    p1min.Y <= p2max.Y && p1max.Y >= p2min.Y &&
+                    p1min.Z <= p2max.Z && p1max.Z >= p2min.Z;
         }
 
         [GameEventHandler]
@@ -721,6 +766,18 @@ namespace MatchZy
                     {
                         player.PlayerPawn.Value.Teleport(botPosition.PlayerPosition, botPosition.PlayerAngle, new Vector(0, 0, 0));
                     }
+                }
+                else if (!isSpawningBot && !player.IsHLTV)
+                {
+                    // Bot has been spawned, but we didn't spawn it, so kick it.
+                    // This most often happens when a player changes team with bot_quota_mode set to fill
+                    // Extra bots from bot_add are already handled in SpawnBot
+                    // Delay this for a few seconds to prevent crashes
+                    Log($"Kicking bot {player.PlayerName} due to erroneous spawning");
+                    AddTimer(2.5f, () =>
+                    {
+                        Server.ExecuteCommand($"bot_kick {player.PlayerName}");
+                    });
                 }
             }
 
