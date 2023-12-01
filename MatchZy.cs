@@ -64,6 +64,7 @@ namespace MatchZy
         public bool isKnifeRequired = true;
         public int minimumReadyRequired = 2; // Number of ready players required start the match. If set to 0, all connected players have to ready-up to start the match.
         public bool isWhitelistRequired = false;
+        public bool isSaveNadesAsGlobalEnabled = false;
 
         public bool isPlayOutEnabled = false;
 
@@ -118,6 +119,7 @@ namespace MatchZy
                 { ".reloadmap", OnMapReloadCommand },
                 { ".settings", OnMatchSettingsCommand },
                 { ".whitelist", OnWLCommand },
+                { ".globalnades", OnSaveNadesAsGlobalCommand },
                 { ".reload_admins", OnReloadAdmins },
                 { ".prac", OnPracCommand },
                 { ".bot", OnBotCommand },

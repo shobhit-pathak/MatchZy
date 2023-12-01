@@ -37,6 +37,15 @@ namespace MatchZy
             isPlayOutEnabled = bool.TryParse(args, out bool isPlayOutEnabledValue) ? isPlayOutEnabledValue : args != "0" && isPlayOutEnabled;
         }
 
+        [ConsoleCommand("matchzy_save_nades_as_global_enabled", "Whether nades should be saved globally instead of being privated to players by default or not. Default value: false")]
+        public void MatchZySaveNadesAsGlobalConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+            string args = command.ArgString;
+
+            isSaveNadesAsGlobalEnabled = bool.TryParse(args, out bool isSaveNadesAsGlobalEnabledValue) ? isSaveNadesAsGlobalEnabledValue : args != "0" && isSaveNadesAsGlobalEnabled;
+        }
+
         [ConsoleCommand("matchzy_minimum_ready_required", "Minimum ready players required to start the match. Default: 1")]
         public void MatchZyMinimumReadyRequired(CCSPlayerController? player, CommandInfo command)
         {
