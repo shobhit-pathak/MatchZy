@@ -493,22 +493,22 @@ namespace MatchZy
                                 switch (lineupInfo["Type"])
                                 {
                                     case "Flash":
-                                        NativeAPI.IssueClientCommand((int)player.EntityIndex!.Value.Value - 1, "slot7");
+                                        NativeAPI.IssueClientCommand(player.Slot, "slot7");
                                         break;
                                     case "Smoke":
-                                        NativeAPI.IssueClientCommand((int)player.EntityIndex!.Value.Value - 1, "slot8");
+                                        NativeAPI.IssueClientCommand(player.Slot, "slot8");
                                         break;
                                     case "HE":
-                                        NativeAPI.IssueClientCommand((int)player.EntityIndex!.Value.Value - 1, "slot6");
+                                        NativeAPI.IssueClientCommand(player.Slot, "slot6");
                                         break;
                                     case "Decoy":
-                                        NativeAPI.IssueClientCommand((int)player.EntityIndex!.Value.Value - 1, "slot9");
+                                        NativeAPI.IssueClientCommand(player.Slot, "slot9");
                                         break;
                                     case "Molly":
-                                        NativeAPI.IssueClientCommand((int)player.EntityIndex!.Value.Value - 1, "slot10");
+                                        NativeAPI.IssueClientCommand(player.Slot, "slot10");
                                         break;
                                     case "":
-                                        NativeAPI.IssueClientCommand((int)player.EntityIndex!.Value.Value - 1, "slot8");
+                                        NativeAPI.IssueClientCommand(player.Slot, "slot8");
                                         break;
                                 }
 
