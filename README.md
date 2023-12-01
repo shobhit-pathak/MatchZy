@@ -67,6 +67,8 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.deletenade <name>` Deletes a lineup from file
 - `.importnade <code>` Upon saving a lineup a code will be printed to chat, alternatively those can be retrieved from the savednades.cfg
 - `.listnades <optional filter>` Lists either all saved lineups ever or if given a filter only those that match the filter
+- `.ct, .t, .spec` Switches team to specified team
+- `.fas` Forces all other players to the spectator team
 
 ### Admin Commands
 
