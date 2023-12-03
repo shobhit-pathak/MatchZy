@@ -7,7 +7,7 @@ using CounterStrikeSharp.API.Core.Attributes;
 
 namespace MatchZy
 {
-    [MinimumApiVersion(68)]
+    [MinimumApiVersion(84)]
     public partial class MatchZy : BasePlugin
     {
 
