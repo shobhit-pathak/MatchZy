@@ -23,7 +23,7 @@ namespace MatchZy
         };
 
         public void SetupRoundBackupFile() {
-            string backupFilePrefix  = $"matchzy_{liveMatchId}";
+            string backupFilePrefix  = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}";
             Server.ExecuteCommand($"mp_backup_round_file {backupFilePrefix}");
         }
         [ConsoleCommand("css_stop", "Marks the player ready")]
@@ -32,6 +32,11 @@ namespace MatchZy
 
             Log($"[!stop command] Sent by: {player.UserId}, TeamNum: {player.TeamNum}, connectedPlayers: {connectedPlayers}");
             if (isStopCommandAvailable && isMatchLive) {
+                if (IsHalfTimePhase())
+                {
+                    ReplyToUserCommand(player, "You cannot use this command during halftime.");
+                    return;
+                }
                 string stopTeamName = "";
                 string remainingStopTeam = "";
                 if (player.TeamNum == 2) {
@@ -89,7 +94,7 @@ namespace MatchZy
             if (!string.IsNullOrWhiteSpace(commandArg)) {
                 if (int.TryParse(commandArg, out int roundNumber) && roundNumber >= 0) {
                     string round = roundNumber.ToString("D2");
-                    string requiredBackupFileName = $"matchzy_{liveMatchId}_round{round}.txt";
+                    string requiredBackupFileName = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}_round{round}.txt";
                     RestoreRoundBackup(player, requiredBackupFileName, round);
                 }
                 else {
@@ -102,6 +107,11 @@ namespace MatchZy
         }
 
         private void RestoreRoundBackup(CCSPlayerController? player, string fileName, string round="") {
+            if (IsHalfTimePhase())
+            {
+                ReplyToUserCommand(player, "You cannot load a backup during halftime.");
+                return;
+            }
             if (!File.Exists(Path.Join(Server.GameDirectory + "/csgo/", fileName))) {
                 ReplyToUserCommand(player, $"Backup file {fileName} does not exist, please make sure you are restoring a valid backup.");
                 return;
@@ -114,7 +124,7 @@ namespace MatchZy
                 round = (t1score + t2score).ToString("D2");
             }
 
-            string matchZyBackupFileName = $"matchzy_data_backup_{liveMatchId}_round_{round}.json";
+            string matchZyBackupFileName = $"matchzy_data_backup_{liveMatchId}_{matchConfig.CurrentMapNumber}_round_{round}.json";
             string filePath = Server.GameDirectory + "/csgo/MatchZyDataBackup/" + matchZyBackupFileName;
 
             if (File.Exists(filePath)) {
@@ -146,8 +156,8 @@ namespace MatchZy
                             } else if (kvp.Value == "TERRORIST" && teamSides[matchzyTeam1] != "TERRORIST") {
                                 SwapSidesInTeamData(false);
                             }
-                            Server.ExecuteCommand($"mp_teamname_1 {matchzyTeam1.teamName}");
-                            Server.ExecuteCommand($"mp_teamname_2 {matchzyTeam2.teamName}");
+                            // Server.ExecuteCommand($"mp_teamname_1 {matchzyTeam1.teamName}");
+                            // Server.ExecuteCommand($"mp_teamname_2 {matchzyTeam2.teamName}");
                         }
                     }
                 }
@@ -179,7 +189,7 @@ namespace MatchZy
             {
                 (int t1score, int t2score) = GetTeamsScore();
                 string round = (t1score + t2score).ToString("D2");
-                string matchZyBackupFileName = $"matchzy_data_backup_{liveMatchId}_round_{round}.json";
+                string matchZyBackupFileName = $"matchzy_data_backup_{liveMatchId}_{matchConfig.CurrentMapNumber}_round_{round}.json";
                 string filePath = Server.GameDirectory + "/csgo/MatchZyDataBackup/" + matchZyBackupFileName;
                 string? directoryPath = Path.GetDirectoryName(filePath);
                 if (directoryPath != null)
@@ -192,6 +202,8 @@ namespace MatchZy
 
                 Dictionary<string, string> roundData = new()
                     {
+                        { "matchid", liveMatchId.ToString() },
+                        { "mapnumber", matchConfig.CurrentMapNumber.ToString() },
                         { "team1_name", matchzyTeam1.teamName },
                         { "team1_flag", matchzyTeam1.teamFlag },
                         { "team1_tag", matchzyTeam1.teamTag },

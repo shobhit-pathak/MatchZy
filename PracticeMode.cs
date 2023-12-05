@@ -479,22 +479,22 @@ namespace MatchZy
                                 switch (lineupInfo["Type"])
                                 {
                                     case "Flash":
-                                        NativeAPI.IssueClientCommand((int)player.EntityIndex!.Value.Value - 1, "slot7");
+                                        player.ExecuteClientCommand("slot7");
                                         break;
                                     case "Smoke":
-                                        NativeAPI.IssueClientCommand((int)player.EntityIndex!.Value.Value - 1, "slot8");
+                                        player.ExecuteClientCommand("slot8");
                                         break;
                                     case "HE":
-                                        NativeAPI.IssueClientCommand((int)player.EntityIndex!.Value.Value - 1, "slot6");
+                                        player.ExecuteClientCommand("slot6");
                                         break;
                                     case "Decoy":
-                                        NativeAPI.IssueClientCommand((int)player.EntityIndex!.Value.Value - 1, "slot9");
+                                        player.ExecuteClientCommand("slot9");
                                         break;
                                     case "Molly":
-                                        NativeAPI.IssueClientCommand((int)player.EntityIndex!.Value.Value - 1, "slot10");
+                                        player.ExecuteClientCommand("slot10");
                                         break;
                                     case "":
-                                        NativeAPI.IssueClientCommand((int)player.EntityIndex!.Value.Value - 1, "slot8");
+                                        player.ExecuteClientCommand("slot8");
                                         break;
                                 }
 

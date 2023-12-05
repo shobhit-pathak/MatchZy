@@ -210,8 +210,8 @@ steamid3
 ### Database Stats
 
 MatchZy comes with a default database (SQLite), which configures itself automatically. MySQL Database can also be used with MatchZy!
-Currently we are using 2 tables, `matchzy_match_data` and `matchzy_player_stats`. As their names suggest, `matchzy_match_data` holds the data of every match, like matchid, team names, scores, etc.
-Whereas, `matchzy_player_stats` stores data/stats of every player who played in that match. It stores data like matchid, kills, deaths, assists, and other important stats!
+Currently we are using 2 tables, `matchzy_stats_matches` and `matchzy_stats_players`. As their names suggest, `matchzy_stats_matches` holds the data of every match, like matchid, team names, scores, etc.
+Whereas, `matchzy_stats_players` stores data/stats of every player who played in that match. It stores data like matchid, kills, deaths, assists, and other important stats!
 
 ### Using MySQL Database with MatchZy
 
@@ -231,7 +231,7 @@ MySQL Database is useful for those who wants to use a common database across mul
 
 ### CSV Stats
 Once a match is over, data is pulled from the database and a CSV file is written in the folder:
-`csgo/MatchZy_Stats`. This folder will contain CSV file for each match (file name pattern: `match_data_{matchid}.csv`) and it will have the same data which is present in `matchzy_player_stats`.
+`csgo/MatchZy_Stats`. This folder will contain CSV file for each match (file name pattern: `match_data_{matchid}.csv`) and it will have the same data which is present in `matchzy_stats_players`.
 
 There is a scope of improvement here, like having the match score in the CSV file or atleast in the file name patter. I'll make this change soon!
 
