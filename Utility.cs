@@ -183,7 +183,7 @@ namespace MatchZy
 
         private void SendSideSelectionMessage() {
             if (isSideSelectionPhase) {
-                Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} Won the knife. Please type .stay/.switch");
+                Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} Won the knife. Waiting for them to type {ChatColors.Green}.stay{ChatColors.Default} or {ChatColors.Green}.switch{ChatColors.Default}");
             }
         }
 
@@ -192,7 +192,7 @@ namespace MatchZy
             ExecWarmupCfg();
             knifeWinnerName = knifeWinner == 3 ? reverseTeamSides["CT"].teamName : reverseTeamSides["TERRORIST"].teamName;
             ShowDamageInfo();
-            Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} Won the knife. Please type .stay/.switch");
+            Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} Won the knife. Waiting for them to type {ChatColors.Green}.stay{ChatColors.Default} or {ChatColors.Green}.switch{ChatColors.Default}");
             if (sideSelectionMessageTimer == null) {
                 sideSelectionMessageTimer = AddTimer(chatTimerDelay, SendSideSelectionMessage, TimerFlags.REPEAT);
             }
@@ -328,6 +328,9 @@ namespace MatchZy
                 matchzyTeam1.teamName = "COUNTER-TERRORISTS";
                 matchzyTeam2.teamName = "TERRORISTS";
 
+                matchzyTeam1.teamPlayers = null;
+                matchzyTeam2.teamPlayers = null;
+
                 if (matchzyTeam1.coach != null) matchzyTeam1.coach.Clan = "";
                 if (matchzyTeam2.coach != null) matchzyTeam2.coach.Clan = "";
 
@@ -379,7 +382,6 @@ namespace MatchZy
 
                     if (isMatchSetup || matchModeOnly) {
                         CsTeam team = GetPlayerTeam(player);
-
                         if (team == CsTeam.None) {
                             Server.ExecuteCommand($"kickid {(ushort)player.UserId}");
                             continue;
@@ -597,10 +599,9 @@ namespace MatchZy
         private void HandleMatchEnd() {
             if (!isMatchLive) return;
 
-
             // This ensures that the mp_match_restart_delay is not shorter than what is required for the GOTV recording to finish.
             // Ref: Get5
-            int restartDelay = ConVar.Find("mp_match_restart_delay").GetPrimitiveValue<int>();
+            int restartDelay = ConVar.Find("mp_match_restart_delay")!.GetPrimitiveValue<int>();
             int tvDelay = GetTvDelay();
             int requiredDelay = tvDelay + 15;
             int tvFlushDelay = requiredDelay;
@@ -609,18 +610,26 @@ namespace MatchZy
             }
             if (requiredDelay > restartDelay) {
                 Log($"Extended mp_match_restart_delay from {restartDelay} to {requiredDelay} to ensure GOTV broadcast can finish.");
-                ConVar.Find("mp_match_restart_delay").SetValue(requiredDelay);
+                ConVar.Find("mp_match_restart_delay")!.SetValue(requiredDelay);
                 restartDelay = requiredDelay;
             }
-            Log($"[HandleMatchEnd] MATCH ENDED, isMatchSetup: {isMatchSetup} matchid: {liveMatchId} tvFlushDelay: {tvFlushDelay}");
+            int currentMapNumber = matchConfig.CurrentMapNumber;
+            Log($"[HandleMatchEnd] MAP ENDED, isMatchSetup: {isMatchSetup} matchid: {liveMatchId} currentMapNumber: {currentMapNumber} tvFlushDelay: {tvFlushDelay}");
 
-            StopDemoRecording(tvFlushDelay - 0.5f, activeDemoFile + ".dem", liveMatchId, matchConfig.CurrentMapNumber);
+            StopDemoRecording(tvFlushDelay - 0.5f, activeDemoFile + ".dem", liveMatchId, currentMapNumber);
 
             string winnerName = GetMatchWinnerName();
             (int t1score, int t2score) = GetTeamsScore();
-            database.SetMapEndData(liveMatchId, matchConfig.CurrentMapNumber, winnerName, t1score, t2score);
-            
-            database.WritePlayerStatsToCsv(Server.GameDirectory + "/csgo/MatchZy_Stats", liveMatchId);
+            int team1SeriesScore = matchzyTeam1.seriesScore;
+            int team2SeriesScore = matchzyTeam2.seriesScore;
+
+            string statsPath = Server.GameDirectory + "/csgo/MatchZy_Stats/" + liveMatchId.ToString();
+
+            Task.Run(async () => {
+                await database.SetMapEndData(liveMatchId, currentMapNumber, winnerName, t1score, t2score, team1SeriesScore, team2SeriesScore);
+                await database.WritePlayerStatsToCsv(statsPath, liveMatchId, currentMapNumber);
+            });
+
             // If a match is not setup, it was supposed to be a pug/scrim with 1 map
             // Hence we reset the match once it is over
             // Todo: Support BO3/BO5 in pugs as well
@@ -659,6 +668,11 @@ namespace MatchZy
 
             if (isPaused) 
                 UnpauseMatch();
+
+            stopData["ct"] = false;
+            stopData["t"] = false;
+
+            KillPhaseTimers();
 
             AddTimer(restartDelay - 4, () => {
                 if (!isMatchSetup) return;
@@ -870,6 +884,16 @@ namespace MatchZy
                 ReplyToUserCommand(player, "Match is already paused!");
                 return;
             }
+            if (IsHalfTimePhase())
+            {
+                ReplyToUserCommand(player, "You cannot use this command during halftime.");
+                return;
+            }
+            if (IsPostGamePhase())
+            {
+                ReplyToUserCommand(player, "You cannot use this command after the game has ended.");
+                return;
+            }
             if (isMatchLive && !isPaused) {
 
                 string pauseTeamName = "Admin";
@@ -898,6 +922,16 @@ namespace MatchZy
             }
             if (isMatchLive && isPaused) {
                 ReplyToUserCommand(player, "Match is already paused!");
+                return;
+            }
+            if (IsHalfTimePhase())
+            {
+                ReplyToUserCommand(player, "You cannot use this command during halftime.");
+                return;
+            }
+            if (IsPostGamePhase())
+            {
+                ReplyToUserCommand(player, "You cannot use this command after the game has ended.");
                 return;
             }
             unpauseData["pauseTeam"] = "Admin";
@@ -1128,16 +1162,34 @@ namespace MatchZy
             }
         }
 
+        public int GetGamePhase()
+        {
+            return Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!.GamePhase;
+        }
+
         public bool IsHalfTimePhase()
         {
             try
             {
-                int gamePhase = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!.GamePhase;
-                return gamePhase == 4;
+                return GetGamePhase() == 4;
             }
             catch (Exception e)
             {
                 Log($"[IsHalfTime FATAL] An error occurred: {e.Message}");
+                return false;
+            }
+
+        }
+
+        public bool IsPostGamePhase()
+        {
+            try
+            {
+                return GetGamePhase() == 5;
+            }
+            catch (Exception e)
+            {
+                Log($"[IsPostGamePhase FATAL] An error occurred: {e.Message}");
                 return false;
             }
 

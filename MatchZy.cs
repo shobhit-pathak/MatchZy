@@ -102,6 +102,7 @@ namespace MatchZy
                 { ".ur", OnPlayerUnReady },
                 { ".stay", OnTeamStay },
                 { ".switch", OnTeamSwitch },
+                { ".swap", OnTeamSwitch },
                 { ".tech", OnPauseCommand },
                 { ".pause", OnPauseCommand },
                 { ".unpause", OnUnpauseCommand },
@@ -135,7 +136,7 @@ namespace MatchZy
             RegisterEventHandler<EventPlayerConnectFull>((@event, info) => {
                 try 
                 {
-                    Log($"[FULL CONNECT] Player ID: {@event.Userid.UserId}, Name: {@event.Userid.PlayerName} has connected! matchModeOnly: {matchModeOnly}");
+                    Log($"[FULL CONNECT] Player ID: {@event.Userid.UserId}, Name: {@event.Userid.PlayerName} has connected!");
                     CCSPlayerController player = @event.Userid;
 
                     // Handling whitelisted players
@@ -168,7 +169,7 @@ namespace MatchZy
                         }
                         if (isMatchSetup || matchModeOnly) {
                             CsTeam team = GetPlayerTeam(player);
-                            Log($"PlayerName: {player.PlayerName} Team: {team}");
+                            Log($"[EventPlayerConnectFull] KICKING PLAYER STEAMID: {steamId}, Name: {player.PlayerName} (NOT ALLOWED!)");
                             if (team == CsTeam.None) {
                                 Server.ExecuteCommand($"kickid {(ushort)player.UserId}");
                                 return HookResult.Continue;

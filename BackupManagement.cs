@@ -26,7 +26,7 @@ namespace MatchZy
             string backupFilePrefix  = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}";
             Server.ExecuteCommand($"mp_backup_round_file {backupFilePrefix}");
         }
-        [ConsoleCommand("css_stop", "Marks the player ready")]
+        [ConsoleCommand("css_stop", "Restore the backup of the current round (Both teams need to type .stop to restore the current round)")]
         public void OnStopCommand(CCSPlayerController? player, CommandInfo? command) {
             if (player == null) return;
 
@@ -35,6 +35,11 @@ namespace MatchZy
                 if (IsHalfTimePhase())
                 {
                     ReplyToUserCommand(player, "You cannot use this command during halftime.");
+                    return;
+                }
+                if (IsPostGamePhase())
+                {
+                    ReplyToUserCommand(player, "You cannot use this command after the game has ended.");
                     return;
                 }
                 string stopTeamName = "";
@@ -110,6 +115,11 @@ namespace MatchZy
             if (IsHalfTimePhase())
             {
                 ReplyToUserCommand(player, "You cannot load a backup during halftime.");
+                return;
+            }
+            if (IsPostGamePhase())
+            {
+                ReplyToUserCommand(player, "You cannot use this command after the game has ended.");
                 return;
             }
             if (!File.Exists(Path.Join(Server.GameDirectory + "/csgo/", fileName))) {

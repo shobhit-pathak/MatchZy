@@ -91,6 +91,7 @@ namespace MatchZy
                             if (attackerController.Connected != PlayerConnectedState.PlayerConnected) continue;
                             if (targetController.Connected != PlayerConnectedState.PlayerConnected) continue;
                             if (!attackerController.PlayerPawn.IsValid || !targetController.PlayerPawn.IsValid) continue;
+                            if (attackerController.PlayerPawn.Value == null || targetController.PlayerPawn.Value == null) continue;
 
                             int attackerHP = attackerController.PlayerPawn.Value.Health < 0 ? 0 : attackerController.PlayerPawn.Value.Health;
                             string attackerName = attackerController.PlayerName;

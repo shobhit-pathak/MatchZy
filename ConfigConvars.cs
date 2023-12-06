@@ -37,7 +37,7 @@ namespace MatchZy
             isPlayOutEnabled = bool.TryParse(args, out bool isPlayOutEnabledValue) ? isPlayOutEnabledValue : args != "0" && isPlayOutEnabled;
         }
 
-        [ConsoleCommand("matchzy_match_mode_only", "Whether to keep server in match mode only. Default value: false")]
+        [ConsoleCommand("matchzy_kick_when_no_match_loaded", "Whether to kick all clients and prevent anyone from joining the server if no match is loaded. Default value: false")]
         public void MatchZyMatchModeOnlyConvar(CCSPlayerController? player, CommandInfo command)
         {
             if (player != null) return;

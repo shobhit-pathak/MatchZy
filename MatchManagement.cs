@@ -33,21 +33,29 @@ namespace MatchZy
         [ConsoleCommand("matchzy_loadmatch", "Loads a match from the given JSON file path (relative to the csgo/ directory)")]
         public void LoadMatch(CCSPlayerController? player, CommandInfo command)
         {
-            if (player != null) return;
-            if (isMatchSetup)
+            try
             {
-                Log($"[LoadMatch] A match is already setup with id: {liveMatchId}, cannot load a new match!");
+                if (player != null) return;
+                if (isMatchSetup)
+                {
+                    Log($"[LoadMatch] A match is already setup with id: {liveMatchId}, cannot load a new match!");
+                    return;
+                }
+                string fileName = command.ArgString;
+                string filePath = Path.Join(Server.GameDirectory + "/csgo", fileName);
+                if (!File.Exists(filePath)) 
+                {
+                    Log($"[LoadMatch] Provided file does not exist! Usage: matchzy_loadmatch <filename>");
+                    return;
+                }
+                string jsonData = File.ReadAllText(filePath);
+                LoadMatchFromJSON(jsonData);
+            }
+            catch (Exception e)
+            {
+                Log($"[LoadMatch - FATAL] An error occured: {e.Message}");
                 return;
             }
-            string fileName = command.ArgString;
-            string filePath = Path.Join(Server.GameDirectory + "/csgo", fileName);
-            if (!File.Exists(filePath)) 
-            {
-                Log($"[LoadMatch] Provided file does not exist! Usage: matchzy_loadmatch <filename>");
-                return;
-            }
-            string jsonData = File.ReadAllText(filePath);
-            LoadMatchFromJSON(jsonData);
         }
 
         [ConsoleCommand("matchzy_loadmatch_url", "Loads a match from the given URL")]
@@ -92,7 +100,7 @@ namespace MatchZy
 
         static string ValidateMatchJsonStructure(JObject jsonData)
         {
-            string[] requiredFields = { "matchid", "maplist", "team1", "team2", "num_maps", "map_sides" };
+            string[] requiredFields = { "maplist", "team1", "team2", "num_maps", "map_sides" };
 
             // Check if any required field is missing
             foreach (string field in requiredFields)
@@ -198,7 +206,10 @@ namespace MatchZy
                 return;
             }
 
-            liveMatchId = (long)jsonDataObject["matchid"]!;
+            if(jsonDataObject["matchid"] != null)
+            {
+                liveMatchId = (long)jsonDataObject["matchid"]!;
+            }
             JToken team1 = jsonDataObject["team1"]!;
             JToken team2 = jsonDataObject["team2"]!;
             JToken maplist = jsonDataObject["maplist"]!;
@@ -295,9 +306,9 @@ namespace MatchZy
                         string cvarValue = cvarData.Value.ToString();
 
                         var cvar = ConVar.Find(cvarName);
+                        matchConfig.ChangedCvars[cvarName] = cvarValue;
                         if (cvar != null)
                         {
-                            matchConfig.ChangedCvars[cvarName] = cvarValue;
                             matchConfig.OriginalCvars[cvarName] = GetConvarStringValue(cvar);
                         }
                     }
@@ -364,7 +375,7 @@ namespace MatchZy
             var steamId = player.SteamID;
             try
             {
-                if (matchzyTeam1.teamPlayers[steamId.ToString()] != null)
+                if (matchzyTeam1.teamPlayers != null && matchzyTeam1.teamPlayers[steamId.ToString()] != null)
                 {
                     if (teamSides[matchzyTeam1] == "CT")
                     {
@@ -376,7 +387,7 @@ namespace MatchZy
                     }
 
                 }
-                else if (matchzyTeam2.teamPlayers[steamId.ToString()] != null)
+                else if (matchzyTeam2.teamPlayers != null && matchzyTeam2.teamPlayers[steamId.ToString()] != null)
                 {
                     if (teamSides[matchzyTeam2] == "CT")
                     {
@@ -387,14 +398,14 @@ namespace MatchZy
                         playerTeam = CsTeam.Terrorist;
                     }
                 }
-                else if (matchConfig.Spectators[steamId.ToString()] != null)
+                else if (matchConfig.Spectators != null && matchConfig.Spectators[steamId.ToString()] != null)
                 {
                     playerTeam = CsTeam.Spectator;
                 }
             }
             catch (Exception ex)
             {
-                Log($"[GetPlayerTeam] Exception occurred: {ex.Message}");
+                Log($"[GetPlayerTeam - FATAL] Exception occurred: {ex.Message}");
             }
             return playerTeam;
         }
@@ -404,6 +415,7 @@ namespace MatchZy
             Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{winnerName}{ChatColors.Default} has won the match");
             database.SetMatchEndData(liveMatchId, winnerName, matchzyTeam1.seriesScore, matchzyTeam2.seriesScore);
             if (resetCvarsOnSeriesEnd) ResetChangedConvars();
+            isMatchLive = false;
             AddTimer(restartDelay, () => {
                 ResetMatch(false);
             });

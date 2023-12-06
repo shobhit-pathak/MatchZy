@@ -20,7 +20,7 @@ namespace MatchZy
     {
         private IDbConnection connection;
 
-        DatabaseConfig config;
+        DatabaseConfig? config;
         public DatabaseType databaseType { get; set; }
 
         public void InitializeDatabase(string directory)
@@ -61,7 +61,7 @@ namespace MatchZy
                         new SqliteConnection(
                             $"Data Source={Path.Join(directory, "matchzy.db")}");
                 }
-                else if (databaseType == DatabaseType.MySQL)
+                else if (config != null && databaseType == DatabaseType.MySQL)
                 {
                     string connectionString = $"Server={config.MySqlHost};Port={config.MySqlPort};Database={config.MySqlDatabase};User Id={config.MySqlUsername};Password={config.MySqlPassword};";
                     connection = new MySqlConnection(connectionString);           
@@ -223,7 +223,7 @@ namespace MatchZy
                 head_shot_kills INT NOT NULL,
                 cash_earned INT NOT NULL,
                 enemies_flashed INT NOT NULL,
-                PRIMARY KEY (matchid, steamid64),
+                PRIMARY KEY (matchid, mapnumber, steamid64),
                 FOREIGN KEY (matchid) REFERENCES matchzy_stats_matches (matchid),
                 FOREIGN KEY (mapnumber) REFERENCES matchzy_stats_maps (mapnumber)
             )");
@@ -301,7 +301,7 @@ namespace MatchZy
             }
         }
 
-        public void SetMapEndData(long matchId, int mapNumber, string winnerName, int t1score, int t2score)
+        public async Task SetMapEndData(long matchId, int mapNumber, string winnerName, int t1score, int t2score, int team1SeriesScore, int team2SeriesScore)
         {
             try
             {
@@ -312,13 +312,20 @@ namespace MatchZy
                     SET winner = @winnerName, end_time = {dateTimeExpression}, team1_score = @t1score, team2_score = @t2score
                     WHERE matchid = @matchId AND mapNumber = @mapNumber";
 
-                connection.Execute(sqlQuery, new { matchId, winnerName, t1score, t2score, mapNumber });
+                await connection.ExecuteAsync(sqlQuery, new { matchId, winnerName, t1score, t2score, mapNumber });
 
-                Log($"[SetMapEndData] Data updated for matchId: {matchId} winnerName: {winnerName}");
+                sqlQuery = $@"
+                    UPDATE matchzy_stats_matches
+                    SET team1_score = @team1SeriesScore, team2_score = @team2SeriesScore
+                    WHERE matchid = @matchId";
+
+                await connection.ExecuteAsync(sqlQuery, new { matchId, team1SeriesScore, team2SeriesScore });
+
+                Log($"[SetMapEndData] Data updated for matchId: {matchId} mapNumber: {mapNumber} winnerName: {winnerName}");
             }
             catch (Exception ex)
             {
-                Log($"[SetMapEndData - FATAL] Error updating data of matchId: {matchId} [ERROR]: {ex.Message}");
+                Log($"[SetMapEndData - FATAL] Error updating data of matchId: {matchId} mapNumber: {mapNumber} [ERROR]: {ex.Message}");
             } 
         }
 
@@ -366,7 +373,7 @@ namespace MatchZy
             {
                 foreach (ulong steamid64 in playerStatsDictionary.Keys)
                 {
-                    Log($"[UpdatePlayerStats] Going to update data for Match: {matchId}, Player: {steamid64}");
+                    Log($"[UpdatePlayerStats] Going to update data for Match: {matchId}, MapNumber: {mapNumber}, Player: {steamid64}");
 
                     var playerStats = playerStatsDictionary[steamid64];
 
@@ -472,10 +479,10 @@ namespace MatchZy
             }
         }
 
-        public void WritePlayerStatsToCsv(string filePath, long matchId)
+        public async Task WritePlayerStatsToCsv(string filePath, long matchId, int mapNumber)
         {
             try {
-                string csvFilePath = $"{filePath}/match_data_{matchId}.csv";
+                string csvFilePath = $"{filePath}/match_data_map{mapNumber}_{matchId}.csv";
                 string? directoryPath = Path.GetDirectoryName(csvFilePath);
                 if (directoryPath != null)
                 {
@@ -488,8 +495,8 @@ namespace MatchZy
                 using (var writer = new StreamWriter(csvFilePath))
                 using (var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.InvariantCulture)))
                 {
-                    IEnumerable<dynamic> playerStatsData = connection.Query(
-                        "SELECT * FROM matchzy_stats_players WHERE matchid = @MatchId ORDER BY team, kills DESC", new { MatchId = matchId });
+                    IEnumerable<dynamic> playerStatsData = await connection.QueryAsync(
+                        "SELECT * FROM matchzy_stats_players WHERE matchid = @MatchId AND mapnumber = @MapNumber ORDER BY team, kills DESC", new { MatchId = matchId, MapNumber = mapNumber });
 
                     // Use the first data row to get the column names
                     dynamic? firstDataRow = playerStatsData.FirstOrDefault();
@@ -557,7 +564,7 @@ namespace MatchZy
                 string jsonContent = File.ReadAllText(configFile);
                 config = JsonSerializer.Deserialize<DatabaseConfig>(jsonContent);
                 // Set the database type
-                if (config.DatabaseType.Trim().ToLower() == "mysql") {
+                if (config != null && config.DatabaseType?.Trim().ToLower() == "mysql") {
                     databaseType = DatabaseType.MySQL;
                 } else {
                     databaseType = DatabaseType.SQLite;
@@ -585,12 +592,12 @@ namespace MatchZy
 
     public class DatabaseConfig
     {
-        public string DatabaseType { get; set; }
-        public string MySqlHost { get; set; }
-        public string MySqlDatabase { get; set; }
-        public string MySqlUsername { get; set; }
-        public string MySqlPassword { get; set; }
-        public int MySqlPort { get; set; }
+        public string? DatabaseType { get; set; }
+        public string? MySqlHost { get; set; }
+        public string? MySqlDatabase { get; set; }
+        public string? MySqlUsername { get; set; }
+        public string? MySqlPassword { get; set; }
+        public int? MySqlPort { get; set; }
     }
 
 }

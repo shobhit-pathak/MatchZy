@@ -58,7 +58,7 @@ namespace MatchZy
             ReplyToUserCommand(player, "You are now not coaching any team!");
         }
 
-        public void HandleCoachCommand(CCSPlayerController player, string side) {
+        public void HandleCoachCommand(CCSPlayerController? player, string side) {
             if (player == null || !player.PlayerPawn.IsValid) return;
             if (isPractice) {
                 ReplyToUserCommand(player, "Coach command can only be used in match mode!");
