@@ -4,7 +4,7 @@ Below are the available modes of the plugin:
 1. **Pug mode** (by default)
 2. **Practice mode** - This can be started by admins using `.prac` command
 3. **Scrim mode** - This can be toggled by admins using `.playout` command. It will enable playout of all rounds.
-4. **Match mode** - This can be set-up by providing a [match json](../match_schema)
+4. **Match mode** - This can be set-up by providing a [match json](../match_setup)
 
 Below are some basic admin commands which can be used for the initial configuration:
 
