@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Utils;
+using Newtonsoft.Json.Linq;
 
 
 namespace MatchZy
@@ -14,9 +15,10 @@ namespace MatchZy
         public string teamFlag = "";
         public string teamTag = "";
 
-        public List<CCSPlayerController> teamPlayers = new List<CCSPlayerController>();
+        public JToken? teamPlayers;
 
         public CCSPlayerController? coach;
+        public int seriesScore = 0;
     }
 
     public partial class MatchZy
@@ -56,7 +58,7 @@ namespace MatchZy
             ReplyToUserCommand(player, "You are now not coaching any team!");
         }
 
-        public void HandleCoachCommand(CCSPlayerController player, string side) {
+        public void HandleCoachCommand(CCSPlayerController? player, string side) {
             if (player == null || !player.PlayerPawn.IsValid) return;
             if (isPractice) {
                 ReplyToUserCommand(player, "Coach command can only be used in match mode!");
@@ -123,6 +125,5 @@ namespace MatchZy
                 coach.ActionTrackingServices!.MatchStats.Damage = 0;
             }
         }
-        // Todo: Organize Teams code which can be later used for setting up matches
     }
 }

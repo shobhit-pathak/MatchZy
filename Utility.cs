@@ -8,6 +8,8 @@ using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Admin;
 using System.Text.RegularExpressions;
+using System.Text;
+using Newtonsoft.Json.Linq;
 
 
 namespace MatchZy
@@ -99,7 +101,6 @@ namespace MatchZy
                 List<string> unreadyPlayers = new List<string>();
 
                 foreach (var key in playerReadyStatus.Keys) {
-                    Log($"[SendUnreadyPlayersMessage Player found] key: {key}, playerReadyStatus: {playerReadyStatus[key]}");
                     if (playerReadyStatus[key] == false) {
                         unreadyPlayers.Add(playerData[key].PlayerName);
                     }
@@ -182,7 +183,7 @@ namespace MatchZy
 
         private void SendSideSelectionMessage() {
             if (isSideSelectionPhase) {
-                Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} Won the knife. Please type .stay/.switch");
+                Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} Won the knife. Waiting for them to type {ChatColors.Green}.stay{ChatColors.Default} or {ChatColors.Green}.switch{ChatColors.Default}");
             }
         }
 
@@ -191,7 +192,7 @@ namespace MatchZy
             ExecWarmupCfg();
             knifeWinnerName = knifeWinner == 3 ? reverseTeamSides["CT"].teamName : reverseTeamSides["TERRORIST"].teamName;
             ShowDamageInfo();
-            Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} Won the knife. Please type .stay/.switch");
+            Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} Won the knife. Waiting for them to type {ChatColors.Green}.stay{ChatColors.Default} or {ChatColors.Green}.switch{ChatColors.Default}");
             if (sideSelectionMessageTimer == null) {
                 sideSelectionMessageTimer = AddTimer(chatTimerDelay, SendSideSelectionMessage, TimerFlags.REPEAT);
             }
@@ -208,7 +209,7 @@ namespace MatchZy
             isKnifeRound = false;
 
             // Storing 0-0 score backup file as lastBackupFileName, so that .stop functions properly in first round.
-            lastBackupFileName = $"matchzy_{liveMatchId}_round00.txt";
+            lastBackupFileName = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}_round00.txt";
 
             KillPhaseTimers();
 
@@ -239,6 +240,7 @@ namespace MatchZy
                 } else {
                     Server.ExecuteCommand("mp_match_can_clinch true");
                 }
+                ExecuteChangedConvars();
             });
         }
 
@@ -264,6 +266,8 @@ namespace MatchZy
             foreach (var key in playerData.Keys) {
                 if (team == 2 && reverseTeamSides["TERRORIST"].coach == playerData[key]) continue;
                 if (team == 3 && reverseTeamSides["CT"].coach == playerData[key]) continue;
+                if (playerData[key].PlayerPawn == null) continue;
+                if (!playerData[key].PlayerPawn.IsValid) continue;
                 if (playerData[key].TeamNum == team) {
                     if (playerData[key].PlayerPawn.Value.Health > 0) count++;
                     totalHealth += playerData[key].PlayerPawn.Value.Health;
@@ -272,122 +276,148 @@ namespace MatchZy
             return (count, totalHealth);
         }
 
-        private void ResetMatch(bool warmupCfgRequired = true) {
-
-            // We stop demo recording if a live match was restarted
-            if (matchStarted) {
-                Server.ExecuteCommand($"tv_stoprecord");
-            }
-            // Reset match data
-            matchStarted = false;
-            readyAvailable = true;
-            isPaused = false;
-
-            isWarmup = true;
-            isKnifeRound = false;
-            isSideSelectionPhase = false;
-            isMatchLive = false;    
-            liveMatchId = -1; 
-            isPractice = false;
-
-            lastBackupFileName = "";
-
-            // Unready all players
-            foreach (var key in playerReadyStatus.Keys) {
-                playerReadyStatus[key] = false;
-            }
-
-            HandleClanTags();
-
-            // Reset unpause data
-            Dictionary<string, object> unpauseData = new()
+        private void ResetMatch(bool warmupCfgRequired = true) 
+        {
+            try
             {
-                { "ct", false },
-                { "t", false },
-                { "pauseTeam", "" }
-            };
+                // We stop demo recording if a live match was restarted
+                if (matchStarted && isDemoRecording) {
+                    Server.ExecuteCommand($"tv_stoprecord");
+                }
+                // Reset match data
+                matchStarted = false;
+                readyAvailable = true;
+                isPaused = false;
+                isMatchSetup = false;
 
-            // Reset stop data
-            Dictionary<string, object> stopData = new()
-            {
-                { "ct", false },
-                { "t", false }
-            };
+                isWarmup = true;
+                isKnifeRound = false;
+                isSideSelectionPhase = false;
+                isMatchLive = false;    
+                liveMatchId = -1; 
+                isPractice = false;
 
-            // Reset owned bots data
-            pracUsedBots = new Dictionary<int, Dictionary<string, object>>();
-            Server.ExecuteCommand("mp_unpause_match");
-            
-            matchzyTeam1.teamName = "Counter-Terrorist";
-            matchzyTeam2.teamName = "Terrorist";
+                lastBackupFileName = "";
 
-            if (matchzyTeam1.coach != null) matchzyTeam1.coach.Clan = "";
-            if (matchzyTeam2.coach != null) matchzyTeam2.coach.Clan = "";
+                // Unready all players
+                foreach (var key in playerReadyStatus.Keys) {
+                    playerReadyStatus[key] = false;
+                }
 
-            matchzyTeam1.coach = null;
-            matchzyTeam2.coach = null;
+                HandleClanTags();
 
-            Server.ExecuteCommand($"mp_teamname_1 {matchzyTeam1.teamName}");
-            Server.ExecuteCommand($"mp_teamname_2 {matchzyTeam2.teamName}");
+                // Reset unpause data
+                Dictionary<string, object> unpauseData = new()
+                {
+                    { "ct", false },
+                    { "t", false },
+                    { "pauseTeam", "" }
+                };
 
-            teamSides[matchzyTeam1] = "CT";
-            teamSides[matchzyTeam2] = "TERRORIST";
-            reverseTeamSides["CT"] = matchzyTeam1;
-            reverseTeamSides["TERRORIST"] = matchzyTeam2;
+                // Reset stop data
+                Dictionary<string, object> stopData = new()
+                {
+                    { "ct", false },
+                    { "t", false }
+                };
 
-            KillPhaseTimers();
-            UpdatePlayersMap();
-            if (warmupCfgRequired) {
-                StartWarmup();
-            } else {
-                // Since we should be already in warmup phase by this point, we are juts setting up the SendUnreadyPlayersMessage timer
-                if (unreadyPlayerMessageTimer == null) {
-                    unreadyPlayerMessageTimer = AddTimer(chatTimerDelay, SendUnreadyPlayersMessage, TimerFlags.REPEAT);
+                // Reset owned bots data
+                pracUsedBots = new Dictionary<int, Dictionary<string, object>>();
+                Server.ExecuteCommand("mp_unpause_match");
+                
+                matchzyTeam1.teamName = "COUNTER-TERRORISTS";
+                matchzyTeam2.teamName = "TERRORISTS";
+
+                matchzyTeam1.teamPlayers = null;
+                matchzyTeam2.teamPlayers = null;
+
+                if (matchzyTeam1.coach != null) matchzyTeam1.coach.Clan = "";
+                if (matchzyTeam2.coach != null) matchzyTeam2.coach.Clan = "";
+
+                matchzyTeam1.coach = null;
+                matchzyTeam2.coach = null;
+
+                matchzyTeam1.seriesScore = 0;
+                matchzyTeam2.seriesScore = 0;
+
+                Server.ExecuteCommand($"mp_teamname_1 {matchzyTeam1.teamName}");
+                Server.ExecuteCommand($"mp_teamname_2 {matchzyTeam2.teamName}");
+
+                teamSides[matchzyTeam1] = "CT";
+                teamSides[matchzyTeam2] = "TERRORIST";
+                reverseTeamSides["CT"] = matchzyTeam1;
+                reverseTeamSides["TERRORIST"] = matchzyTeam2;
+
+                matchConfig = new();
+
+                KillPhaseTimers();
+                UpdatePlayersMap();
+                if (warmupCfgRequired) {
+                    StartWarmup();
+                } else {
+                    // Since we should be already in warmup phase by this point, we are juts setting up the SendUnreadyPlayersMessage timer
+                    if (unreadyPlayerMessageTimer == null) {
+                        unreadyPlayerMessageTimer = AddTimer(chatTimerDelay, SendUnreadyPlayersMessage, TimerFlags.REPEAT);
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                Log($"[ResetMatch - FATAL] [ERROR]: {ex.Message}");
+            } 
         }
 
         private void UpdatePlayersMap() {
-            var playerEntities = Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller");
-            Log($"[UpdatePlayersMap] CCSPlayerController count: {playerEntities.Count<CCSPlayerController>()}");
-            connectedPlayers = 0;
+            try
+            {
+                var playerEntities = Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller");
+                Log($"[UpdatePlayersMap] CCSPlayerController count: {playerEntities.Count<CCSPlayerController>()} matchModeOnly: {matchModeOnly}");
+                connectedPlayers = 0;
 
-            // Clear the playerData dictionary by creating a new instance to add fresh data.
-            playerData = new Dictionary<int, CCSPlayerController>();
-            foreach (var player in playerEntities) {
-                if (player == null) continue;
-                if (player.SteamID == 0) continue; // Player is a bot
+                // Clear the playerData dictionary by creating a new instance to add fresh data.
+                playerData = new Dictionary<int, CCSPlayerController>();
+                foreach (var player in playerEntities) {
+                    if (player == null) continue;
+                    if (!player.IsValid || player.IsBot || player.IsHLTV) continue;
 
-                if (loadedAdmins.ContainsKey(player.SteamID.ToString())) {
-                    Log($"[ADMIN FOUND] ADMIN STEAM: {player.SteamID}");
+                    if (isMatchSetup || matchModeOnly) {
+                        CsTeam team = GetPlayerTeam(player);
+                        if (team == CsTeam.None) {
+                            Server.ExecuteCommand($"kickid {(ushort)player.UserId}");
+                            continue;
+                        }
+                    }
+
+                    // A player controller still exists after a player disconnects
+                    // Hence checking whether the player is actually in the server or not
+                    if (player.Connected != PlayerConnectedState.PlayerConnected) continue;
+
+                    if (player.UserId.HasValue) {
+
+                        // Updating playerData and playerReadyStatus
+                        playerData[player.UserId.Value] = player;
+
+                        // Adding missing player in playerReadyStatus
+                        if (!playerReadyStatus.ContainsKey(player.UserId.Value)) {
+                            playerReadyStatus[player.UserId.Value] = false;
+                        }
+                    }
+                    connectedPlayers++;
                 }
 
-                // A player controller still exists after a player disconnects
-                // Hence checking whether the player is actually in the server or not
-                var iConnectedValue = Schema.GetRef<UInt32>(player.Handle, "CBasePlayerController", "m_iConnected");
-                if (iConnectedValue != 0) continue; // 0: Connected, 1: Connecting, 2: Reconnecting, 3: Disconnecting, 4: Disconnected, 5: Reserved
-
-                if (player.UserId.HasValue) {
-
-                    // Updating playerData and playerReadyStatus
-                    playerData[player.UserId.Value] = player;
-
-                    // Adding missing player in playerReadyStatus
-                    if (!playerReadyStatus.ContainsKey(player.UserId.Value)) {
-                        playerReadyStatus[player.UserId.Value] = false;
+                // Removing disconnected players from playerReadyStatus
+                foreach (var key in playerReadyStatus.Keys.ToList()) {
+                    if (!playerData.ContainsKey(key)) {
+                        // Key is not present in playerData, so remove it from playerReadyStatus
+                        playerReadyStatus.Remove(key);
                     }
                 }
-                connectedPlayers++;
+                Log($"[UpdatePlayersMap] CCSPlayerController count: {playerEntities.Count<CCSPlayerController>()}, RealPlayersCount: {GetRealPlayersCount()}");
             }
-
-            // Removing disconnected players from playerReadyStatus
-            foreach (var key in playerReadyStatus.Keys.ToList()) {
-                if (!playerData.ContainsKey(key)) {
-                    // Key is not present in playerData, so remove it from playerReadyStatus
-                    playerReadyStatus.Remove(key);
-                }
+            catch (Exception e)
+            {
+                Log($"[UpdatePlayersMap FATAL] An error occurred: {e.Message}");
             }
-            Log($"[UpdatePlayersMap] CCSPlayerController count: {playerEntities.Count<CCSPlayerController>()}, RealPlayersCount: {GetRealPlayersCount()}");
         }
 
         private void HandleKnifeWinner(EventCsWinPanelRound @event) {
@@ -428,7 +458,6 @@ namespace MatchZy
             }
             Log($"[KNIFE WINNER] Won by: {knifeWinner}, finalEvent: {@event.FinalEvent}, newFinalEvent: {finalEvent}");
             @event.FinalEvent = finalEvent;
-            Log($"[KNIFE WINNER] Won by: {knifeWinner}, Updated finalEvent: {@event.FinalEvent}");
         }
 
         private void HandleMapChangeCommand(CCSPlayerController? player, string mapName) {
@@ -496,37 +525,41 @@ namespace MatchZy
             isPractice = false;
 
             // If default names, we pick a player and use their name as their team name
-            if (matchzyTeam1.teamName == "Counter-Terrorist") {
+            if (matchzyTeam1.teamName == "COUNTER-TERRORISTS") {
                 // matchzyTeam1.teamName = teamName;
                 teamSides[matchzyTeam1] = "CT";
                 reverseTeamSides["CT"] = matchzyTeam1;
                 foreach (var key in playerData.Keys) {
                     if (playerData[key].TeamNum == 3) {
-                        matchzyTeam1.teamName = "team_" + playerData[key].PlayerName.Replace(" ", "_");
+                        matchzyTeam1.teamName = "team_" + RemoveSpecialCharacters(playerData[key].PlayerName.Replace(" ", "_"));
                         if (matchzyTeam1.coach != null) matchzyTeam1.coach.Clan = $"[{matchzyTeam1.teamName} COACH]";
                         break;
                     }
                 }
-                Server.ExecuteCommand($"mp_teamname_1 {matchzyTeam1.teamName}");
+                // Server.ExecuteCommand($"mp_teamname_1 {matchzyTeam1.teamName}");
             }
 
-            if (matchzyTeam2.teamName == "Terrorist") {
+            if (matchzyTeam2.teamName == "TERRORISTS") {
                 // matchzyTeam2.teamName = teamName;
                 teamSides[matchzyTeam2] = "TERRORIST";
                 reverseTeamSides["TERRORIST"] = matchzyTeam2;
                 foreach (var key in playerData.Keys) {
                     if (playerData[key].TeamNum == 2) {
-                        matchzyTeam2.teamName = "team_" + playerData[key].PlayerName.Replace(" ", "_");
+                        matchzyTeam2.teamName = "team_" + RemoveSpecialCharacters(playerData[key].PlayerName.Replace(" ", "_"));
                         if (matchzyTeam2.coach != null) matchzyTeam2.coach.Clan = $"[{matchzyTeam2.teamName} COACH]";
                         break;
                     }
                 }
-                Server.ExecuteCommand($"mp_teamname_2 {matchzyTeam2.teamName}");
+                // Server.ExecuteCommand($"mp_teamname_2 {matchzyTeam2.teamName}");
             }
+
+            Server.ExecuteCommand($"mp_teamname_1 {reverseTeamSides["CT"].teamName}");
+            Server.ExecuteCommand($"mp_teamname_2 {reverseTeamSides["TERRORIST"].teamName}");
 
             HandleClanTags();
 
-            liveMatchId = database.InitMatch(matchzyTeam1.teamName, matchzyTeam2.teamName, "-");
+            string seriesType = "BO" + matchConfig.NumMaps.ToString();
+            liveMatchId = database.InitMatch(matchzyTeam1.teamName, matchzyTeam2.teamName, "-" , isMatchSetup, liveMatchId, matchConfig.CurrentMapNumber, seriesType);
             SetupRoundBackupFile();
             StartDemoRecording();
             if (isKnifeRequired) {
@@ -564,29 +597,129 @@ namespace MatchZy
         }
 
         private void HandleMatchEnd() {
-            if (isMatchLive) {
-                string winnerName = GetMatchWinnerName();
-                (int t1score, int t2score) = GetTeamsScore();
-                database.SetMatchEndData(liveMatchId, winnerName, t1score, t2score);
-                StopDemoRecording();
-                database.WritePlayerStatsToCsv(Server.GameDirectory + "/csgo/MatchZy_Stats", liveMatchId);
-                ResetMatch(false);
+            if (!isMatchLive) return;
 
-                int matchRestartDelay = ConVar.Find("mp_match_restart_delay").GetPrimitiveValue<int>();
-                AddTimer(matchRestartDelay, ChangeMapOnMatchEnd);
+            // This ensures that the mp_match_restart_delay is not shorter than what is required for the GOTV recording to finish.
+            // Ref: Get5
+            int restartDelay = ConVar.Find("mp_match_restart_delay")!.GetPrimitiveValue<int>();
+            int tvDelay = GetTvDelay();
+            int requiredDelay = tvDelay + 15;
+            int tvFlushDelay = requiredDelay;
+            if (tvDelay > 0.0) {
+                requiredDelay += 10;
             }
+            if (requiredDelay > restartDelay) {
+                Log($"Extended mp_match_restart_delay from {restartDelay} to {requiredDelay} to ensure GOTV broadcast can finish.");
+                ConVar.Find("mp_match_restart_delay")!.SetValue(requiredDelay);
+                restartDelay = requiredDelay;
+            }
+            int currentMapNumber = matchConfig.CurrentMapNumber;
+            Log($"[HandleMatchEnd] MAP ENDED, isMatchSetup: {isMatchSetup} matchid: {liveMatchId} currentMapNumber: {currentMapNumber} tvFlushDelay: {tvFlushDelay}");
+
+            StopDemoRecording(tvFlushDelay - 0.5f, activeDemoFile + ".dem", liveMatchId, currentMapNumber);
+
+            string winnerName = GetMatchWinnerName();
+            (int t1score, int t2score) = GetTeamsScore();
+            int team1SeriesScore = matchzyTeam1.seriesScore;
+            int team2SeriesScore = matchzyTeam2.seriesScore;
+
+            string statsPath = Server.GameDirectory + "/csgo/MatchZy_Stats/" + liveMatchId.ToString();
+
+            Task.Run(async () => {
+                await database.SetMapEndData(liveMatchId, currentMapNumber, winnerName, t1score, t2score, team1SeriesScore, team2SeriesScore);
+                await database.WritePlayerStatsToCsv(statsPath, liveMatchId, currentMapNumber);
+            });
+
+            // If a match is not setup, it was supposed to be a pug/scrim with 1 map
+            // Hence we reset the match once it is over
+            // Todo: Support BO3/BO5 in pugs as well
+            if (!isMatchSetup)
+            {
+                EndSeries(winnerName, restartDelay - 1);
+                return;
+            }
+
+            int remainingMaps = matchConfig.NumMaps - matchzyTeam1.seriesScore - matchzyTeam2.seriesScore;
+            Log($"[HandleMatchEnd] MATCH ENDED, remainingMaps: {remainingMaps}, NumMaps: {matchConfig.NumMaps}, Team1SeriesScore: {matchzyTeam1.seriesScore}, Team2SeriesScore: {matchzyTeam2.seriesScore}");
+            if (matchConfig.SeriesCanClinch) {
+                int mapsToWinSeries = (matchConfig.NumMaps / 2) + 1;
+                if (matchzyTeam1.seriesScore == mapsToWinSeries) {
+                    EndSeries(winnerName, restartDelay - 1);
+                    return;
+                } else if (matchzyTeam2.seriesScore == mapsToWinSeries) {
+                    EndSeries(winnerName, restartDelay - 1);
+                    return;      
+                }
+            } else if (remainingMaps <= 0) {
+                EndSeries(winnerName, restartDelay - 1);
+                return;
+            }
+            if (matchzyTeam1.seriesScore > matchzyTeam2.seriesScore) {
+                Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{matchzyTeam1.teamName}{ChatColors.Default} is winning the series {ChatColors.Green}{matchzyTeam1.seriesScore}-{matchzyTeam2.seriesScore}{ChatColors.Default}");
+
+            } else if (matchzyTeam2.seriesScore > matchzyTeam1.seriesScore) {
+                Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{matchzyTeam2.teamName}{ChatColors.Default} is winning the series {ChatColors.Green}{matchzyTeam2.seriesScore}-{matchzyTeam1.seriesScore}{ChatColors.Default}");
+
+            } else {
+                Server.PrintToChatAll($"{chatPrefix} The series is tied at {ChatColors.Green}{matchzyTeam1.seriesScore}-{matchzyTeam2.seriesScore}{ChatColors.Default}");
+            }
+            matchConfig.CurrentMapNumber += 1;
+            string nextMap = matchConfig.Maplist[matchConfig.CurrentMapNumber];
+
+            if (isPaused) 
+                UnpauseMatch();
+
+            stopData["ct"] = false;
+            stopData["t"] = false;
+
+            KillPhaseTimers();
+
+            AddTimer(restartDelay - 4, () => {
+                if (!isMatchSetup) return;
+                ChangeMap(nextMap, 3.0f);
+                matchStarted = false;
+                readyAvailable = true;
+                isPaused = false;
+
+                isWarmup = true;
+                isKnifeRound = false;
+                isSideSelectionPhase = false;
+                isMatchLive = false;    
+                isPractice = false;
+                StartWarmup();
+                SetMapSides();
+            });
+        }
+
+        private void ChangeMap(string mapName, float delay)
+        {
+            Log($"[ChangeMap] Changing map to {mapName} with delay {delay}");
+            AddTimer(delay, () => {
+                if (long.TryParse(mapName, out _)) {
+                    Server.ExecuteCommand($"host_workshop_map \"{mapName}\"");
+                } else if (Server.IsMapValid(mapName)) {
+                    Server.ExecuteCommand($"changelevel \"{mapName}\"");
+                }
+            });
         }
 
         private void ChangeMapOnMatchEnd() {
             ResetMatch();
-            Server.ExecuteCommand($"changelevel {Server.MapName}");
+            string mapName = Server.MapName;
+            if (long.TryParse(mapName, out _)) {
+                Server.ExecuteCommand($"host_workshop_map \"{mapName}\"");
+            } else if (Server.IsMapValid(mapName)) {
+                Server.ExecuteCommand($"changelevel \"{mapName}\"");
+            }
         }
 
         private string GetMatchWinnerName() {
             (int t1score, int t2score) = GetTeamsScore();
             if (t1score > t2score) {
+                matchzyTeam1.seriesScore++;
                 return matchzyTeam1.teamName;
             } else if (t2score > t1score) {
+                matchzyTeam2.seriesScore++;
                 return matchzyTeam2.teamName;
             } else {
                 return "Draw";
@@ -659,38 +792,51 @@ namespace MatchZy
         }
 
         private void HandlePostRoundEndEvent(EventRoundEnd @event) {
-            if (isMatchLive) {
-                (int t1score, int t2score) = GetTeamsScore();
-                Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{matchzyTeam1.teamName} [{t1score} - {t2score}] {matchzyTeam2.teamName}");
+            try {
+                if (isMatchLive) {
+                    (int t1score, int t2score) = GetTeamsScore();
+                    Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{matchzyTeam1.teamName} [{t1score} - {t2score}] {matchzyTeam2.teamName}");
 
-                ShowDamageInfo();
+                    ShowDamageInfo();
 
-                database.UpdatePlayerStats(liveMatchId, reverseTeamSides["CT"].teamName, reverseTeamSides["TERRORIST"].teamName, playerData);
-                database.UpdateMatchStats(liveMatchId, t1score, t2score);
+                    Dictionary<ulong, Dictionary<string, object>> playerStatsDictionary = GetPlayerStatsDict();
 
-                string round = (t1score + t2score).ToString("D2");
-                lastBackupFileName = $"matchzy_{liveMatchId}_round{round}.txt";
-                Log($"[HandlePostRoundEndEvent] Setting lastBackupFileName to {lastBackupFileName}");
+                    int currentMapNumber = matchConfig.CurrentMapNumber;
+                    long matchId = liveMatchId;
 
-                // One of the team did not use .stop command hence display the proper message after the round has ended.
-                if (stopData["ct"] && !stopData["t"]) {
-                    Server.PrintToChatAll($"{chatPrefix} The round restore request by {ChatColors.Green}{reverseTeamSides["CT"].teamName}{ChatColors.Default} was cancelled as the round ended");
-                } else if (!stopData["ct"] && stopData["t"]) {
-                    Server.PrintToChatAll($"{chatPrefix} The round restore request by {ChatColors.Green}{reverseTeamSides["TERRORIST"].teamName}{ChatColors.Default} was cancelled as the round ended");
+                    Task.Run(async () => {
+                        await database.UpdatePlayerStatsAsync(matchId, currentMapNumber, playerStatsDictionary);
+                        await database.UpdateMapStatsAsync(matchId, currentMapNumber, t1score, t2score);
+                    });
+
+                    string round = (t1score + t2score).ToString("D2");
+                    lastBackupFileName = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}_round{round}.txt";
+                    Log($"[HandlePostRoundEndEvent] Setting lastBackupFileName to {lastBackupFileName}");
+
+                    // One of the team did not use .stop command hence display the proper message after the round has ended.
+                    if (stopData["ct"] && !stopData["t"]) {
+                        Server.PrintToChatAll($"{chatPrefix} The round restore request by {ChatColors.Green}{reverseTeamSides["CT"].teamName}{ChatColors.Default} was cancelled as the round ended");
+                    } else if (!stopData["ct"] && stopData["t"]) {
+                        Server.PrintToChatAll($"{chatPrefix} The round restore request by {ChatColors.Green}{reverseTeamSides["TERRORIST"].teamName}{ChatColors.Default} was cancelled as the round ended");
+                    }
+
+                    // Invalidate .stop requests after a round is completed.
+                    stopData["ct"] = false;
+                    stopData["t"] = false;
+
+                    bool swapRequired = IsTeamSwapRequired();
+
+                    // If isRoundRestoring is true, sides will be swapped from round restore if required!
+                    if (swapRequired && !isRoundRestoring) {
+                        SwapSidesInTeamData(false);
+                    }
+
+                    isRoundRestoring = false;
                 }
-
-                // Invalidate .stop requests after a round is completed.
-                stopData["ct"] = false;
-                stopData["t"] = false;
-
-                bool swapRequired = IsTeamSwapRequired();
-
-                // If isRoundRestoring is true, sides will be swapped from round restore if required!
-                if (swapRequired && !isRoundRestoring) {
-                    SwapSidesInTeamData(false);
-                }
-
-                isRoundRestoring = false;
+            }
+            catch (Exception e)
+            {
+                Log($"[HandlePostRoundEndEvent FATAL] An error occurred: {e.Message}");
             }
         }
 
@@ -699,10 +845,10 @@ namespace MatchZy
             var gameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
             int roundsPlayed = gameRules.TotalRoundsPlayed;
 
-            int roundsPerHalf = ConVar.Find("mp_maxrounds").GetPrimitiveValue<int>() / 2;
-            int roundsPerOTHalf = ConVar.Find("mp_overtime_maxrounds").GetPrimitiveValue<int>() / 2;
+            int roundsPerHalf = ConVar.Find("mp_maxrounds")!.GetPrimitiveValue<int>() / 2;
+            int roundsPerOTHalf = ConVar.Find("mp_overtime_maxrounds")!.GetPrimitiveValue<int>() / 2;
 
-            bool halftimeEnabled = ConVar.Find("mp_halftime").GetPrimitiveValue<bool>();
+            bool halftimeEnabled = ConVar.Find("mp_halftime")!.GetPrimitiveValue<bool>();
 
             if (halftimeEnabled) {
                 if (roundsPlayed == roundsPerHalf) {
@@ -738,6 +884,16 @@ namespace MatchZy
                 ReplyToUserCommand(player, "Match is already paused!");
                 return;
             }
+            if (IsHalfTimePhase())
+            {
+                ReplyToUserCommand(player, "You cannot use this command during halftime.");
+                return;
+            }
+            if (IsPostGamePhase())
+            {
+                ReplyToUserCommand(player, "You cannot use this command after the game has ended.");
+                return;
+            }
             if (isMatchLive && !isPaused) {
 
                 string pauseTeamName = "Admin";
@@ -768,6 +924,16 @@ namespace MatchZy
                 ReplyToUserCommand(player, "Match is already paused!");
                 return;
             }
+            if (IsHalfTimePhase())
+            {
+                ReplyToUserCommand(player, "You cannot use this command during halftime.");
+                return;
+            }
+            if (IsPostGamePhase())
+            {
+                ReplyToUserCommand(player, "You cannot use this command after the game has ended.");
+                return;
+            }
             unpauseData["pauseTeam"] = "Admin";
             Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}Admin{ChatColors.Default} has paused the match.");
             if (player == null) {
@@ -784,17 +950,23 @@ namespace MatchZy
                     return;
                 }
                 Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}Admin{ChatColors.Default} has unpaused the match, resuming the match!");
-                Server.ExecuteCommand("mp_unpause_match;");
-                isPaused = false;
-                unpauseData["ct"] = false;
-                unpauseData["t"] = false;
-                if (!isPaused && pausedStateTimer != null) {
-                    pausedStateTimer.Kill();
-                    pausedStateTimer = null;
-                }
+                UnpauseMatch();
+
                 if (player == null) {
                     Server.PrintToConsole("[MatchZy] Admin has unpaused the match, resuming the match!");
                 }
+            }
+        }
+
+        private void UnpauseMatch()
+        {
+            Server.ExecuteCommand("mp_unpause_match;");
+            isPaused = false;
+            unpauseData["ct"] = false;
+            unpauseData["t"] = false;
+            if (!isPaused && pausedStateTimer != null) {
+                pausedStateTimer.Kill();
+                pausedStateTimer = null;
             }
         }
 
@@ -864,6 +1036,242 @@ namespace MatchZy
                 ReplyToUserCommand(player, $"Available commands: !pause, !unpause, !tac, !tech{stopCommandMessage}");
                 return;
             }
+        }
+
+        public void LoadClientNames()
+        {
+            string namesFileName = "Match_" + liveMatchId.ToString() + ".ini";
+            string namesFilePath = Server.GameDirectory + "/csgo/MatchZyPlayerNames/" + namesFileName;
+            string? directoryPath = Path.GetDirectoryName(namesFilePath);
+            if (directoryPath != null)
+            {
+                if (!Directory.Exists(directoryPath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                }
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("\"Names\"");
+            sb.AppendLine("{");
+
+            WriteClientNamesInFile(sb, matchzyTeam1.teamPlayers);
+            WriteClientNamesInFile(sb, matchzyTeam2.teamPlayers);
+            WriteClientNamesInFile(sb, matchConfig.Spectators);
+
+            sb.AppendLine("}");
+            File.WriteAllText(namesFilePath, sb.ToString());
+            Server.ExecuteCommand($"sv_load_forced_client_names_file MatchZyPlayerNames/" + namesFileName);
+        }
+
+        public void WriteClientNamesInFile(StringBuilder sb, JToken? players)
+        {
+            if (players == null) return;
+            foreach (JProperty player in players)
+            {
+                string steamId = player.Name;
+                string escapedName = player.Value.ToString().Replace("\"", "\\\"");
+
+                sb.AppendLine($"\t\"{steamId}\"\t\t\"{escapedName}\"");
+            }
+        }
+
+        static bool IsValidUrl(string url)
+        {
+            if (Uri.TryCreate(url, UriKind.Absolute, out Uri result))
+            {
+                return result.Scheme == Uri.UriSchemeHttp || result.Scheme == Uri.UriSchemeHttps;
+            }
+            return false;
+        }
+
+        public string GetConvarStringValue(ConVar? cvar)
+        {
+            try
+            {
+                if (cvar == null) return "";
+                string convarValue = cvar.Type switch
+                {
+                    ConVarType.Bool => cvar.GetPrimitiveValue<bool>().ToString(),
+                    ConVarType.Float32 or ConVarType.Float64 => cvar.GetPrimitiveValue<float>().ToString(),
+                    ConVarType.UInt16 => cvar.GetPrimitiveValue<ushort>().ToString(),
+                    ConVarType.Int16 => cvar.GetPrimitiveValue<short>().ToString(),
+                    ConVarType.UInt32 => cvar.GetPrimitiveValue<uint>().ToString(),
+                    ConVarType.Int32 => cvar.GetPrimitiveValue<int>().ToString(),
+                    ConVarType.Int64 => cvar.GetPrimitiveValue<long>().ToString(),
+                    ConVarType.UInt64 => cvar.GetPrimitiveValue<ulong>().ToString(),
+                    ConVarType.String => cvar.StringValue,
+                    _ => "",
+                };
+                return convarValue;
+            }
+            catch (Exception ex)
+            {
+                Log($"[GetConvarStringValue - FATAL] Exception occurred: {ex.Message}");
+                return "";
+            }
+
+        }
+
+        public void SetConvarValue(ConVar? cvar, string value)
+        {
+            if (cvar == null) return;
+            Dictionary<ConVarType, Action<string>> conversionMap = new()
+            {
+                { ConVarType.Bool, v => cvar.SetValue(int.TryParse(v, out int intValue) && intValue >= 1 || Convert.ToBoolean(v) ) },
+                { ConVarType.Float32, v => cvar.SetValue(Convert.ToSingle(v)) },
+                { ConVarType.Float64, v => cvar.SetValue(Convert.ToSingle(v)) },
+                { ConVarType.UInt16, v => cvar.SetValue(Convert.ToUInt16(v)) },
+                { ConVarType.Int16, v => cvar.SetValue(Convert.ToInt16(v)) },
+                { ConVarType.UInt32, v => cvar.SetValue(Convert.ToUInt32(v)) },
+                { ConVarType.Int32, v => cvar.SetValue(Convert.ToInt32(v)) },
+                { ConVarType.Int64, v => cvar.SetValue(Convert.ToInt64(v)) },
+                { ConVarType.UInt64, v => cvar.SetValue(Convert.ToUInt64(v)) },
+                { ConVarType.String, v => cvar.SetValue(v) },
+            };
+
+            if (conversionMap.TryGetValue(cvar.Type, out var conversion))
+            {
+                try
+                {
+                    conversion(value);
+                }
+                catch (Exception ex)
+                {
+                    Log($"[SetConvarValue - FATAL] Exception occurred: {ex.Message}");
+                }
+            }
+        }
+
+        public void ExecuteChangedConvars()
+        {
+            foreach (string key in matchConfig.ChangedCvars.Keys)
+            {
+                string value = matchConfig.ChangedCvars[key];
+                Log($"[ExecuteChangedConvars] Execing: {key} {value}");
+                Server.ExecuteCommand($"{key} {value}");
+            }
+        }
+
+        public void ResetChangedConvars()
+        {
+            foreach (string key in matchConfig.OriginalCvars.Keys)
+            {
+                string value = matchConfig.OriginalCvars[key];
+                Log($"[ResetChangedConvars] Execing: {key} {value}");
+                Server.ExecuteCommand($"{key} {value}");
+            }
+        }
+
+        public int GetGamePhase()
+        {
+            return Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!.GamePhase;
+        }
+
+        public bool IsHalfTimePhase()
+        {
+            try
+            {
+                return GetGamePhase() == 4;
+            }
+            catch (Exception e)
+            {
+                Log($"[IsHalfTime FATAL] An error occurred: {e.Message}");
+                return false;
+            }
+
+        }
+
+        public bool IsPostGamePhase()
+        {
+            try
+            {
+                return GetGamePhase() == 5;
+            }
+            catch (Exception e)
+            {
+                Log($"[IsPostGamePhase FATAL] An error occurred: {e.Message}");
+                return false;
+            }
+
+        }
+
+        public Dictionary<ulong, Dictionary<string, object>> GetPlayerStatsDict()
+        {
+            Dictionary<ulong, Dictionary<string, object>> playerStatsDictionary = new Dictionary<ulong, Dictionary<string, object>>();
+            try
+            {
+                
+
+                foreach (int key in playerData.Keys)
+                {
+                    CCSPlayerController player = playerData[key];
+                    if (!player.IsValid || player.ActionTrackingServices == null) continue;
+
+                    var playerStats = player.ActionTrackingServices.MatchStats;
+                    ulong steamid64 = player.SteamID;
+
+                    // Create a nested dictionary to store individual stats for the player
+                    Dictionary<string, object> stats = new Dictionary<string, object>
+                    {
+                        { "PlayerName", player.PlayerName },
+                        { "Kills", playerStats.Kills },
+                        { "Deaths", playerStats.Deaths },
+                        { "Assists", playerStats.Assists },
+                        { "Damage", playerStats.Damage },
+                        { "Enemy2Ks", playerStats.Enemy2Ks },
+                        { "Enemy3Ks", playerStats.Enemy3Ks },
+                        { "Enemy4Ks", playerStats.Enemy4Ks },
+                        { "Enemy5Ks", playerStats.Enemy5Ks },
+                        { "EntryCount", playerStats.EntryCount },
+                        { "EntryWins", playerStats.EntryWins },
+                        { "1v1Count", playerStats.I1v1Count },
+                        { "1v1Wins", playerStats.I1v1Wins },
+                        { "1v2Count", playerStats.I1v2Count },
+                        { "1v2Wins", playerStats.I1v2Wins },
+                        { "UtilityCount", playerStats.Utility_Count },
+                        { "UtilitySuccess", playerStats.Utility_Successes },
+                        { "UtilityDamage", playerStats.UtilityDamage },
+                        { "UtilityEnemies", playerStats.Utility_Enemies },
+                        { "FlashCount", playerStats.Flash_Count },
+                        { "FlashSuccess", playerStats.Flash_Successes },
+                        { "HealthPointsRemovedTotal", playerStats.HealthPointsRemovedTotal },
+                        { "HealthPointsDealtTotal", playerStats.HealthPointsDealtTotal },
+                        { "ShotsFiredTotal", playerStats.ShotsFiredTotal },
+                        { "ShotsOnTargetTotal", playerStats.ShotsOnTargetTotal },
+                        { "EquipmentValue", playerStats.EquipmentValue },
+                        { "MoneySaved", playerStats.MoneySaved },
+                        { "KillReward", playerStats.KillReward },
+                        { "LiveTime", playerStats.LiveTime },
+                        { "HeadShotKills", playerStats.HeadShotKills },
+                        { "CashEarned", playerStats.CashEarned },
+                        { "EnemiesFlashed", playerStats.EnemiesFlashed }
+                    };
+
+                    string teamName = "Spectator";
+                    if (player.TeamNum == 3){
+                        teamName = reverseTeamSides["CT"].teamName;
+                    } else if (player.TeamNum == 2 ) {
+                        teamName = reverseTeamSides["TERRORIST"].teamName;
+                    }
+
+                    stats["TeamName"] = teamName;
+
+                    playerStatsDictionary.Add(steamid64, stats);
+                }
+            }
+            catch (Exception e)
+            {
+                Log($"[GetPlayerStatsDict FATAL] An error occurred: {e.Message}");
+            }
+
+            return playerStatsDictionary;
+        }
+
+        static string RemoveSpecialCharacters(string input)
+        {
+            Regex regex = new("[^a-zA-Z0-9 _-]");
+            return regex.Replace(input, "");
         }
 
         private void Log(string message) {

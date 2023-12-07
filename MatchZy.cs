@@ -7,12 +7,12 @@ using CounterStrikeSharp.API.Core.Attributes;
 
 namespace MatchZy
 {
-    [MinimumApiVersion(84)]
+    [MinimumApiVersion(107)]
     public partial class MatchZy : BasePlugin
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.4.3-alpha";
+        public override string ModuleVersion => "0.5.0-alpha";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -56,9 +56,9 @@ namespace MatchZy
         public CounterStrikeSharp.API.Modules.Timers.Timer? sideSelectionMessageTimer = null;
         public CounterStrikeSharp.API.Modules.Timers.Timer? pausedStateTimer = null;
 
-        // Each message is kept in chat display for ~13 seconds, hence setting default chat timer to 12 seconds.
+        // Each message is kept in chat display for ~13 seconds, hence setting default chat timer to 13 seconds.
         // Configurable using matchzy_chat_messages_timer_delay <seconds>
-        public int chatTimerDelay = 12;
+        public int chatTimerDelay = 13;
 
         // Game Config
         public bool isKnifeRequired = true;
@@ -71,14 +71,13 @@ namespace MatchZy
         // User command - action map
         public Dictionary<string, Action<CCSPlayerController?, CommandInfo?>>? commandActions;
 
-        // SQLite Database 
-        private Database database;
+        // SQLite/MySQL Database 
+        private Database database = new();
     
         public override void Load(bool hotReload) {
             
             LoadAdmins();
 
-            database = new Database();
             database.InitializeDatabase(ModuleDirectory);
 
             // This sets default config ConVars
@@ -104,6 +103,7 @@ namespace MatchZy
                 { ".ur", OnPlayerUnReady },
                 { ".stay", OnTeamStay },
                 { ".switch", OnTeamSwitch },
+                { ".swap", OnTeamSwitch },
                 { ".tech", OnPauseCommand },
                 { ".pause", OnPauseCommand },
                 { ".unpause", OnUnpauseCommand },
@@ -140,85 +140,109 @@ namespace MatchZy
             };
 
             RegisterEventHandler<EventPlayerConnectFull>((@event, info) => {
-                Log($"[FULL CONNECT] Player ID: {@event.Userid.UserId}, Name: {@event.Userid.PlayerName} has connected!");
-                var player = @event.Userid;
-
-                // Handling whitelisted players
-                if(!player.IsBot) 
+                try 
                 {
-                    var steamId = player.SteamID;
-            
-                    string whitelistfileName = "MatchZy/whitelist.cfg";
-                    string whitelistPath = Path.Join(Server.GameDirectory + "/csgo/cfg", whitelistfileName);
-                    string? directoryPath = Path.GetDirectoryName(whitelistPath);
-                    if (directoryPath != null)
-                    {
-                        if (!Directory.Exists(directoryPath))
-                        {
-                            Directory.CreateDirectory(directoryPath);
-                        }
-                    }
-                    if(!File.Exists(whitelistPath)) File.WriteAllLines(whitelistPath, new []{"Steamid1", "Steamid2"});
-            
-                    var whiteList = File.ReadAllLines(whitelistPath);
-        
-                    if (isWhitelistRequired == true)
-                    {
-                        if (!whiteList.Contains(steamId.ToString()))
-                        {
-                            Log($"[EventPlayerConnectFull] KICKING PLAYER STEAMID: {steamId}, Name: {@event.Userid.PlayerName} (Not whitelisted!)");
-                            Server.ExecuteCommand($"kickid {player.UserId}");
-                            return HookResult.Continue;
-                        }
-                    }
-                }
+                    Log($"[FULL CONNECT] Player ID: {@event.Userid.UserId}, Name: {@event.Userid.PlayerName} has connected!");
+                    CCSPlayerController player = @event.Userid;
 
-                if (@event.Userid.UserId.HasValue) {
-                    
-                    playerData[@event.Userid.UserId.Value] = @event.Userid;
-                    connectedPlayers++;
+                    // Handling whitelisted players
+                    if(!player.IsBot || !player.IsHLTV) 
+                    {
+                        var steamId = player.SteamID;
+                
+                        string whitelistfileName = "MatchZy/whitelist.cfg";
+                        string whitelistPath = Path.Join(Server.GameDirectory + "/csgo/cfg", whitelistfileName);
+                        string? directoryPath = Path.GetDirectoryName(whitelistPath);
+                        if (directoryPath != null)
+                        {
+                            if (!Directory.Exists(directoryPath))
+                            {
+                                Directory.CreateDirectory(directoryPath);
+                            }
+                        }
+                        if(!File.Exists(whitelistPath)) File.WriteAllLines(whitelistPath, new []{"Steamid1", "Steamid2"});
+                
+                        var whiteList = File.ReadAllLines(whitelistPath);
+            
+                        if (isWhitelistRequired == true)
+                        {
+                            if (!whiteList.Contains(steamId.ToString()))
+                            {
+                                Log($"[EventPlayerConnectFull] KICKING PLAYER STEAMID: {steamId}, Name: {player.PlayerName} (Not whitelisted!)");
+                                Server.ExecuteCommand($"kickid {(ushort)player.UserId}");
+                                return HookResult.Continue;
+                            }
+                        }
+                        if (isMatchSetup || matchModeOnly) {
+                            CsTeam team = GetPlayerTeam(player);
+                            Log($"[EventPlayerConnectFull] KICKING PLAYER STEAMID: {steamId}, Name: {player.PlayerName} (NOT ALLOWED!)");
+                            if (team == CsTeam.None) {
+                                Server.ExecuteCommand($"kickid {(ushort)player.UserId}");
+                                return HookResult.Continue;
+                            }
+                        }
+                    }
+
+                    if (player.UserId.HasValue) {
+                        
+                        playerData[player.UserId.Value] = player;
+                        connectedPlayers++;
+                        if (readyAvailable && !matchStarted) {
+                            playerReadyStatus[player.UserId.Value] = false;
+                        } else {
+                            playerReadyStatus[player.UserId.Value] = true;
+                        }
+                    }
+                    // May not be required, but just to be on safe side so that player data is properly updated in dictionaries
+                    UpdatePlayersMap();
+
                     if (readyAvailable && !matchStarted) {
-                        playerReadyStatus[@event.Userid.UserId.Value] = false;
-                    } else {
-                        playerReadyStatus[@event.Userid.UserId.Value] = true;
+                        // Start Warmup when first player connect and match is not started.
+                        if (GetRealPlayersCount() == 1) {
+                            Log($"[FULL CONNECT] First player has connected, starting warmup!");
+                            ExecUnpracCommands();
+                            StartWarmup();
+                        }
                     }
-                }
-                // May not be required, but just to be on safe side so that player data is properly updated in dictionaries
-                UpdatePlayersMap();
+                    return HookResult.Continue;
 
-                if (readyAvailable && !matchStarted) {
-                    // Start Warmup when first player connect and match is not started.
-                    if (GetRealPlayersCount() == 1) {
-                        Log($"[FULL CONNECT] First player has connected, starting warmup!");
-                        ExecUnpracCommands();
-                        StartWarmup();
-                    }
                 }
-                return HookResult.Continue;
+                catch (Exception e)
+                {
+                    Log($"[EventPlayerConnectFull FATAL] An error occurred: {e.Message}");
+                    return HookResult.Continue;
+                }
             });
 
             RegisterEventHandler<EventPlayerDisconnect>((@event, info) => {
-                CCSPlayerController player = @event.Userid;
-                Log($"[EventPlayerDisconnect] Player ID: {player.UserId}, Name: {player.PlayerName} has disconnected!");
-                if (player.UserId.HasValue) {
-                    if (playerReadyStatus.ContainsKey(player.UserId.Value)) {
-                        playerReadyStatus.Remove(player.UserId.Value);
-                        connectedPlayers--;
+                try
+                {
+                    CCSPlayerController player = @event.Userid;
+                    if (player.UserId.HasValue) {
+                        if (playerReadyStatus.ContainsKey(player.UserId.Value)) {
+                            playerReadyStatus.Remove(player.UserId.Value);
+                            connectedPlayers--;
+                        }
+                        if (playerData.ContainsKey(player.UserId.Value)) {
+                            playerData.Remove(player.UserId.Value);
+                        }
+                        
+                        if (matchzyTeam1.coach == player) {
+                            matchzyTeam1.coach = null;
+                            player.Clan = "";
+                        } else if (matchzyTeam2.coach == player) {
+                            matchzyTeam2.coach = null;
+                            player.Clan = "";
+                        }
                     }
-                    if (playerData.ContainsKey(player.UserId.Value)) {
-                        playerData.Remove(player.UserId.Value);
-                    }
-                    
-                    if (matchzyTeam1.coach == player) {
-                        matchzyTeam1.coach = null;
-                        player.Clan = "";
-                    } else if (matchzyTeam2.coach == player) {
-                        matchzyTeam2.coach = null;
-                        player.Clan = "";
-                    }
-                }
 
-                return HookResult.Continue;
+                    return HookResult.Continue;
+                }
+                catch (Exception e)
+                {
+                    Log($"[EventPlayerDisconnect FATAL] An error occurred: {e.Message}");
+                    return HookResult.Continue;
+                }
             });
 
             RegisterListener<Listeners.OnClientDisconnectPost>(playerSlot => { 
@@ -235,20 +259,47 @@ namespace MatchZy
             }, HookMode.Pre);
 
             RegisterEventHandler<EventCsWinPanelMatch>((@event, info) => {
-                Log($"[EventCsWinPanelMatch]");
-                HandleMatchEnd();
-                // ResetMatch();
-                return HookResult.Continue;
+                try
+                {
+                    Log($"[EventCsWinPanelMatch]");
+                    HandleMatchEnd();
+                    // ResetMatch();
+                    return HookResult.Continue;
+                }
+                catch (Exception e)
+                {
+                    Log($"[EventCsWinPanelMatch FATAL] An error occurred: {e.Message}");
+                    return HookResult.Continue;
+                }
+
             });
 
            RegisterEventHandler<EventRoundStart>((@event, info) => {
-                HandlePostRoundStartEvent(@event);
-                return HookResult.Continue;
+                try
+                {
+                    HandlePostRoundStartEvent(@event);
+                    return HookResult.Continue;
+                }
+                catch (Exception e)
+                {
+                    Log($"[EventRoundStart FATAL] An error occurred: {e.Message}");
+                    return HookResult.Continue;
+                }
+
             });
 
             RegisterEventHandler<EventRoundFreezeEnd>((@event, info) => {
-                HandlePostRoundFreezeEndEvent(@event);
-                return HookResult.Continue;
+                try
+                {
+                    HandlePostRoundFreezeEndEvent(@event);
+                    return HookResult.Continue;
+                }
+                catch (Exception e)
+                {
+                    Log($"[EventRoundFreezeEnd FATAL] An error occurred: {e.Message}");
+                    return HookResult.Continue;
+                }
+
             });
 
             RegisterEventHandler<EventPlayerTeam>((@event, info) => {
@@ -261,9 +312,55 @@ namespace MatchZy
                 return HookResult.Continue;
             }, HookMode.Pre);
 
+            RegisterEventHandler<EventPlayerTeam>((@event, info) =>
+            {
+                CCSPlayerController player = @event.Userid;
+
+                if (player.IsHLTV || player.IsBot || !isMatchSetup)
+                {
+                    return HookResult.Continue;
+                }
+
+                CsTeam playerTeam = GetPlayerTeam(player);
+
+                Log($"[EventPlayerTeam] PLAYER TEAM DETERMINED: {(int)playerTeam}");
+
+                if (@event.Team != (int)playerTeam)
+                {
+                    if (player.IsValid)
+                    {
+
+                        Server.NextFrame(() =>
+                        {
+                            player.SwitchTeam(playerTeam);
+                            // Server.NextFrame(() =>
+                            // {
+                            //     player.PlayerPawn.Value.CommitSuicide(explode: true, force: true);
+                            // });
+                        });
+                    }
+                }
+                return HookResult.Continue;
+            });
+
+            AddCommandListener("jointeam", (player, info) =>
+            {
+                if (isMatchSetup && player != null && player.IsValid) {
+                    if (int.TryParse(info.ArgByIndex(1), out int joiningTeam)) {
+                        int playerTeam = (int)GetPlayerTeam(player);
+                        Log($"[jointeam] PLAYER TEAM DETERMINED: PlayerName: {player.PlayerName}, PlayerTeam: {playerTeam}");
+                        if (joiningTeam != playerTeam) {
+                            return HookResult.Stop;
+                        }
+                    }
+ 
+                }
+                return HookResult.Continue;
+            });
+
             RegisterEventHandler<EventRoundEnd>((@event, info) => {
-                Log($"[EventRoundEnd PRE] Winner: {@event.Winner}, Reason: {@event.Reason}");
                 if (isKnifeRound) {
+                    Log($"[EventRoundEnd PRE] Winner: {@event.Winner}, Reason: {@event.Reason}");
                     @event.Winner = knifeWinner;
                     int finalEvent = 10;
                     if (knifeWinner == 3) {
@@ -281,26 +378,36 @@ namespace MatchZy
             }, HookMode.Pre);
 
            RegisterEventHandler<EventRoundEnd>((@event, info) => {
-                Log($"[EventRoundEnd POST] Winner: {@event.Winner}, Reason: {@event.Reason}");
-                HandlePostRoundEndEvent(@event);
-                return HookResult.Continue;
+                try 
+                {
+                    if (!isMatchLive) return HookResult.Continue;
+                    Log($"[EventRoundEnd POST] Winner: {@event.Winner}, Reason: {@event.Reason}");
+                    HandlePostRoundEndEvent(@event);
+                    return HookResult.Continue;
+                }
+                catch (Exception e)
+                {
+                    Log($"[EventRoundEnd FATAL] An error occurred: {e.Message}");
+                    return HookResult.Continue;
+                }
+
             }, HookMode.Post);
 
-            RegisterEventHandler<EventMapShutdown>((@event, info) => {
-                Log($"[EventMapShutdown] Resetting match!");
-                ResetMatch();
-                return HookResult.Continue;
-            });
+            // RegisterEventHandler<EventMapShutdown>((@event, info) => {
+            //     Log($"[EventMapShutdown] Resetting match!");
+            //     ResetMatch();
+            //     return HookResult.Continue;
+            // });
 
             RegisterListener<Listeners.OnMapStart>(mapName => { 
-                Log($"[Listeners.OnMapStart] Resetting match!");
-                ResetMatch();
+                Log($"[Listeners.OnMapStart]");
+                if (isWarmup) StartWarmup();
             });
 
-            RegisterListener<Listeners.OnMapEnd>(() => {
-                Log($"[Listeners.OnMapEnd] Resetting match!");
-                ResetMatch();
-            });
+            // RegisterListener<Listeners.OnMapEnd>(() => {
+            //     Log($"[Listeners.OnMapEnd] Resetting match!");
+            //     ResetMatch();
+            // });
 
             RegisterEventHandler<EventPlayerDeath>((@event, info) => {
                 // Setting money back to 16000 when a player dies in warmup

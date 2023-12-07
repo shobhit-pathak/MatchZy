@@ -1,0 +1,61 @@
+site_name: MatchZy
+theme:
+  name: material
+  features:
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotation
+    - content.code.copy
+  language: en
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/toggle-switch-off-outline 
+        name: Switch to dark mode
+      primary: teal
+      accent: purple 
+    - scheme: slate 
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode    
+      primary: teal
+      accent: lime
+nav:
+  - Home: index.md
+  - Setup:
+      - Installation: installation.md
+      - Configuration: configuration.md
+  - Basics:
+      - Getting Started: getting_started.md
+      - Match Setup: match_setup.md
+      - Commands: commands.md
+      - GOTV & Demos: gotv.md
+  - Advanced:
+      - Developers: developers.md
+      - Database Stats: database_stats.md
+  - Credits and thanks!: credits.md
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - admonition
+  - pymdownx.arithmatex:
+      generic: true
+  - footnotes
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.mark
+  - attr_list
+  - abbr
+  - tables
+  - meta
+  - def_list
+  - pymdownx.tabbed:
+      alternate_style: true
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/shobhit-pathak/MatchZy

@@ -275,10 +275,12 @@ namespace MatchZy
                 return;
             }
             string currentMapName = Server.MapName;
-            if (Server.IsMapValid(currentMapName)) {
+            if (long.TryParse(currentMapName, out _)) { // Check if mapName is a long for workshop map ids
+                Server.ExecuteCommand($"host_workshop_map \"{currentMapName}\"");
+            } else if (Server.IsMapValid(currentMapName)) {
                 Server.ExecuteCommand($"changelevel \"{currentMapName}\"");
             } else {
-                player.PrintToChat($"{chatPrefix} Cant reload a workshop map!");
+                player.PrintToChat($"{chatPrefix} Invalid map name!");
             }
         }
 
