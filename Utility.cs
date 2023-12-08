@@ -810,7 +810,7 @@ namespace MatchZy
 
         private void StartMatchMode() 
         {
-            if (matchStarted || !isPractice) return;
+            if (matchStarted || (!isPractice && !isSleep)) return;
             ExecUnpracCommands();
             ResetMatch();
             Server.PrintToChatAll($"{chatPrefix} Match mode loaded!");
@@ -868,6 +868,22 @@ namespace MatchZy
 
         private void Log(string message) {
             Console.WriteLine("[MatchZy] " + message);
+        }
+
+        private void AutoStart()
+        {
+            if (autoStartMode == 0)
+            {
+                StartSleepMode();
+            }
+            if (autoStartMode == 1)
+            {
+                StartWarmup();
+            }
+            if (autoStartMode == 2)
+            {
+                StartPracticeMode();
+            }
         }
     }
 }

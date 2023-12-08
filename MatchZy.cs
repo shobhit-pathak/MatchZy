@@ -21,15 +21,17 @@ namespace MatchZy
         public string chatPrefix = $"[{ChatColors.Green}MatchZy{ChatColors.Default}]";
         public string adminChatPrefix = $"[{ChatColors.Red}ADMIN{ChatColors.Default}]";
 
-        // Match phase data
+        // Plugin start phase data
         public bool isPractice = false;
-        public bool readyAvailable = true;
+	public bool isSleep = false;
+        public bool readyAvailable = false;
         public bool matchStarted = false;
-        public bool isWarmup = true;
+        public bool isWarmup = false;
         public bool isKnifeRound = false;
         public bool isSideSelectionPhase = false;
         public bool isMatchLive = false;
         public long liveMatchId = -1;
+	public int autoStartMode = 0;
 
         // Pause Data
         public bool isPaused = false;
@@ -90,7 +92,7 @@ namespace MatchZy
             reverseTeamSides["TERRORIST"] = matchzyTeam2;
 
             if (!hotReload) {
-                StartWarmup();
+                AutoStart();
             } else {
                 // Pluign should not be reloaded while a match is live (this would messup with the match flags which were set)
                 // Only hot-reload the plugin if you are testing something and don't want to restart the server time and again.
@@ -191,7 +193,7 @@ namespace MatchZy
                     if (GetRealPlayersCount() == 1) {
                         Log($"[FULL CONNECT] First player has connected, starting warmup!");
                         ExecUnpracCommands();
-                        StartWarmup();
+                        AutoStart();
                     }
                 }
                 return HookResult.Continue;
