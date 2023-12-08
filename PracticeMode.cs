@@ -946,6 +946,7 @@ namespace MatchZy
         }
 
         [ConsoleCommand("css_fas", "Switches all other players to spectator")]
+        [ConsoleCommand("css_watchme", "Switches all other players to spectator")]
         public void OnFASCommand(CCSPlayerController? player, CommandInfo? command) {
             if (!isPractice || player == null) return;
 
