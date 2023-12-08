@@ -35,7 +35,7 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.forcepause` Pauses the match as an admin (Players cannot unpause the admin-paused match). (`.fp` for shorter command)
 - `.forceunpause` Force unpauses the match. (`.fup` for shorter command)
 - `.restore <round>` Restores the backup of provided round number.
-- `.roundknife` Toggles the knife round. If disabled, match will directly go from Warmup phase to Live phase. (`.rk` for shorter command)
+- `.knife` Toggles the knife round. If disabled, match will directly go from Warmup phase to Live phase.
 - `.playout` Toggles playout (If playout is enabled, all rounds would be played irrespective of winner. Useful in scrims!)
 - `.whitelist` Toggles whitelisting of players. To whitelist a player, add the steam64id in `cfg/MatchZy/whitelist.cfg`
 - `.readyrequired <number>` Sets the number of ready players required to start the match. If set to 0, all connected players will have to ready-up to start the match.
