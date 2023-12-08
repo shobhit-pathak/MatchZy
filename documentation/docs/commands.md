@@ -3,7 +3,7 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 
 - `.ready` Marks the player ready
 - `.unready` Marks the player unready
-- `.pause` Pauses the match in freezetime.
+- `.pause` Pauses the match in freezetime (Tactical or normal pause, depends on `matchzy_use_pause_command_for_tactical_pause`).
 - `.tech` Pauses the match in freezetime.
 - `.unpause` Request for unpausing the match. Both teams need to type .unpause to unpause the match
 - `.stay` Stays on the same side (For knife winner, after the knife round)
@@ -35,7 +35,7 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.forcepause` Pauses the match as an admin (Players cannot unpause the admin-paused match). (`.fp` for shorter command)
 - `.forceunpause` Force unpauses the match. (`.fup` for shorter command)
 - `.restore <round>` Restores the backup of provided round number.
-- `.knife` Toggles the knife round. If disabled, match will directly go from Warmup phase to Live phase.
+- `.roundknife` / `.rk` Toggles the knife round. If disabled, match will directly go from Warmup phase to Live phase.
 - `.playout` Toggles playout (If playout is enabled, all rounds would be played irrespective of winner. Useful in scrims!)
 - `.whitelist` Toggles whitelisting of players. To whitelist a player, add the steam64id in `cfg/MatchZy/whitelist.cfg`
 - `.readyrequired <number>` Sets the number of ready players required to start the match. If set to 0, all connected players will have to ready-up to start the match.

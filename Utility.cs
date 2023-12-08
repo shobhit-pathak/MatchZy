@@ -509,7 +509,7 @@ namespace MatchZy
             int countOfReadyPlayers = playerReadyStatus.Count(kv => kv.Value == true);
             bool liveRequired = false;
             if (minimumReadyRequired == 0) {
-                if (countOfReadyPlayers >= connectedPlayers) {
+                if (countOfReadyPlayers >= connectedPlayers && connectedPlayers > 0) {
                     liveRequired = true;
                 }
             } else if (countOfReadyPlayers >= minimumReadyRequired) {
@@ -1296,12 +1296,14 @@ namespace MatchZy
 
         private void AutoStart()
         {
+            Log($"[AutoStart] autoStartMode: {autoStartMode}");
             if (autoStartMode == 0)
             {
                 StartSleepMode();
             }
             if (autoStartMode == 1)
             {
+                readyAvailable = true;
                 StartWarmup();
             }
             if (autoStartMode == 2)

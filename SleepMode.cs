@@ -46,7 +46,7 @@ namespace MatchZy
                 ExecUnpracCommands();
                 Server.ExecuteCommand("""exec gamemode_competitive.cfg;""");
             }
-            Server.PrintToChatAll($"{chatPrefix} [MatchZy] deactivated!");
+            Log($"[StartSleepMode] MatchZy deactivated!");
         }
 
         [ConsoleCommand("css_sleep", "Starts sleep mode")]

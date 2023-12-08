@@ -12,7 +12,7 @@ namespace MatchZy
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.5.0-alpha";
+        public override string ModuleVersion => "0.5.1-alpha";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -23,7 +23,7 @@ namespace MatchZy
 
         // Plugin start phase data
         public bool isPractice = false;
-	public bool isSleep = false;
+        public bool isSleep = false;
         public bool readyAvailable = false;
         public bool matchStarted = false;
         public bool isWarmup = false;
@@ -31,7 +31,7 @@ namespace MatchZy
         public bool isSideSelectionPhase = false;
         public bool isMatchLive = false;
         public long liveMatchId = -1;
-	public int autoStartMode = 0;
+        public int autoStartMode = 1;
 
         // Pause Data
         public bool isPaused = false;
@@ -116,7 +116,8 @@ namespace MatchZy
                 { ".forceunpause", OnForceUnpauseCommand },
                 { ".fup", OnForceUnpauseCommand },
                 { ".tac", OnTacCommand },
-                { ".knife", OnKifeCommand },
+                { ".roundknife", OnKifeCommand },
+                { ".rk", OnKifeCommand },
                 { ".playout", OnPlayoutCommand },
                 { ".start", OnStartCommand },
                 { ".restart", OnRestartMatchCommand },

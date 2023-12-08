@@ -51,7 +51,7 @@ There are two ways to create an admin for MatchZy; you can choose the most conve
 Again, inside `csgo/cfg/MatchZy`, a file named `config.cfg` should be present. This file is executed whenever the plugin is loaded. If you make any changes in this file and want to reload the config, simply execute `exec MatchZy/config.cfg` command on the server.
 
 ####`matchzy_knife_enabled_default`
-:   Whether knife round is enabled by default or not. This is the default value, but knife can be toggled by [admins](#creating-admins) using .knife command.<br>**`Default: true`**
+:   Whether knife round is enabled by default or not. This is the default value, but knife can be toggled by [admins](#creating-admins) using .roundknife command.<br>**`Default: true`**
 
 ####`matchzy_minimum_ready_required`
 :   Minimum ready players required to start the match. If set to 0, all connected players have to ready-up to start the match.<br>**`Default: 2`**
@@ -92,6 +92,14 @@ Again, inside `csgo/cfg/MatchZy`, a file named `config.cfg` should be present. T
 ####`matchzy_reset_cvars_on_series_end`
 :   Whether parameters from the cvars section of a match configuration are restored to their original values when a series ends.<br>**`Default: true`**
 
+####`matchzy_use_pause_command_for_tactical_pause`
+:   Whether to use !pause/.pause command for tactical pause or normal pause (unpauses only when both teams use unpause command, for admin force-unpauses the game).<br>**`Default: false`**
+
+####`matchzy_autostart_mode`
+:   Whether the plugin will load the match mode, the practice moder or neither by startup. 0 for neither, 1 for match mode, 2 for practice mode.<br>**`Default: 1`**
+
+####`matchzy_save_nades_as_global_enabled`
+:   Whether nades should be saved globally instead of being privated to players by default or not.<br>**`Default: false`**
 
 ### Configuring Warmup/Knife/Live/Prac CFGs
 Again, inside `csgo/cfg/MatchZy`, files named `warmup.cfg`, `knife.cfg`, `live.cfg` and `prac.cfg` should be present. These configs are executed when Warmup, Knife, Live and Practice Mode is started respectively.
