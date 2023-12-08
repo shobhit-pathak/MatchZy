@@ -7,7 +7,7 @@ using CounterStrikeSharp.API.Core.Attributes;
 
 namespace MatchZy
 {
-    [MinimumApiVersion(68)]
+    [MinimumApiVersion(84)]
     public partial class MatchZy : BasePlugin
     {
 
@@ -66,6 +66,7 @@ namespace MatchZy
         public bool isKnifeRequired = true;
         public int minimumReadyRequired = 2; // Number of ready players required start the match. If set to 0, all connected players have to ready-up to start the match.
         public bool isWhitelistRequired = false;
+        public bool isSaveNadesAsGlobalEnabled = false;
 
         public bool isPlayOutEnabled = false;
 
@@ -120,6 +121,7 @@ namespace MatchZy
                 { ".reloadmap", OnMapReloadCommand },
                 { ".settings", OnMatchSettingsCommand },
                 { ".whitelist", OnWLCommand },
+                { ".globalnades", OnSaveNadesAsGlobalCommand },
                 { ".reload_admins", OnReloadAdmins },
                 { ".prac", OnPracCommand },
                 { ".bot", OnBotCommand },
@@ -132,7 +134,11 @@ namespace MatchZy
                 { ".uncoach", OnUnCoachCommand },
                 { ".exitprac", OnMatchCommand },
                 { ".stop", OnStopCommand },
-                { ".help", OnHelpCommand }
+                { ".help", OnHelpCommand },
+                { ".t", OnTCommand },
+                { ".ct", OnCTCommand },
+                { ".spec", OnSpecCommand },
+                { ".fas", OnFASCommand }
             };
 
             RegisterEventHandler<EventPlayerConnectFull>((@event, info) => {

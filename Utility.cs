@@ -845,6 +845,7 @@ namespace MatchZy
             {
                 ReplyToUserCommand(player, "Available commands: .spawn, .ctspawn, .tspawn, .bot, .nobots, .god, .clear, .fastforward");
                 ReplyToUserCommand(player, ".loadnade <name>, .savenade <name>, .importnade <code> .listnades <optional filter>");
+                ReplyToUserCommand(player, ".ct, .t, .spec, .fas");
                 return;
             }
             if (readyAvailable)
