@@ -39,6 +39,8 @@ namespace MatchZy
             { "pauseTeam", "" }
         };
 
+        bool isPauseCommandForTactical = false;
+
         // Knife Data
         public int knifeWinner = 0;
         public string knifeWinnerName = "";
@@ -104,7 +106,7 @@ namespace MatchZy
                 { ".stay", OnTeamStay },
                 { ".switch", OnTeamSwitch },
                 { ".swap", OnTeamSwitch },
-                { ".tech", OnPauseCommand },
+                { ".tech", OnTechCommand },
                 { ".pause", OnPauseCommand },
                 { ".unpause", OnUnpauseCommand },
                 { ".forcepause", OnForcePauseCommand },
@@ -123,6 +125,9 @@ namespace MatchZy
                 { ".reload_admins", OnReloadAdmins },
                 { ".prac", OnPracCommand },
                 { ".bot", OnBotCommand },
+                { ".crouchbot", OnCrouchBotCommand },
+                { ".boost", OnCrouchBotCommand },
+                { ".crouchboost", OnCrouchBotCommand },
                 { ".nobots", OnNoBotsCommand },
                 { ".god", OnGodCommand },
                 { ".ff", OnFastForwardCommand },
@@ -136,7 +141,8 @@ namespace MatchZy
                 { ".t", OnTCommand },
                 { ".ct", OnCTCommand },
                 { ".spec", OnSpecCommand },
-                { ".fas", OnFASCommand }
+                { ".fas", OnFASCommand },
+                { ".watchme", OnFASCommand }
             };
 
             RegisterEventHandler<EventPlayerConnectFull>((@event, info) => {

@@ -232,7 +232,7 @@ namespace MatchZy
                 MinPlayersToReady = minimumReadyRequired
             };
 
-            if (jsonDataObject["spectators"]!["players"] != null)
+            if (jsonDataObject["spectators"] != null && jsonDataObject["spectators"]!["players"] != null)
             {
                 matchConfig.Spectators = jsonDataObject["spectators"]!["players"];
             }

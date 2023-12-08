@@ -121,8 +121,15 @@ namespace MatchZy
         }
 
         [ConsoleCommand("css_pause", "Pause the match")]
-        public void OnPauseCommand(CCSPlayerController? player, CommandInfo? command) {            
-            PauseMatch(player, command);
+        public void OnPauseCommand(CCSPlayerController? player, CommandInfo? command) {     
+            if (isPauseCommandForTactical)
+            {
+                OnTacCommand(player, command);
+            }   
+            else 
+            {
+                PauseMatch(player, command);
+            }    
         }
 
         [ConsoleCommand("css_fp", "Pause the matchas an admin")]
@@ -192,6 +199,11 @@ namespace MatchZy
             
             if (matchStarted && isMatchLive) {
                 Log($"[.tac command sent via chat] Sent by: {player.UserId}, connectedPlayers: {connectedPlayers}");
+                if (isPaused)
+                {
+                    ReplyToUserCommand(player, "Match is already paused, cannot start a tactical timeout!");
+                    return;
+                }
                 if (player.TeamNum == 2) {
                     Server.ExecuteCommand("timeout_terrorist_start");
                 } else if (player.TeamNum == 3) {

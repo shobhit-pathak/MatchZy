@@ -36,6 +36,8 @@ namespace MatchZy
         // This map stores the bots which are being used in prac (probably spawned using .bot). Key is the userid of the bot.
         public Dictionary<int, Dictionary<string, object>> pracUsedBots = new Dictionary<int, Dictionary<string, object>>();
 
+        private CounterStrikeSharp.API.Modules.Timers.Timer? collisionGroupTimer;
+
         public bool isSpawningBot;
 
         public void StartPracticeMode()
@@ -57,7 +59,7 @@ namespace MatchZy
                 Log($"[StartWarmup] Starting Practice Mode! Practice CFG not found in {absolutePath}, using default CFG!");
                 Server.ExecuteCommand("""sv_cheats "true"; mp_force_pick_time "0"; bot_quota "0"; sv_showimpacts "1"; mp_limitteams "0"; sv_deadtalk "true"; sv_full_alltalk "true"; sv_ignoregrenaderadio "false"; mp_forcecamera "0"; sv_grenade_trajectory_prac_pipreview "true"; sv_grenade_trajectory_prac_trailtime "3"; sv_infinite_ammo "1"; weapon_auto_cleanup_time "15"; weapon_max_before_cleanup "30"; mp_buy_anywhere "1"; mp_maxmoney "9999999"; mp_startmoney "9999999";""");
                 Server.ExecuteCommand("""mp_weapons_allow_typecount "-1"; mp_death_drop_breachcharge "false"; mp_death_drop_defuser "false"; mp_death_drop_taser "false"; mp_drop_knife_enable "true"; mp_death_drop_grenade "0"; ammo_grenade_limit_total "5"; mp_defuser_allocation "2"; mp_free_armor "2"; mp_ct_default_grenades "weapon_incgrenade weapon_hegrenade weapon_smokegrenade weapon_flashbang weapon_decoy"; mp_ct_default_primary "weapon_m4a1";""");
-                Server.ExecuteCommand("""mp_t_default_grenades "weapon_molotov weapon_hegrenade weapon_smokegrenade weapon_flashbang weapon_decoy"; mp_t_default_primary "weapon_ak47"; mp_warmup_online_enabled "true"; mp_warmup_pausetimer "1"; mp_warmup_start; bot_quota_mode fill; mp_solid_teammates 2; mp_autoteambalance false; mp_teammates_are_enemies false;""");
+                Server.ExecuteCommand("""mp_t_default_grenades "weapon_molotov weapon_hegrenade weapon_smokegrenade weapon_flashbang weapon_decoy"; mp_t_default_primary "weapon_ak47"; mp_warmup_online_enabled "true"; mp_warmup_pausetimer "1"; mp_warmup_start; bot_quota_mode fill; mp_solid_teammates 2; mp_autoteambalance false; mp_teammates_are_enemies false; buddha 1; buddha_ignore_bots 1; buddha_reset_hp 100;""");
             }
             GetSpawns();
             Server.PrintToChatAll($"{chatPrefix} Practice mode loaded!");
@@ -653,76 +655,129 @@ namespace MatchZy
             }
         }
 
-        [ConsoleCommand("css_bot", "Teleport to spawn")]
+        [ConsoleCommand("css_bot", "Spawns a bot at the player's position")]
         public void OnBotCommand(CCSPlayerController? player, CommandInfo? command)
         {
-            if (!isPractice || player == null) return;
-
-            isSpawningBot = true;
-            // !bot/.bot command is made using a lot of workarounds, as there is no direct way to create a bot entity and spawn it in CSSharp
-            // Hence there can be some issues with this approach. This will be revamped when we will be able to create entities and manipulate them.
-            if (player.TeamNum == (byte)CsTeam.CounterTerrorist)
-            {
-                Server.ExecuteCommand("bot_join_team T");
-                Server.ExecuteCommand("bot_add_t");
-            }
-            else if (player.TeamNum == (byte)CsTeam.Terrorist)
-            {
-                Server.ExecuteCommand("bot_join_team CT");
-                Server.ExecuteCommand("bot_add_ct");
-            }
-            
-            // Once bot is added, we teleport it to the requested position
-            AddTimer(0.1f, () => SpawnBot(player));
-            Server.ExecuteCommand("bot_stop 1");
-            Server.ExecuteCommand("bot_freeze 1");
-            Server.ExecuteCommand("bot_zombie 1");
+            AddBot(player, false);
         }
 
-        private void SpawnBot(CCSPlayerController botOwner)
+        [ConsoleCommand("css_crouchbot", "Spawns a crouched bot at the player's position")]
+        public void OnCrouchBotCommand(CCSPlayerController? player, CommandInfo? command)
         {
-            var playerEntities = Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller");
-            bool unusedBotFound = false;
-            foreach (var tempPlayer in playerEntities)
+            AddBot(player, true);
+        }
+
+        [ConsoleCommand("css_boost", "Spawns a bot at the player's position and boost the player on it")]
+        public void OnBoostBotCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            AddBot(player, false);
+            AddTimer(0.2f, () => ElevatePlayer(player));
+        }
+
+        [ConsoleCommand("css_crouchboost", "Spawns a crouched bot at the player's position and boost the player on it")]
+        public void OnCrouchBoostBotCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            AddBot(player, true);
+            AddTimer(0.2f, () => ElevatePlayer(player));
+        }
+
+        private void AddBot(CCSPlayerController? player, bool crouch)
+        {
+            try
             {
-                if (!tempPlayer.IsBot || tempPlayer.IsHLTV) continue;
-                if (tempPlayer.UserId.HasValue)
+                if (!isPractice || player == null || !player.IsValid || !player.PlayerPawn.IsValid || player.PlayerPawn.Value == null) return;
+                CCSPlayer_MovementServices movementService = new(player.PlayerPawn.Value.MovementServices!.Handle);
+
+                if ((int)movementService.DuckAmount == 1)
                 {
-                    if (!pracUsedBots.ContainsKey(tempPlayer.UserId.Value) && unusedBotFound)
-                    {
-                        Log($"UNUSED BOT FOUND: {tempPlayer.UserId.Value} EXECUTING: kickid {tempPlayer.UserId.Value}");
-                        // Kicking the unused bot. We have to do this because bot_add_t/bot_add_ct may add multiple bots but we need only 1, so we kick the remaining unused ones
-                        Server.ExecuteCommand($"kickid {tempPlayer.UserId.Value}");
-                        continue;
-                    }
-                    if (pracUsedBots.ContainsKey(tempPlayer.UserId.Value))
-                    {
-                        continue;
-                    }
-                    pracUsedBots[tempPlayer.UserId.Value] = new Dictionary<string, object>();
-
-                    Position botOwnerPosition = new Position(botOwner.PlayerPawn.Value.CBodyComponent?.SceneNode?.AbsOrigin, botOwner.PlayerPawn.Value.CBodyComponent?.SceneNode?.AbsRotation);
-                    // Add key-value pairs to the inner dictionary
-                    pracUsedBots[tempPlayer.UserId.Value]["controller"] = tempPlayer;
-                    pracUsedBots[tempPlayer.UserId.Value]["position"] = botOwnerPosition;
-                    pracUsedBots[tempPlayer.UserId.Value]["owner"] = botOwner;
-
-                    tempPlayer.PlayerPawn.Value.Teleport(botOwnerPosition.PlayerPosition, botOwnerPosition.PlayerAngle, new Vector(0, 0, 0));
-                    TemporarilyDisableCollisions(botOwner, tempPlayer);
-                    unusedBotFound = true;
+                    // Player was crouching while using .bot command
+                    crouch = true;
                 }
+                isSpawningBot = true;
+                // !bot/.bot command is made using a lot of workarounds, as there is no direct way to create a bot entity and spawn it in CSSharp
+                // Hence there can be some issues with this approach. This will be revamped when we will be able to create entities and manipulate them.
+                // Todo: Now its possible to create entities in CSSharp, hence this approach needs to be improved.
+                if (player.TeamNum == (byte)CsTeam.CounterTerrorist)
+                {
+                    Server.ExecuteCommand("bot_join_team T");
+                    Server.ExecuteCommand("bot_add_t");
+                }
+                else if (player.TeamNum == (byte)CsTeam.Terrorist)
+                {
+                    Server.ExecuteCommand("bot_join_team CT");
+                    Server.ExecuteCommand("bot_add_ct");
+                }
+                
+                // Once bot is added, we teleport it to the requested position
+                AddTimer(0.1f, () => SpawnBot(player, crouch));
+                Server.ExecuteCommand("bot_stop 1");
+                Server.ExecuteCommand("bot_freeze 1");
+                Server.ExecuteCommand("bot_zombie 1");
             }
-            if (!unusedBotFound) {
-                Server.PrintToChatAll($"{chatPrefix} Cannot add bots, the team is full! Use .nobots to remove the current bots.");
+            catch (JsonException ex)
+            {
+                Log($"[AddBot - FATAL] Error: {ex.Message}");
             }
-
-            isSpawningBot = false;
         }
-        private CounterStrikeSharp.API.Modules.Timers.Timer? timer;
-        public void TemporarilyDisableCollisions(CCSPlayerController p1, CCSPlayerController p2) 
+
+        private void SpawnBot(CCSPlayerController botOwner, bool crouch)
         {
+            try 
+            {
+                var playerEntities = Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller");
+                bool unusedBotFound = false;
+                foreach (var tempPlayer in playerEntities)
+                {
+                    if (!tempPlayer.IsBot || tempPlayer.IsHLTV) continue;
+                    if (tempPlayer.UserId.HasValue)
+                    {
+                        if (!pracUsedBots.ContainsKey(tempPlayer.UserId.Value) && unusedBotFound)
+                        {
+                            Log($"UNUSED BOT FOUND: {tempPlayer.UserId.Value} EXECUTING: kickid {tempPlayer.UserId.Value}");
+                            // Kicking the unused bot. We have to do this because bot_add_t/bot_add_ct may add multiple bots but we need only 1, so we kick the remaining unused ones
+                            Server.ExecuteCommand($"kickid {tempPlayer.UserId.Value}");
+                            continue;
+                        }
+                        if (pracUsedBots.ContainsKey(tempPlayer.UserId.Value))
+                        {
+                            continue;
+                        }
+                        pracUsedBots[tempPlayer.UserId.Value] = new Dictionary<string, object>();
 
+                        Position botOwnerPosition = new Position(botOwner.PlayerPawn.Value.CBodyComponent?.SceneNode?.AbsOrigin, botOwner.PlayerPawn.Value.CBodyComponent?.SceneNode?.AbsRotation);
+                        // Add key-value pairs to the inner dictionary
+                        pracUsedBots[tempPlayer.UserId.Value]["controller"] = tempPlayer;
+                        pracUsedBots[tempPlayer.UserId.Value]["position"] = botOwnerPosition;
+                        pracUsedBots[tempPlayer.UserId.Value]["owner"] = botOwner;
+                        pracUsedBots[tempPlayer.UserId.Value]["crouchstate"] = crouch;
 
+                        if (crouch)
+                        {
+                            CCSPlayer_MovementServices movementService = new(tempPlayer.PlayerPawn.Value.MovementServices!.Handle);
+                            AddTimer(0.1f, () => movementService.DuckAmount = 1);
+                            AddTimer(0.2f, () => tempPlayer.PlayerPawn.Value.Bot.IsCrouching = true);
+                        }
+
+                        tempPlayer.PlayerPawn.Value.Teleport(botOwnerPosition.PlayerPosition, botOwnerPosition.PlayerAngle, new Vector(0, 0, 0));
+                        TemporarilyDisableCollisions(botOwner, tempPlayer);
+                        unusedBotFound = true;
+                    }
+                }
+                if (!unusedBotFound) {
+                    Server.PrintToChatAll($"{chatPrefix} Cannot add bots, the team is full! Use .nobots to remove the current bots.");
+                }
+
+                isSpawningBot = false;
+            }
+            catch (JsonException ex)
+            {
+                Log($"[SpawnBot - FATAL] Error: {ex.Message}");
+            }
+        }
+
+        public void TemporarilyDisableCollisions(CCSPlayerController p1, CCSPlayerController p2)
+        {
+            Log($"[TemporarilyDisableCollisions] Disabling {p1.PlayerName} {p2.PlayerName}");
             // Reference collision code: https://github.com/Source2ZE/CS2Fixes/blob/f009e399ff23a81915e5a2b2afda20da2ba93ada/src/events.cpp#L150
             p1.PlayerPawn.Value.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DEBRIS;
             p1.PlayerPawn.Value.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DEBRIS;
@@ -731,28 +786,28 @@ namespace MatchZy
             // TODO: call CollisionRulesChanged
             var p1p = p1.PlayerPawn;
             var p2p = p2.PlayerPawn;
-            timer?.Kill();
-            timer = AddTimer(0.1f, () =>
-                    {
-                    if (!p1p.IsValid || !p2p.IsValid || !p1p.Value.IsValid || !p2p.Value.IsValid)
-                        {
-                            Log($"player handle invalid p1p {p1p.Value.IsValid} p2p {p2p.Value.IsValid}");
-                            timer?.Kill();
-                            return;
-                        }
+            collisionGroupTimer?.Kill();
+            collisionGroupTimer = AddTimer(0.1f, () =>
+            {
+                if (!p1p.IsValid || !p2p.IsValid || !p1p.Value.IsValid || !p2p.Value.IsValid)
+                {
+                    Log($"player handle invalid p1p {p1p.Value.IsValid} p2p {p2p.Value.IsValid}");
+                    collisionGroupTimer?.Kill();
+                    return;
+                }
 
-                        if (!DoPlayersCollide(p1p.Value, p2p.Value))
-                        {
-                            // Once they no longer collide 
-                            p1p.Value.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_PLAYER_MOVEMENT;
-                            p1p.Value.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_PLAYER_MOVEMENT;
-                            p2p.Value.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_PLAYER_MOVEMENT;
-                            p2p.Value.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_PLAYER_MOVEMENT;
-                            // TODO: call CollisionRulesChanged
-                            timer?.Kill();
-                        }
+                if (!DoPlayersCollide(p1p.Value, p2p.Value))
+                {
+                    // Once they no longer collide 
+                    p1p.Value.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_PLAYER_MOVEMENT;
+                    p1p.Value.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_PLAYER_MOVEMENT;
+                    p2p.Value.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_PLAYER_MOVEMENT;
+                    p2p.Value.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_PLAYER_MOVEMENT;
+                    // TODO: call CollisionRulesChanged
+                    collisionGroupTimer?.Kill();
+                }
 
-                    }, TimerFlags.REPEAT | TimerFlags.STOP_ON_MAPCHANGE);
+            }, TimerFlags.REPEAT | TimerFlags.STOP_ON_MAPCHANGE);
         }
 
         public bool DoPlayersCollide(CCSPlayerPawn p1, CCSPlayerPawn p2)
@@ -770,6 +825,12 @@ namespace MatchZy
                     p1min.Z <= p2max.Z && p1max.Z >= p2min.Z;
         }
 
+        private static void ElevatePlayer(CCSPlayerController? player)
+        {
+            if (player == null || !player.IsValid || !player.PlayerPawn.IsValid || player.PlayerPawn.Value == null) return;
+            player.PlayerPawn.Value.Teleport(new Vector(player.PlayerPawn.Value.CBodyComponent!.SceneNode!.AbsOrigin.X, player.PlayerPawn.Value.CBodyComponent!.SceneNode!.AbsOrigin.Y, player.PlayerPawn.Value.CBodyComponent!.SceneNode!.AbsOrigin.Z + 80.0f), player.PlayerPawn.Value.EyeAngles, new Vector(0, 0, 0));
+        }
+
         [GameEventHandler]
         public HookResult OnPlayerSpawn(EventPlayerSpawn @event, GameEventInfo info)
         {
@@ -783,6 +844,18 @@ namespace MatchZy
                     if (pracUsedBots[player.UserId.Value]["position"] is Position botPosition)
                     {
                         player.PlayerPawn.Value.Teleport(botPosition.PlayerPosition, botPosition.PlayerAngle, new Vector(0, 0, 0));
+                        bool isCrouched = (bool)pracUsedBots[player.UserId.Value]["crouchstate"];
+                        if (isCrouched)
+                        {
+                            player.PlayerPawn.Value.Flags |= (uint)PlayerFlags.FL_DUCKING;
+                            CCSPlayer_MovementServices movementService = new(player.PlayerPawn.Value.MovementServices!.Handle);
+                            AddTimer(0.1f, () => movementService.DuckAmount = 1);
+                            AddTimer(0.2f, () => player.PlayerPawn.Value.Bot.IsCrouching = true);
+                        }
+                        CCSPlayerController? botOwner = (CCSPlayerController)pracUsedBots[player.UserId.Value]["owner"];
+                        if (botOwner != null && botOwner.IsValid && botOwner.PlayerPawn != null && botOwner.PlayerPawn.IsValid) {
+                            AddTimer(0.2f, () => TemporarilyDisableCollisions(botOwner, player));
+                        } 
                     }
                 }
                 else if (!isSpawningBot && !player.IsHLTV)

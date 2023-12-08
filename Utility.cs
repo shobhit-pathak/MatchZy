@@ -96,7 +96,6 @@ namespace MatchZy
         }
 
         private void SendUnreadyPlayersMessage() {
-            Log($"[SendUnreadyPlayersMessage] isWarmup: {isWarmup}, matchStarted: {matchStarted}");
             if (isWarmup && !matchStarted) {
                 List<string> unreadyPlayers = new List<string>();
 
@@ -894,6 +893,11 @@ namespace MatchZy
                 ReplyToUserCommand(player, "You cannot use this command after the game has ended.");
                 return;
             }
+            if (IsTacticalTimeoutActive())
+            {
+                ReplyToUserCommand(player, "You cannot use this command when tactical timeout is active.");
+                return;
+            }
             if (isMatchLive && !isPaused) {
 
                 string pauseTeamName = "Admin";
@@ -932,6 +936,11 @@ namespace MatchZy
             if (IsPostGamePhase())
             {
                 ReplyToUserCommand(player, "You cannot use this command after the game has ended.");
+                return;
+            }
+            if (IsTacticalTimeoutActive())
+            {
+                ReplyToUserCommand(player, "You cannot use this command when tactical timeout is active.");
                 return;
             }
             unpauseData["pauseTeam"] = "Admin";
@@ -1194,6 +1203,13 @@ namespace MatchZy
                 return false;
             }
 
+        }
+
+        public bool IsTacticalTimeoutActive()
+        {
+            var gameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
+
+            return (gameRules.CTTimeOutActive || gameRules.TerroristTimeOutActive) && gameRules.FreezePeriod;
         }
 
         public Dictionary<ulong, Dictionary<string, object>> GetPlayerStatsDict()
