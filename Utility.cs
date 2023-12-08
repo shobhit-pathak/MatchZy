@@ -96,7 +96,6 @@ namespace MatchZy
         }
 
         private void SendUnreadyPlayersMessage() {
-            Log($"[SendUnreadyPlayersMessage] isWarmup: {isWarmup}, matchStarted: {matchStarted}");
             if (isWarmup && !matchStarted) {
                 List<string> unreadyPlayers = new List<string>();
 
@@ -510,7 +509,7 @@ namespace MatchZy
             int countOfReadyPlayers = playerReadyStatus.Count(kv => kv.Value == true);
             bool liveRequired = false;
             if (minimumReadyRequired == 0) {
-                if (countOfReadyPlayers >= connectedPlayers) {
+                if (countOfReadyPlayers >= connectedPlayers && connectedPlayers > 0) {
                     liveRequired = true;
                 }
             } else if (countOfReadyPlayers >= minimumReadyRequired) {
@@ -894,6 +893,11 @@ namespace MatchZy
                 ReplyToUserCommand(player, "You cannot use this command after the game has ended.");
                 return;
             }
+            if (IsTacticalTimeoutActive())
+            {
+                ReplyToUserCommand(player, "You cannot use this command when tactical timeout is active.");
+                return;
+            }
             if (isMatchLive && !isPaused) {
 
                 string pauseTeamName = "Admin";
@@ -932,6 +936,11 @@ namespace MatchZy
             if (IsPostGamePhase())
             {
                 ReplyToUserCommand(player, "You cannot use this command after the game has ended.");
+                return;
+            }
+            if (IsTacticalTimeoutActive())
+            {
+                ReplyToUserCommand(player, "You cannot use this command when tactical timeout is active.");
                 return;
             }
             unpauseData["pauseTeam"] = "Admin";
@@ -982,7 +991,7 @@ namespace MatchZy
 
         private void StartMatchMode() 
         {
-            if (matchStarted || !isPractice) return;
+            if (matchStarted || (!isPractice && !isSleep)) return;
             ExecUnpracCommands();
             ResetMatch();
             Server.PrintToChatAll($"{chatPrefix} Match mode loaded!");
@@ -1017,6 +1026,7 @@ namespace MatchZy
             {
                 ReplyToUserCommand(player, "Available commands: .spawn, .ctspawn, .tspawn, .bot, .nobots, .god, .clear, .fastforward");
                 ReplyToUserCommand(player, ".loadnade <name>, .savenade <name>, .importnade <code> .listnades <optional filter>");
+                ReplyToUserCommand(player, ".ct, .t, .spec, .fas");
                 return;
             }
             if (readyAvailable)
@@ -1195,6 +1205,13 @@ namespace MatchZy
 
         }
 
+        public bool IsTacticalTimeoutActive()
+        {
+            var gameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
+
+            return (gameRules.CTTimeOutActive || gameRules.TerroristTimeOutActive) && gameRules.FreezePeriod;
+        }
+
         public Dictionary<ulong, Dictionary<string, object>> GetPlayerStatsDict()
         {
             Dictionary<ulong, Dictionary<string, object>> playerStatsDictionary = new Dictionary<ulong, Dictionary<string, object>>();
@@ -1275,6 +1292,24 @@ namespace MatchZy
 
         private void Log(string message) {
             Console.WriteLine("[MatchZy] " + message);
+        }
+
+        private void AutoStart()
+        {
+            Log($"[AutoStart] autoStartMode: {autoStartMode}");
+            if (autoStartMode == 0)
+            {
+                StartSleepMode();
+            }
+            if (autoStartMode == 1)
+            {
+                readyAvailable = true;
+                StartWarmup();
+            }
+            if (autoStartMode == 2)
+            {
+                StartPracticeMode();
+            }
         }
     }
 }

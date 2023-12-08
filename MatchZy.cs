@@ -12,7 +12,7 @@ namespace MatchZy
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.5.0-alpha";
+        public override string ModuleVersion => "0.5.1-alpha";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -21,15 +21,17 @@ namespace MatchZy
         public string chatPrefix = $"[{ChatColors.Green}MatchZy{ChatColors.Default}]";
         public string adminChatPrefix = $"[{ChatColors.Red}ADMIN{ChatColors.Default}]";
 
-        // Match phase data
+        // Plugin start phase data
         public bool isPractice = false;
-        public bool readyAvailable = true;
+        public bool isSleep = false;
+        public bool readyAvailable = false;
         public bool matchStarted = false;
-        public bool isWarmup = true;
+        public bool isWarmup = false;
         public bool isKnifeRound = false;
         public bool isSideSelectionPhase = false;
         public bool isMatchLive = false;
         public long liveMatchId = -1;
+        public int autoStartMode = 1;
 
         // Pause Data
         public bool isPaused = false;
@@ -38,6 +40,8 @@ namespace MatchZy
             { "t", false },
             { "pauseTeam", "" }
         };
+
+        bool isPauseCommandForTactical = false;
 
         // Knife Data
         public int knifeWinner = 0;
@@ -64,6 +68,7 @@ namespace MatchZy
         public bool isKnifeRequired = true;
         public int minimumReadyRequired = 2; // Number of ready players required start the match. If set to 0, all connected players have to ready-up to start the match.
         public bool isWhitelistRequired = false;
+        public bool isSaveNadesAsGlobalEnabled = false;
 
         public bool isPlayOutEnabled = false;
 
@@ -88,7 +93,7 @@ namespace MatchZy
             reverseTeamSides["TERRORIST"] = matchzyTeam2;
 
             if (!hotReload) {
-                StartWarmup();
+                AutoStart();
             } else {
                 // Pluign should not be reloaded while a match is live (this would messup with the match flags which were set)
                 // Only hot-reload the plugin if you are testing something and don't want to restart the server time and again.
@@ -103,7 +108,7 @@ namespace MatchZy
                 { ".stay", OnTeamStay },
                 { ".switch", OnTeamSwitch },
                 { ".swap", OnTeamSwitch },
-                { ".tech", OnPauseCommand },
+                { ".tech", OnTechCommand },
                 { ".pause", OnPauseCommand },
                 { ".unpause", OnUnpauseCommand },
                 { ".forcepause", OnForcePauseCommand },
@@ -111,16 +116,21 @@ namespace MatchZy
                 { ".forceunpause", OnForceUnpauseCommand },
                 { ".fup", OnForceUnpauseCommand },
                 { ".tac", OnTacCommand },
-                { ".knife", OnKifeCommand },
+                { ".roundknife", OnKifeCommand },
+                { ".rk", OnKifeCommand },
                 { ".playout", OnPlayoutCommand },
                 { ".start", OnStartCommand },
                 { ".restart", OnRestartMatchCommand },
                 { ".reloadmap", OnMapReloadCommand },
                 { ".settings", OnMatchSettingsCommand },
                 { ".whitelist", OnWLCommand },
+                { ".globalnades", OnSaveNadesAsGlobalCommand },
                 { ".reload_admins", OnReloadAdmins },
                 { ".prac", OnPracCommand },
                 { ".bot", OnBotCommand },
+                { ".crouchbot", OnCrouchBotCommand },
+                { ".boost", OnBoostBotCommand },
+                { ".crouchboost", OnCrouchBoostBotCommand },
                 { ".nobots", OnNoBotsCommand },
                 { ".god", OnGodCommand },
                 { ".ff", OnFastForwardCommand },
@@ -130,7 +140,12 @@ namespace MatchZy
                 { ".uncoach", OnUnCoachCommand },
                 { ".exitprac", OnMatchCommand },
                 { ".stop", OnStopCommand },
-                { ".help", OnHelpCommand }
+                { ".help", OnHelpCommand },
+                { ".t", OnTCommand },
+                { ".ct", OnCTCommand },
+                { ".spec", OnSpecCommand },
+                { ".fas", OnFASCommand },
+                { ".watchme", OnFASCommand }
             };
 
             RegisterEventHandler<EventPlayerConnectFull>((@event, info) => {
@@ -195,7 +210,7 @@ namespace MatchZy
                         if (GetRealPlayersCount() == 1) {
                             Log($"[FULL CONNECT] First player has connected, starting warmup!");
                             ExecUnpracCommands();
-                            StartWarmup();
+                            AutoStart();
                         }
                     }
                     return HookResult.Continue;

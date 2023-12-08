@@ -30,6 +30,21 @@ namespace MatchZy
                 SendPlayerNotAdminMessage(player);
             }
         }
+
+        [ConsoleCommand("css_save_nades_as_global", "Toggles Global Lineups for players")]
+        public void OnSaveNadesAsGlobalCommand(CCSPlayerController? player, CommandInfo? command) {            
+            if (IsPlayerAdmin(player, "css_save_nades_as_global", "@css/config")) {
+                isSaveNadesAsGlobalEnabled = !isSaveNadesAsGlobalEnabled;
+                string GlobalNadesStatus = isSaveNadesAsGlobalEnabled ? "Enabled" : "Disabled";
+                if (player == null) {
+                    ReplyToUserCommand(player, $"Saving/Loading Lineups Globally is now {GlobalNadesStatus}!");
+                } else {
+                    player.PrintToChat($"{chatPrefix} Saving/Loading Lineups Globally is now {ChatColors.Green}{GlobalNadesStatus}{ChatColors.Default}!");
+                }
+            } else {
+                SendPlayerNotAdminMessage(player);
+            }
+        }
         
         [ConsoleCommand("css_ready", "Marks the player ready")]
         public void OnPlayerReady(CCSPlayerController? player, CommandInfo? command) {
@@ -106,8 +121,15 @@ namespace MatchZy
         }
 
         [ConsoleCommand("css_pause", "Pause the match")]
-        public void OnPauseCommand(CCSPlayerController? player, CommandInfo? command) {            
-            PauseMatch(player, command);
+        public void OnPauseCommand(CCSPlayerController? player, CommandInfo? command) {     
+            if (isPauseCommandForTactical)
+            {
+                OnTacCommand(player, command);
+            }   
+            else 
+            {
+                PauseMatch(player, command);
+            }    
         }
 
         [ConsoleCommand("css_fp", "Pause the matchas an admin")]
@@ -177,6 +199,11 @@ namespace MatchZy
             
             if (matchStarted && isMatchLive) {
                 Log($"[.tac command sent via chat] Sent by: {player.UserId}, connectedPlayers: {connectedPlayers}");
+                if (isPaused)
+                {
+                    ReplyToUserCommand(player, "Match is already paused, cannot start a tactical timeout!");
+                    return;
+                }
                 if (player.TeamNum == 2) {
                     Server.ExecuteCommand("timeout_terrorist_start");
                 } else if (player.TeamNum == 3) {
@@ -185,9 +212,10 @@ namespace MatchZy
             }
         }
 
-        [ConsoleCommand("css_knife", "Toggles knife round for the match")]
+        [ConsoleCommand("css_roundknife", "Toggles knife round for the match")]
+        [ConsoleCommand("css_rk", "Toggles knife round for the match")]
         public void OnKifeCommand(CCSPlayerController? player, CommandInfo? command) {            
-            if (IsPlayerAdmin(player, "css_knife", "@css/config")) {
+            if (IsPlayerAdmin(player, "css_roundknife", "@css/config")) {
                 isKnifeRequired = !isKnifeRequired;
                 string knifeStatus = isKnifeRequired ? "Enabled" : "Disabled";
                 if (player == null) {

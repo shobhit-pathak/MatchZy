@@ -37,6 +37,15 @@ namespace MatchZy
             isPlayOutEnabled = bool.TryParse(args, out bool isPlayOutEnabledValue) ? isPlayOutEnabledValue : args != "0" && isPlayOutEnabled;
         }
 
+        [ConsoleCommand("matchzy_save_nades_as_global_enabled", "Whether nades should be saved globally instead of being privated to players by default or not. Default value: false")]
+        public void MatchZySaveNadesAsGlobalConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+            string args = command.ArgString;
+
+            isSaveNadesAsGlobalEnabled = bool.TryParse(args, out bool isSaveNadesAsGlobalEnabledValue) ? isSaveNadesAsGlobalEnabledValue : args != "0" && isSaveNadesAsGlobalEnabled;
+        }
+
         [ConsoleCommand("matchzy_kick_when_no_match_loaded", "Whether to kick all clients and prevent anyone from joining the server if no match is loaded. Default value: false")]
         public void MatchZyMatchModeOnlyConvar(CCSPlayerController? player, CommandInfo command)
         {
@@ -86,6 +95,7 @@ namespace MatchZy
         {
             if (player != null) return;
             string url = command.ArgByIndex(1);
+            if (url.Trim() == "") return;
             if (!IsValidUrl(url))
             {
                 Log($"[MatchZyDemoUploadURL] Invalid URL: {url}. Please provide a valid URL for uploading the demo!");
@@ -101,6 +111,15 @@ namespace MatchZy
             string args = command.ArgString;
 
             isStopCommandAvailable = bool.TryParse(args, out bool isStopCommandAvailableValue) ? isStopCommandAvailableValue : args != "0" && isStopCommandAvailable;
+        }
+
+        [ConsoleCommand("matchzy_use_pause_command_for_tactical_pause", "Whether to use !pause/.pause command for tactical pause or normal pause (unpauses only when both teams use unpause command, for admin force-unpauses the game). Default value: false")]
+        public void MatchZyPauseForTacticalCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+            string args = command.ArgString;
+
+            isPauseCommandForTactical = bool.TryParse(args, out bool isPauseCommandForTacticalValue) ? isPauseCommandForTacticalValue : args != "0" && isPauseCommandForTactical;
         }
 
         [ConsoleCommand("matchzy_pause_after_restore", "Whether to pause the match after a round is restored using matchzy. Default value: true")]
@@ -174,6 +193,19 @@ namespace MatchZy
             } else if (command.ArgCount == 1) {
                 ReplyToUserCommand(player, $"matchzy_chat_messages_timer_delay = {chatTimerDelay}");
             }
+        }
+
+        [ConsoleCommand("matchzy_autostart_mode", "Whether the plugin will load the match mode, the practice moder or neither by startup. 0 for neither, 1 for match mode, 2 for practice mode. Default: 1")]
+        public void MatchZyAutoStartConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+            string args = command.ArgString;
+
+            if (int.TryParse(args, out int autoStartModeValue))
+            {
+                autoStartMode = autoStartModeValue;
+            }
+
         }
 
     }
