@@ -195,5 +195,18 @@ namespace MatchZy
             }
         }
 
+        [ConsoleCommand("matchzy_autostart_mode", "Whether the plugin will load the match mode, the practice moder or neither by startup. Default: 1")]
+        public void MatchZyAutoStartConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+            string args = command.ArgString;
+
+            if (int.TryParse(args, out int autoStartModeValue))
+            {
+                autoStartMode = autoStartModeValue;
+            }
+
+        }
+
     }
 }
