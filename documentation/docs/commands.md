@@ -18,6 +18,11 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.ctspawn <number>` Spawns to the provided competitive spawn number of CT
 - `.tspawn <number>` Spawns to the provided competitive spawn number of T
 - `.bot` Adds a bot on user's current position
+- `.crouchbot` Adds a crouched bot on user's current position
+- `.boost` Adds a bot on current position and boosts player on it
+- `.crouchboost` Adds a crouched bot on current position and boosts player on it
+- `.ct`, `.t`, `.spec` Changes player team to the requested team
+- `.fas` / `.watchme` Forces all players into spectator except the player who called this command
 - `.nobots` Removes all the bots
 - `.clear` Clears all the active smokes, molotoves and incendiaries
 - `.fastforward` Fastforwards the server time to 20 seconds
