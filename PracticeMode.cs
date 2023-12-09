@@ -679,6 +679,18 @@ namespace MatchZy
             AddBot(player, true, 0);
         }
 
+	[ConsoleCommand("css_tcrouchbot", "Spawns a crouched bot at the player's position")]
+        public void OnCrouchBotCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            AddBot(player, true, 1);
+        }
+
+	[ConsoleCommand("css_ctcrouchbot", "Spawns a crouched bot at the player's position")]
+        public void OnCrouchBotCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            AddBot(player, true, 2);
+        }
+
         [ConsoleCommand("css_boost", "Spawns a bot at the player's position and boost the player on it")]
         public void OnBoostBotCommand(CCSPlayerController? player, CommandInfo? command)
         {
