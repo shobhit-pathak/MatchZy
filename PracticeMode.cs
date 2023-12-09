@@ -64,7 +64,7 @@ namespace MatchZy
             GetSpawns();
             Server.PrintToChatAll($"{chatPrefix} Practice mode loaded!");
             Server.PrintToChatAll($"{chatPrefix} Available commands:");
-	        Server.PrintToChatAll($"{chatPrefix} \x10.spawn, .ctspawn, .tspawn, .bot, .nobots, .exitprac");
+	        Server.PrintToChatAll($"{chatPrefix} \x10.spawn, .ctspawn, .tspawn, .bot, .ctbot, .tbot,  .nobots, .exitprac");
 	        Server.PrintToChatAll($"{chatPrefix} \x10.loadnade <name>, .savenade <name>, .importnade <code>, .listnades <optional filter>");
             Server.PrintToChatAll($"{chatPrefix} \x10.listnades <optional filter>, .delnade <name>, .globalnades");
         }
@@ -658,30 +658,42 @@ namespace MatchZy
         [ConsoleCommand("css_bot", "Spawns a bot at the player's position")]
         public void OnBotCommand(CCSPlayerController? player, CommandInfo? command)
         {
-            AddBot(player, false);
+            AddBot(player, false, 0);
+        }
+
+	[ConsoleCommand("css_tbot", "Spawns a T bot at the player's position")]
+        public void OnBotCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            AddBot(player, false, 1);
+        }
+
+	[ConsoleCommand("css_ctbot", "Spawns a CT bot at the player's position")]
+        public void OnBotCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            AddBot(player, false, 2);
         }
 
         [ConsoleCommand("css_crouchbot", "Spawns a crouched bot at the player's position")]
         public void OnCrouchBotCommand(CCSPlayerController? player, CommandInfo? command)
         {
-            AddBot(player, true);
+            AddBot(player, true, 0);
         }
 
         [ConsoleCommand("css_boost", "Spawns a bot at the player's position and boost the player on it")]
         public void OnBoostBotCommand(CCSPlayerController? player, CommandInfo? command)
         {
-            AddBot(player, false);
+            AddBot(player, false, 0);
             AddTimer(0.2f, () => ElevatePlayer(player));
         }
 
         [ConsoleCommand("css_crouchboost", "Spawns a crouched bot at the player's position and boost the player on it")]
         public void OnCrouchBoostBotCommand(CCSPlayerController? player, CommandInfo? command)
         {
-            AddBot(player, true);
+            AddBot(player, true, 0);
             AddTimer(0.2f, () => ElevatePlayer(player));
         }
 
-        private void AddBot(CCSPlayerController? player, bool crouch)
+        private void AddBot(CCSPlayerController? player, bool crouch, int team)
         {
             try
             {
@@ -697,17 +709,30 @@ namespace MatchZy
                 // !bot/.bot command is made using a lot of workarounds, as there is no direct way to create a bot entity and spawn it in CSSharp
                 // Hence there can be some issues with this approach. This will be revamped when we will be able to create entities and manipulate them.
                 // Todo: Now its possible to create entities in CSSharp, hence this approach needs to be improved.
-                if (player.TeamNum == (byte)CsTeam.CounterTerrorist)
+                if (team == 0)
+                {
+                    if (player.TeamNum == (byte)CsTeam.CounterTerrorist)
+                    {
+                        Server.ExecuteCommand("bot_join_team T");
+                        Server.ExecuteCommand("bot_add_t");
+                    }
+                    else if (player.TeamNum == (byte)CsTeam.Terrorist)
+                    {
+                        Server.ExecuteCommand("bot_join_team CT");
+                        Server.ExecuteCommand("bot_add_ct");
+                    }
+                }
+                if (team == 1)
                 {
                     Server.ExecuteCommand("bot_join_team T");
                     Server.ExecuteCommand("bot_add_t");
                 }
-                else if (player.TeamNum == (byte)CsTeam.Terrorist)
+                if (team == 2)
                 {
                     Server.ExecuteCommand("bot_join_team CT");
                     Server.ExecuteCommand("bot_add_ct");
-                }
-                
+                } 
+		    
                 // Once bot is added, we teleport it to the requested position
                 AddTimer(0.1f, () => SpawnBot(player, crouch));
                 Server.ExecuteCommand("bot_stop 1");
