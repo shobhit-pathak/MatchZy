@@ -25,6 +25,6 @@ MySQL Database is useful for those who wants to use a common database across mul
 
 ### CSV Stats
 Once a match is over, data is pulled from the database and a CSV file is written in the folder:
-`csgo/MatchZy_Stats`. This folder will contain CSV file for each match (file name pattern: `match_data_{matchid}.csv`) and it will have the same data which is present in `matchzy_stats_players`.
+`csgo/MatchZy_Stats`. This folder will contain CSV file for each match (file name pattern: `match_data_map{mapNumber}_{matchId}.csv`) and it will have the same data which is present in `matchzy_stats_players`.
 
 There is a scope of improvement here, like having the match score in the CSV file or atleast in the file name patter. I'll make this change soon!
