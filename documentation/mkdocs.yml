@@ -1,4 +1,7 @@
 site_name: MatchZy
+site_url: https://shobhit-pathak.github.io/MatchZy/
+repo_url: https://github.com/shobhit-pathak/MatchZy
+repo_name: shobhit-pathak/MatchZy
 theme:
   name: material
   features:
