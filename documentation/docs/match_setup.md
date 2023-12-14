@@ -9,7 +9,7 @@ In this documentation, we'll see how we can setup a match in MatchZy using a JSO
 There are 2 commands available which can be used to load a match:
 
 1. `matchzy_loadmatch <filepath>`: Loads a JSON match configuration file relative to the `csgo` directory.
-2. `matchzy_loadmatch_url <url>`: Loads a remote (JSON-formatted) match configuration by sending an HTTP(S) `GET` to the given URL. Make sure to put the url argument inside quotation marks (`""`).
+2. `matchzy_loadmatch_url <url> [header name] [header value]`: Loads a remote (JSON-formatted) match configuration by sending an HTTP(S) `GET` to the given URL. You may optionally provide an HTTP header and value pair using the `header name` and `header value` arguments. You should put all arguments inside quotation marks (`""`). (`""`).
 
 ## Example
 
