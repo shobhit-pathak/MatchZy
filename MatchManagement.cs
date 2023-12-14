@@ -551,6 +551,8 @@ namespace MatchZy
                 TimeUntilRestore = 10,
             };
             Task.Run(async () => {
+                // Making sure that map end event is fired first
+                await Task.Delay(2000);
                 await SendEventAsync(seriesResultEvent);
             });
             database.SetMatchEndData(liveMatchId, winnerName, matchzyTeam1.seriesScore, matchzyTeam2.seriesScore);
