@@ -2,12 +2,12 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Modules.Cvars;
 using System.IO.Compression;
 
-
 namespace MatchZy
 {
     public partial class MatchZy
     {
         public string demoPath = "MatchZy/";
+        public string demoFormat = "{TIME}_{MATCH_ID}_{MAP}_{TEAM1}_{TEAM2}";
         public string demoUploadURL = "";
 
         public string activeDemoFile = "";
@@ -16,8 +16,8 @@ namespace MatchZy
 
         public void StartDemoRecording()
         {
-            string formattedTime = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss").Replace(" ", "_");
-            string demoFileName = $"{formattedTime}_{liveMatchId}_{Server.MapName}_{matchzyTeam1.teamName.Replace(" ", "_")}_vs_{matchzyTeam2.teamName.Replace(" ", "_")}";
+
+            string demoFileName = FormatDemoName();
             try
             {
                 string? directoryPath = Path.GetDirectoryName(Path.Join(Server.GameDirectory + "/csgo/", demoPath));
@@ -135,6 +135,20 @@ namespace MatchZy
             {
                 Log($"[UploadDemoAsync FATAL] An error occurred: {e.Message}");
             }
+        }
+
+        private string FormatDemoName()
+        {
+            string formattedTime = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss");
+
+            var demoName = demoFormat
+                .Replace("{TIME}", formattedTime)
+                .Replace("{MATCH_ID}", $"{liveMatchId}")
+                .Replace("{MAP}", Server.MapName)
+                .Replace("{TEAM1}", matchzyTeam1.teamName)
+                .Replace("{TEAM2}", matchzyTeam2.teamName)
+                .Replace(" ", "_");
+            return $"{demoName}.dem";
         }
     }
 }
