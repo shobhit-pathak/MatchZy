@@ -6,7 +6,7 @@ MatchZy can work with Get5 Web panel ([G5V](https://github.com/PhlexPlexico/G5V)
 
 1. Create teams and setup matches from web panel
 2. Support for BO1, BO3, BO5, etc with Veto and Knife Round
-2. Get scores and player stats live on the panel
+2. Get veto, scores and player stats live on the panel
 3. Get demo uploaded automatically on the panel (which can be downloaded from its match page)
 4. Pause and unpause game from the panel
 5. Add players in a live game
