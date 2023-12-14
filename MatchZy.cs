@@ -3,6 +3,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
 using CounterStrikeSharp.API.Core.Attributes;
+using CounterStrikeSharp.API.Modules.Timers;
 
 
 namespace MatchZy
@@ -12,7 +13,7 @@ namespace MatchZy
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.5.1-alpha";
+        public override string ModuleVersion => "0.6.0-alpha";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -32,6 +33,8 @@ namespace MatchZy
         public bool isMatchLive = false;
         public long liveMatchId = -1;
         public int autoStartMode = 1;
+
+        public bool mapReloadRequired = false;
 
         // Pause Data
         public bool isPaused = false;
@@ -595,6 +598,18 @@ namespace MatchZy
                     string coachSide = message.Substring(command.Length).Trim();
 
                     HandleCoachCommand(player, coachSide);
+                }
+                if (message.StartsWith(".ban")) {
+                    string command = ".ban";
+                    string mapArg = message.Substring(command.Length).Trim();
+
+                    HandeMapBanCommand(player, mapArg);
+                }
+                if (message.StartsWith(".pick")) {
+                    string command = ".pick";
+                    string mapArg = message.Substring(command.Length).Trim();
+
+                    HandeMapPickCommand(player, mapArg);
                 }
 
                 return HookResult.Continue;
