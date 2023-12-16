@@ -73,8 +73,7 @@ This file can be loaded using :
 
 ## Current Limitations?
 
-1. Veto is currently not available in MatchZy hence maps cannot be chosen using veto.
-2. Coaches cannot be added directly via this match configuration, hence to add a coach, add them to `"players"` key of the team and then use `.coach <teamside>` command in the server to start coaching.
-3. Only Steam64id is supported currently.
+1. Coaches cannot be added directly via this match configuration, hence to add a coach, add them to `"players"` key of the team and then use `.coach <teamside>` command in the server to start coaching.
+2. Only Steam64id is supported currently.
 
 These limitations will be resolved ASAP in the next updates! :D 
