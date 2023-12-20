@@ -153,25 +153,26 @@ namespace MatchZy
                 .Replace("{TEAM2}", matchzyTeam2.teamName)
                 .Replace(" ", "_");
             return $"{demoName}.dem";
+        }
 
-            [ConsoleCommand("get5_demo_upload_header_key", "If defined, a custom HTTP header with this name is added to the HTTP requests for demos")]
-            [ConsoleCommand("matchzy_demo_upload_header_key", "If defined, a custom HTTP header with this name is added to the HTTP requests for demos")]
-            public void DemoUploadHeaderKeyCommand(CCSPlayerController? player, CommandInfo command)
-            {
-                if (player != null) return;
-                string header = command.ArgByIndex(1).Trim();
+        [ConsoleCommand("get5_demo_upload_header_key", "If defined, a custom HTTP header with this name is added to the HTTP requests for demos")]
+        [ConsoleCommand("matchzy_demo_upload_header_key", "If defined, a custom HTTP header with this name is added to the HTTP requests for demos")]
+        public void DemoUploadHeaderKeyCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+            string header = command.ArgByIndex(1).Trim();
 
-                if (header != "") demoUploadHeaderKey = header;
-            }
+            if (header != "") demoUploadHeaderKey = header;
+        }
 
-            [ConsoleCommand("get5_demo_upload_header_value", "If defined, the value of the custom header added to the demos sent over HTTP")]
-            [ConsoleCommand("matchzy_demo_upload_header_value", "If defined, the value of the custom header added to the demos sent over HTTP")]
-            public void DemoUploadHeaderValueCommand(CCSPlayerController? player, CommandInfo command)
-            {
-                if (player != null) return;
-                string headerValue = command.ArgByIndex(1).Trim();
+        [ConsoleCommand("get5_demo_upload_header_value", "If defined, the value of the custom header added to the demos sent over HTTP")]
+        [ConsoleCommand("matchzy_demo_upload_header_value", "If defined, the value of the custom header added to the demos sent over HTTP")]
+        public void DemoUploadHeaderValueCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+            string headerValue = command.ArgByIndex(1).Trim();
 
-                if (headerValue != "") demoUploadHeaderValue = headerValue;
-            }
+            if (headerValue != "") demoUploadHeaderValue = headerValue;
         }
     }
+}
