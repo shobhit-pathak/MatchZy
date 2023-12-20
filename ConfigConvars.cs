@@ -98,6 +98,9 @@ namespace MatchZy
             {
                 string format = command.ArgByIndex(1);
                 demoFormat = format;
+            } else
+            {
+                Log($"{demoFormat}");
             }
         }
 
