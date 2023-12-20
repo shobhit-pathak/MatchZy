@@ -1,4 +1,7 @@
 site_name: MatchZy
+site_url: https://shobhit-pathak.github.io/MatchZy/
+repo_url: https://github.com/shobhit-pathak/MatchZy
+repo_name: shobhit-pathak/MatchZy
 theme:
   name: material
   features:
@@ -27,6 +30,7 @@ nav:
   - Setup:
       - Installation: installation.md
       - Configuration: configuration.md
+      - Get5 Panel: get5.md
   - Basics:
       - Getting Started: getting_started.md
       - Match Setup: match_setup.md

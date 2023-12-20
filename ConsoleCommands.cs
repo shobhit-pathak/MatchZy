@@ -11,6 +11,7 @@ using CounterStrikeSharp.API.Modules.Events;
 using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Utils;
 using CounterStrikeSharp.API.Modules.Timers;
+using System.Text.RegularExpressions;
 
 namespace MatchZy
 {
@@ -49,7 +50,7 @@ namespace MatchZy
         [ConsoleCommand("css_ready", "Marks the player ready")]
         public void OnPlayerReady(CCSPlayerController? player, CommandInfo? command) {
             if (player == null) return;
-            Log($"[!ready command] Sent by: {player.UserId}, connectedPlayers: {connectedPlayers}");
+            Log($"[!ready command] Sent by: {player.UserId} readyAvailable: {readyAvailable} matchStarted: {matchStarted}");
             if (readyAvailable && !matchStarted) {
                 if (player.UserId.HasValue) {
                     if (!playerReadyStatus.ContainsKey(player.UserId.Value)) {
@@ -101,6 +102,7 @@ namespace MatchZy
         }
 
         [ConsoleCommand("css_switch", "Switch after knife round")]
+        [ConsoleCommand("css_swap", "Switch after knife round")]
         public void OnTeamSwitch(CCSPlayerController? player, CommandInfo? command) {
             if (player == null) return;
             
@@ -132,14 +134,16 @@ namespace MatchZy
             }    
         }
 
-        [ConsoleCommand("css_fp", "Pause the matchas an admin")]
+        [ConsoleCommand("css_fp", "Pause the match an admin")]
         [ConsoleCommand("css_forcepause", "Pause the match as an admin")]
+        [ConsoleCommand("sm_pause", "Pause the match as an admin")]
         public void OnForcePauseCommand(CCSPlayerController? player, CommandInfo? command) {            
             ForcePauseMatch(player, command);
         }
 
-        [ConsoleCommand("css_fup", "Pause the matchas an admin")]
-        [ConsoleCommand("css_forceunpause", "Pause the match as an admin")]
+        [ConsoleCommand("css_fup", "Unpause the match an admin")]
+        [ConsoleCommand("css_forceunpause", "Unpause the match as an admin")]
+        [ConsoleCommand("sm_unpause", "Unpause the match as an admin")]
         public void OnForceUnpauseCommand(CCSPlayerController? player, CommandInfo? command) {            
             ForceUnpauseMatch(player, command);
         }
@@ -253,8 +257,31 @@ namespace MatchZy
                 string playoutStatus = isPlayOutEnabled ? "Enabled" : "Disabled";
                 player.PrintToChat($"{chatPrefix} Current Settings:");
                 player.PrintToChat($"{chatPrefix} Knife: {ChatColors.Green}{knifeStatus}{ChatColors.Default}");
-                player.PrintToChat($"{chatPrefix} Minimum Ready Required: {ChatColors.Green}{minimumReadyRequired}{ChatColors.Default}");
+                if (isMatchSetup)
+                {
+                    player.PrintToChat($"{chatPrefix} Minimum Ready Players Required (Per Team): {ChatColors.Green}{matchConfig.MinPlayersToReady}{ChatColors.Default}");
+                    player.PrintToChat($"{chatPrefix} Minimum Ready Spectators Required: {ChatColors.Green}{matchConfig.MinSpectatorsToReady}{ChatColors.Default}");
+                }
+                else
+                {
+                    player.PrintToChat($"{chatPrefix} Minimum Ready Required: {ChatColors.Green}{minimumReadyRequired}{ChatColors.Default}");
+                }
                 player.PrintToChat($"{chatPrefix} Playout: {ChatColors.Green}{playoutStatus}{ChatColors.Default}");
+            } else {
+                SendPlayerNotAdminMessage(player);
+            }
+        }
+
+        [ConsoleCommand("css_endmatch", "Ends and resets the current match")]
+        [ConsoleCommand("get5_endmatch", "Ends and resets the current match")]
+        public void OnEndMatchCommand(CCSPlayerController? player, CommandInfo? command) {
+            if (IsPlayerAdmin(player, "css_endmatch", "@css/config")) {
+                if (!isPractice) {
+                    Server.PrintToChatAll($"{chatPrefix} An admin force-ended the match.");
+                    ResetMatch();
+                } else {
+                    ReplyToUserCommand(player, "Practice mode is active, cannot end the match.");
+                }
             } else {
                 SendPlayerNotAdminMessage(player);
             }
@@ -414,6 +441,27 @@ namespace MatchZy
             } else {
                 SendPlayerNotAdminMessage(player);
             }
+        }
+
+        [ConsoleCommand("version", "Returns server version")]
+        public void OnVersionCommand(CCSPlayerController? player, CommandInfo? command) {      
+            if (command == null) return;
+            string steamInfFilePath = Path.Combine(Server.GameDirectory, "csgo", "steam.inf");
+
+            if (!File.Exists(steamInfFilePath))
+            {
+                command.ReplyToCommand("Unable to locate steam.inf file!");
+            }
+            var steamInfContent = File.ReadAllText(steamInfFilePath);
+
+            Regex regex = new(@"ServerVersion=(\d+)");
+            Match match = regex.Match(steamInfContent);
+
+            // Extract the version number
+            string? serverVersion = match.Success ? match.Groups[1].Value : null;
+
+            // Currently returning only server version to show server status as available on Get5
+            command.ReplyToCommand((serverVersion != null) ? $"Protocol version {serverVersion} [{serverVersion}/{serverVersion}]" : "Unable to get server version");
         }
     }
 }

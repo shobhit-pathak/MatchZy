@@ -1,6 +1,11 @@
 using CounterStrikeSharp.API;
+using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Core.Attributes.Registration;
+using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Cvars;
 using System.IO.Compression;
+using System.Net.Http.Json;
+using System.Text;
 
 namespace MatchZy
 {
@@ -9,6 +14,8 @@ namespace MatchZy
         public string demoPath = "MatchZy/";
         public string demoFormat = "{TIME}_{MATCH_ID}_{MAP}_{TEAM1}_{TEAM2}";
         public string demoUploadURL = "";
+        public string demoUploadHeaderKey = "";
+        public string demoUploadHeaderValue = "";
 
         public string activeDemoFile = "";
 
@@ -48,10 +55,13 @@ namespace MatchZy
         {
             Log($"[StopDemoRecording] Going to stop demorecording in {delay}s");
             string demoPath = Path.Join(Server.GameDirectory + "/csgo/", activeDemoFile);
-            AddTimer(delay, () => {
+            AddTimer(delay, () =>
+            {
                 if (isDemoRecording) Server.ExecuteCommand($"tv_stoprecord");
-                AddTimer(15, () => {
-                    Task.Run(async () => {
+                AddTimer(15, () =>
+                {
+                    Task.Run(async () =>
+                    {
                         await UploadDemoAsync(demoPath, liveMatchId, currentMapNumber);
                     });
                 });
@@ -75,60 +85,53 @@ namespace MatchZy
 
         public async Task UploadDemoAsync(string? demoPath, long matchId, int mapNumber)
         {
-            if (demoPath == null || demoUploadURL == "") 
+            if (demoPath == null || demoUploadURL == "")
             {
                 Log($"[UploadDemoAsync] Not able to upload demo, either demoPath or demoUploadURL is not set. demoPath: {demoPath} demoUploadURL: {demoUploadURL}");
             }
 
             try
             {
-                using (var httpClient = new HttpClient())
-                using (var formData = new MultipartFormDataContent())
+                using var httpClient = new HttpClient();
+                Log($"[UploadDemoAsync] Going to upload demo on {demoUploadURL}. Complete path: {demoPath}");
+
+                if (!File.Exists(demoPath))
                 {
-                    Log($"[UploadDemoAsync] Going to upload demo on {demoUploadURL}. Complete path: {demoPath}");
+                    Log($"[UploadDemoAsync ERROR] File not found: {demoPath}");
+                    return;
+                }
 
-                    if (!File.Exists(demoPath))
-                    {
-                        Log($"[UploadDemoAsync ERROR] File not found: {demoPath}");
-                        return;
-                    }
+                using FileStream fileStream = File.OpenRead(demoPath);
 
-                    var compressedFilePath = Path.ChangeExtension(demoPath, "zip"); // Change to ".gz" for GZip compression
+                byte[] fileContent = new byte[fileStream.Length];
+                await fileStream.ReadAsync(fileContent, 0, (int)fileStream.Length);
 
-                    using (var compressedFileStream = new FileStream(compressedFilePath, FileMode.Create))
-                    using (var zipArchive = new ZipArchive(compressedFileStream, ZipArchiveMode.Create))
-                    {
-                        // Add the .dem file to the zip archive
-                        var zipEntry = zipArchive.CreateEntry(Path.GetFileName(demoPath));
-                        using (var entryStream = zipEntry.Open())
-                        using (var demoFileStream = new FileStream(demoPath, FileMode.Open, FileAccess.Read))
-                        {
-                            await demoFileStream.CopyToAsync(entryStream);
-                        }
-                    }
+                using ByteArrayContent content = new ByteArrayContent(fileContent);
+                content.Headers.Add("Content-Type", "application/octet-stream");
 
-                    var compressedFileStreamContent = new StreamContent(new FileStream(compressedFilePath, FileMode.Open, FileAccess.Read));
-                    compressedFileStreamContent.Headers.Add("Content-Type", "application/zip");
+                content.Headers.Add("MatchZy-FileName", Path.GetFileName(demoPath));
+                content.Headers.Add("MatchZy-MatchId", matchId.ToString());
+                content.Headers.Add("MatchZy-MapNumber", mapNumber.ToString());
 
-                    formData.Add(compressedFileStreamContent, "file", Path.GetFileName(compressedFilePath));
+                // For Get5 Panel
+                content.Headers.Add("Get5-FileName", Path.GetFileName(demoPath));
+                content.Headers.Add("Get5-MatchId", matchId.ToString());
+                content.Headers.Add("Get5-MapNumber", mapNumber.ToString());
 
-                    formData.Headers.Add("MatchZy-FileName", Path.GetFileName(compressedFilePath));
-                    formData.Headers.Add("MatchZy-MatchId", matchId.ToString());
-                    formData.Headers.Add("MatchZy-MapNumber", mapNumber.ToString());
+                if (!string.IsNullOrEmpty(demoUploadHeaderKey))
+                {
+                    httpClient.DefaultRequestHeaders.Add(demoUploadHeaderKey, demoUploadHeaderValue);
+                }
 
-                    var response = await httpClient.PostAsync(demoUploadURL, formData).ConfigureAwait(false);
+                HttpResponseMessage response = await httpClient.PostAsync(demoUploadURL, content);
 
-                    if (response.IsSuccessStatusCode)
-                    {
-                        Log($"[UploadDemoAsync] File upload successful for matchId: {matchId} mapNumber: {mapNumber} fileName: {Path.GetFileName(compressedFilePath)}.");
-                    }
-                    else
-                    {
-                        Log($"[UploadDemoAsync ERROR] Failed to upload file. Status code: {response.StatusCode}");
-                    }
-
-                    // Clean up: Delete the temporary compressed file
-                    File.Delete(compressedFilePath);
+                if (response.IsSuccessStatusCode)
+                {
+                    Log($"[UploadDemoAsync] File upload successful for matchId: {matchId} mapNumber: {mapNumber} fileName: {Path.GetFileName(demoPath)}.");
+                }
+                else
+                {
+                    Log($"[UploadDemoAsync ERROR] Failed to upload file. Status code: {response.StatusCode} Response: {await response.Content.ReadAsStringAsync()}");
                 }
             }
             catch (Exception e)
@@ -136,6 +139,7 @@ namespace MatchZy
                 Log($"[UploadDemoAsync FATAL] An error occurred: {e.Message}");
             }
         }
+
 
         private string FormatDemoName()
         {
@@ -149,6 +153,25 @@ namespace MatchZy
                 .Replace("{TEAM2}", matchzyTeam2.teamName)
                 .Replace(" ", "_");
             return $"{demoName}.dem";
+
+            [ConsoleCommand("get5_demo_upload_header_key", "If defined, a custom HTTP header with this name is added to the HTTP requests for demos")]
+            [ConsoleCommand("matchzy_demo_upload_header_key", "If defined, a custom HTTP header with this name is added to the HTTP requests for demos")]
+            public void DemoUploadHeaderKeyCommand(CCSPlayerController? player, CommandInfo command)
+            {
+                if (player != null) return;
+                string header = command.ArgByIndex(1).Trim();
+
+                if (header != "") demoUploadHeaderKey = header;
+            }
+
+            [ConsoleCommand("get5_demo_upload_header_value", "If defined, the value of the custom header added to the demos sent over HTTP")]
+            [ConsoleCommand("matchzy_demo_upload_header_value", "If defined, the value of the custom header added to the demos sent over HTTP")]
+            public void DemoUploadHeaderValueCommand(CCSPlayerController? player, CommandInfo command)
+            {
+                if (player != null) return;
+                string headerValue = command.ArgByIndex(1).Trim();
+
+                if (headerValue != "") demoUploadHeaderValue = headerValue;
+            }
         }
     }
-}
