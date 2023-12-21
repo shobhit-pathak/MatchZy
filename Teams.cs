@@ -11,6 +11,7 @@ namespace MatchZy
 
     public class Team 
     {
+        public string id = "";
         public required string teamName;
         public string teamFlag = "";
         public string teamTag = "";
@@ -56,6 +57,52 @@ namespace MatchZy
             if (player.InGameMoneyServices != null) player.InGameMoneyServices.Account = 0;
             matchZyCoachTeam.coach = null;
             ReplyToUserCommand(player, "You are now not coaching any team!");
+        }
+
+        [ConsoleCommand("matchzy_addplayer", "Adds player to the provided team")]
+        [ConsoleCommand("get5_addplayer", "Adds player to the provided team")]
+        public void OnAddPlayerCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (player != null || command == null) return;
+            if (!isMatchSetup) {
+                command.ReplyToCommand("No match is setup!");
+                return;
+            }
+            if (IsHalfTimePhase())
+            {
+                command.ReplyToCommand("Cannot add players during halftime. Please wait until the next round starts.");
+                return;
+            }
+            if (command.ArgCount < 3)
+            {
+                command.ReplyToCommand("Usage: matchzy_addplayertoteam <steam64> <team> \"<name>\"");
+                return; 
+            }
+
+            string playerSteamId = command.ArgByIndex(1);
+            string playerTeam = command.ArgByIndex(2);
+            string playerName = command.ArgByIndex(3);
+            bool success;
+            if (playerTeam == "team1")
+            {
+                success = AddPlayerToTeam(playerSteamId, playerName, matchzyTeam1.teamPlayers);
+            } else if (playerTeam == "team2")
+            {
+                success = AddPlayerToTeam(playerSteamId, playerName, matchzyTeam2.teamPlayers);
+            } else if (playerTeam == "spec")
+            {
+                success = AddPlayerToTeam(playerSteamId, playerName, matchConfig.Spectators);
+            } else 
+            {
+                command.ReplyToCommand("Unknown team: must be one of team1, team2, spec");
+                return; 
+            }
+            if (!success)
+            {
+                command.ReplyToCommand($"Failed to add player {playerName} to {playerTeam}. They may already be on a team or you provided an invalid Steam ID.");
+                return;
+            }
+            command.ReplyToCommand($"Player {playerName} added to {playerTeam} successfully!");
         }
 
         public void HandleCoachCommand(CCSPlayerController? player, string side) {
@@ -124,6 +171,27 @@ namespace MatchZy
                 coach.ActionTrackingServices!.MatchStats.Assists = 0;
                 coach.ActionTrackingServices!.MatchStats.Damage = 0;
             }
+        }
+
+        public bool AddPlayerToTeam(string steamId, string name, JToken? team)
+        {
+            if (matchzyTeam1.teamPlayers != null && matchzyTeam1.teamPlayers[steamId] != null) return false;
+            if (matchzyTeam2.teamPlayers != null && matchzyTeam2.teamPlayers[steamId] != null) return false;
+            if (matchConfig.Spectators != null && matchConfig.Spectators[steamId] != null) return false;
+
+            if (team is JObject jObjectTeam)
+            {
+                jObjectTeam.Add(steamId, name);
+                LoadClientNames();
+                return true;
+            }
+            else if (team is JArray jArrayTeam)
+            {
+                jArrayTeam.Add(name);
+                LoadClientNames();
+                return true;
+            }
+            return false;
         }
     }
 }

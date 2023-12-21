@@ -926,6 +926,11 @@ namespace MatchZy
 
         [ConsoleCommand("css_t", "Switches team to Terrorist")]
         public void OnTCommand(CCSPlayerController? player, CommandInfo? command) {
+            if (player == null || player.UserId == null) return;
+            if (isVeto) {
+                HandleSideChoice(CsTeam.Terrorist, player.UserId.Value);
+                return;
+            }
             if (!isPractice || player == null) return;
 
             SideSwitchCommand(player, CsTeam.Terrorist);
@@ -933,7 +938,12 @@ namespace MatchZy
 
         [ConsoleCommand("css_ct", "Switches team to Counter-Terrorist")]
         public void OnCTCommand(CCSPlayerController? player, CommandInfo? command) {
-            if (!isPractice || player == null) return;
+            if (player == null || player.UserId == null) return;
+            if (isVeto) {
+                HandleSideChoice(CsTeam.CounterTerrorist, player.UserId.Value);
+                return;
+            }
+            if (!isPractice) return;
 
             SideSwitchCommand(player, CsTeam.CounterTerrorist);
         }
@@ -946,6 +956,7 @@ namespace MatchZy
         }
 
         [ConsoleCommand("css_fas", "Switches all other players to spectator")]
+        [ConsoleCommand("css_watchme", "Switches all other players to spectator")]
         public void OnFASCommand(CCSPlayerController? player, CommandInfo? command) {
             if (!isPractice || player == null) return;
 

@@ -72,7 +72,8 @@ Again, inside `csgo/cfg/MatchZy`, a file named `config.cfg` should be present. T
 :   Path of folder in which demos will be saved. If defined, it must not start with a slash and must end with a slash. Set to empty string to use the csgo root. Example: `matchzy_demo_path MatchZy/`<br>**`Default: MatchZy/`**
 
 ####`matchzy_demo_upload_url`
-:   If defined, recorded demo will be [uploaded](../gotv#automatic-upload) to this URL once the map ends.<br>**`Default: ""`**
+:   If defined, recorded demo will be [uploaded](../gotv#automatic-upload) to this URL once the map ends. Make sure that the URL is wrapped in double quotes (""). 
+Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <br>**`Default: ""`**
 
 ####`matchzy_kick_when_no_match_loaded`
 :   Whether to kick all clients and prevent anyone from joining the server if no match is loaded. This means if server is in match mode, a match needs to be set-up using `matchzy_loadmatch`/`matchzy_loadmatch_url` to load and configure a match.<br>**`Default: false`**
@@ -143,6 +144,6 @@ MySQL Database is useful for those who wants to use a common database across mul
 
 ### CSV Stats
 Once a match is over, data is pulled from the database and a CSV file is written in the folder:
-`csgo/MatchZy_Stats`. This folder will contain CSV file for each match (file name pattern: `match_data_{matchid}.csv`) and it will have the same data which is present in `matchzy_stats_players`.
+`csgo/MatchZy_Stats`. This folder will contain CSV file for each match (file name pattern: `match_data_map{mapNumber}_{matchId}.csv`) and it will have the same data which is present in `matchzy_stats_players`.
 
 There is a scope of improvement here, like having the match score in the CSV file or atleast in the file name patter. I'll make this change soon!

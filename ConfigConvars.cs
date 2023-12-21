@@ -90,6 +90,7 @@ namespace MatchZy
             }
         }
 
+        [ConsoleCommand("get5_demo_upload_url", "If defined, recorded demos will be uploaded to this URL once the map ends.")]
         [ConsoleCommand("matchzy_demo_upload_url", "If defined, recorded demos will be uploaded to this URL once the map ends.")]
         public void MatchZyDemoUploadURL(CCSPlayerController? player, CommandInfo command)
         {

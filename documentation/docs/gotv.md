@@ -28,6 +28,8 @@ In addition to recording demos, MatchZy can also upload them to a URL when the r
 `matchzy_demo_upload_url <upload_url>`. The HTTP body will be the zipped demo file, and you can
 read the [headers](#headers) for file metadata.
 
+Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"`
+
 ### Headers
 
 MatchZy will add these HTTP headers to its demo upload request:

@@ -12,6 +12,8 @@ MatchZy can solve a lot of match management requirements. It provides basic comm
 **Feature Highligts:**
 
 * Pug mode with simple commands to manage!
+* Support of [Get5 Panel!](./get5.md)
+* Support BO1/BO3/BO5 and Veto when using Match configuration or Get5 Panel!
 * [Setting up matches](./match_setup) and locking players into their team
 * Practice Mode with `.bot`, `.spawn`, `.ctspawn`, `.tspawn`, `.nobots`, `.clear`, `.exitprac` and many more commands!
 * Knife round (With expected logic, i.e., team with most players win. If same number of players, then team with HP advantage wins. If same HP, winner is decided randomly)
