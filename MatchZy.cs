@@ -13,7 +13,7 @@ namespace MatchZy
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.6.0-alpha";
+        public override string ModuleVersion => "0.6.1-alpha";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -130,6 +130,9 @@ namespace MatchZy
                 { ".globalnades", OnSaveNadesAsGlobalCommand },
                 { ".reload_admins", OnReloadAdmins },
                 { ".prac", OnPracCommand },
+                { ".dryrun", OnDryRunCommand },
+                { ".dry", OnDryRunCommand },
+                { ".noflash", OnNoFlashCommand },
                 { ".bot", OnBotCommand },
                 { ".crouchbot", OnCrouchBotCommand },
                 { ".boost", OnBoostBotCommand },
@@ -245,6 +248,10 @@ namespace MatchZy
                         } else if (matchzyTeam2.coach == player) {
                             matchzyTeam2.coach = null;
                             player.Clan = "";
+                        }
+                        if (noFlashList.Contains(player.UserId.Value))
+                        {
+                            noFlashList.Remove(player.UserId.Value);
                         }
                     }
 
@@ -392,6 +399,12 @@ namespace MatchZy
            RegisterEventHandler<EventRoundEnd>((@event, info) => {
                 try 
                 {
+                    if (isDryRun)
+                    {
+                        StartPracticeMode();
+                        isDryRun = false;
+                        return HookResult.Continue;
+                    }
                     if (!isMatchLive) return HookResult.Continue;
                     Log($"[EventRoundEnd POST] Winner: {@event.Winner}, Reason: {@event.Reason}");
                     HandlePostRoundEndEvent(@event);
@@ -617,10 +630,19 @@ namespace MatchZy
 
             RegisterEventHandler<EventPlayerBlind>((@event, info) =>
             {
-                if (isPractice && @event.Userid.SteamID != @event.Attacker.SteamID)
+                CCSPlayerController player = @event.Userid;
+                if (isPractice)
                 {
-                    double roundedBlindDuration = Math.Round(@event.BlindDuration, 2);
-                    @event.Attacker.PrintToChat($"{chatPrefix} Flashed {@event.Userid.PlayerName}. Blind time: {roundedBlindDuration} seconds");
+                    if (player.SteamID != @event.Attacker.SteamID)
+                    {
+                        double roundedBlindDuration = Math.Round(@event.BlindDuration, 2);
+                        @event.Attacker.PrintToChat($"{chatPrefix} Flashed {@event.Userid.PlayerName}. Blind time: {roundedBlindDuration} seconds");
+                    }
+                    var userId = player.UserId;
+                    if (userId != null && noFlashList.Contains((int)userId))
+                    {
+                        Server.NextFrame(() => KillFlashEffect(player));
+                    }
                 }
                 return HookResult.Continue;
             });

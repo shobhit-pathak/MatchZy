@@ -16,6 +16,7 @@ namespace MatchZy
             if (matchStarted) return;
             isSleep = true;
             isPractice = false;
+            isDryRun = false;
             isWarmup = false;
             readyAvailable = false;
             matchStarted = false;

@@ -26,6 +26,8 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.nobots` Removes all the bots
 - `.clear` Clears all the active smokes, molotoves and incendiaries
 - `.fastforward` Fastforwards the server time to 20 seconds
+- `.noflash` Toggles immunity for flashbang (it will still blind others with noflash disabled)
+- `.dryrun` Turns on dry-run mode
 - `.god` Turns on god mode
 - `.savenade <name> <optional description>` Saves a lineup
 - `.loadnade <name>` Loads a lineup

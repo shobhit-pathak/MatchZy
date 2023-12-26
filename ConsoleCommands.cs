@@ -208,10 +208,19 @@ namespace MatchZy
                     ReplyToUserCommand(player, "Match is already paused, cannot start a tactical timeout!");
                     return;
                 }
+                var gameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
                 if (player.TeamNum == 2) {
-                    Server.ExecuteCommand("timeout_terrorist_start");
+                    if (gameRules.TerroristTimeOuts > 0) {
+                        Server.ExecuteCommand("timeout_terrorist_start");
+                    } else {
+                        ReplyToUserCommand(player, "You do not have any tactical timeouts left!");
+                    }
                 } else if (player.TeamNum == 3) {
-                    Server.ExecuteCommand("timeout_ct_start");
+                    if (gameRules.CTTimeOuts > 0) {
+                        Server.ExecuteCommand("timeout_ct_start");
+                    } else {
+                        ReplyToUserCommand(player, "You do not have any tactical timeouts left!");
+                    }
                 } 
             }
         }
@@ -302,14 +311,13 @@ namespace MatchZy
 
         [ConsoleCommand("css_map", "Changes the map using changelevel")]
         public void OnChangeMapCommand(CCSPlayerController? player, CommandInfo command) {
-            if (player == null) return;
             var mapName = command.ArgByIndex(1);
             HandleMapChangeCommand(player, mapName);
         }
 
         [ConsoleCommand("css_rmap", "Reloads the current map")]
         private void OnMapReloadCommand(CCSPlayerController? player, CommandInfo? command) {
-            if (player == null) return;
+
             if (!IsPlayerAdmin(player)) {
                 SendPlayerNotAdminMessage(player);
                 return;
@@ -320,21 +328,19 @@ namespace MatchZy
             } else if (Server.IsMapValid(currentMapName)) {
                 Server.ExecuteCommand($"changelevel \"{currentMapName}\"");
             } else {
-                player.PrintToChat($"{chatPrefix} Invalid map name!");
+                ReplyToUserCommand(player, "Invalid map name!");
             }
         }
 
         [ConsoleCommand("css_start", "Force starts the match")]
         public void OnStartCommand(CCSPlayerController? player, CommandInfo? command) {
-            if (player == null) return;
-            
             if (IsPlayerAdmin(player, "css_start", "@css/config")) {
                 if (isPractice) {
                     ReplyToUserCommand(player, "Cannot start a match while in practice mode. Please use .exitprac command to exit practice mode first!");
                     return;
                 }
                 if (matchStarted) {
-                    player.PrintToChat($"{chatPrefix} Start command cannot be used if match is already started! If you want to unpause, please use .unpause");
+                    ReplyToUserCommand(player, "Start command cannot be used if match is already started! If you want to unpause, please use .unpause");
                 } else {
                     Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}Admin{ChatColors.Default} has started the game!");
                     HandleMatchStart();
