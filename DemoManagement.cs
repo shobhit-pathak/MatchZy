@@ -7,12 +7,12 @@ using System.IO.Compression;
 using System.Net.Http.Json;
 using System.Text;
 
-
 namespace MatchZy
 {
     public partial class MatchZy
     {
         public string demoPath = "MatchZy/";
+        public string demoFormat = "{TIME}_{MATCH_ID}_{MAP}_{TEAM1}_{TEAM2}";
         public string demoUploadURL = "";
         public string demoUploadHeaderKey = "";
         public string demoUploadHeaderValue = "";
@@ -23,8 +23,8 @@ namespace MatchZy
 
         public void StartDemoRecording()
         {
-            string formattedTime = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss").Replace(" ", "_");
-            string demoFileName = $"{formattedTime}_{liveMatchId}_{Server.MapName}_{matchzyTeam1.teamName.Replace(" ", "_")}_vs_{matchzyTeam2.teamName.Replace(" ", "_")}";
+
+            string demoFileName = FormatDemoName();
             try
             {
                 string? directoryPath = Path.GetDirectoryName(Path.Join(Server.GameDirectory + "/csgo/", demoPath));
@@ -55,10 +55,13 @@ namespace MatchZy
         {
             Log($"[StopDemoRecording] Going to stop demorecording in {delay}s");
             string demoPath = Path.Join(Server.GameDirectory + "/csgo/", activeDemoFile);
-            AddTimer(delay, () => {
+            AddTimer(delay, () =>
+            {
                 if (isDemoRecording) Server.ExecuteCommand($"tv_stoprecord");
-                AddTimer(15, () => {
-                    Task.Run(async () => {
+                AddTimer(15, () =>
+                {
+                    Task.Run(async () =>
+                    {
                         await UploadDemoAsync(demoPath, liveMatchId, currentMapNumber);
                     });
                 });
@@ -82,7 +85,7 @@ namespace MatchZy
 
         public async Task UploadDemoAsync(string? demoPath, long matchId, int mapNumber)
         {
-            if (demoPath == null || demoUploadURL == "") 
+            if (demoPath == null || demoUploadURL == "")
             {
                 Log($"[UploadDemoAsync] Not able to upload demo, either demoPath or demoUploadURL is not set. demoPath: {demoPath} demoUploadURL: {demoUploadURL}");
             }
@@ -135,6 +138,21 @@ namespace MatchZy
             {
                 Log($"[UploadDemoAsync FATAL] An error occurred: {e.Message}");
             }
+        }
+
+
+        private string FormatDemoName()
+        {
+            string formattedTime = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss");
+
+            var demoName = demoFormat
+                .Replace("{TIME}", formattedTime)
+                .Replace("{MATCH_ID}", $"{liveMatchId}")
+                .Replace("{MAP}", Server.MapName)
+                .Replace("{TEAM1}", matchzyTeam1.teamName)
+                .Replace("{TEAM2}", matchzyTeam2.teamName)
+                .Replace(" ", "_");
+            return $"{demoName}.dem";
         }
 
         [ConsoleCommand("get5_demo_upload_header_key", "If defined, a custom HTTP header with this name is added to the HTTP requests for demos")]
