@@ -90,17 +90,18 @@ namespace MatchZy
             }
         }
 
-        [ConsoleCommand("matchzy_demo_format", "Format of demo filname")]
-        public void MatchZyDemoFormat(CCSPlayerController? player, CommandInfo command)
+        [ConsoleCommand("matchzy_demo_name_format", "Format of demo filname")]
+        public void MatchZyDemoNameFormat(CCSPlayerController? player, CommandInfo command)
         {
             if (player != null) return;
             if (command.ArgCount == 2)
             {
-                string format = command.ArgByIndex(1);
-                demoFormat = format;
-            } else
-            {
-                Log($"{demoFormat}");
+                string format = command.ArgByIndex(1).Trim();
+
+                if (!string.IsNullOrEmpty(format)) 
+                {
+                    demoNameFormat = format;
+                }
             }
         }
 

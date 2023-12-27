@@ -12,7 +12,7 @@ namespace MatchZy
     public partial class MatchZy
     {
         public string demoPath = "MatchZy/";
-        public string demoFormat = "{TIME}_{MATCH_ID}_{MAP}_{TEAM1}_{TEAM2}";
+        public string demoNameFormat = "{TIME}_{MATCH_ID}_{MAP}_{TEAM1}_vs_{TEAM2}";
         public string demoUploadURL = "";
         public string demoUploadHeaderKey = "";
         public string demoUploadHeaderValue = "";
@@ -145,10 +145,11 @@ namespace MatchZy
         {
             string formattedTime = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss");
 
-            var demoName = demoFormat
+            var demoName = demoNameFormat
                 .Replace("{TIME}", formattedTime)
                 .Replace("{MATCH_ID}", $"{liveMatchId}")
                 .Replace("{MAP}", Server.MapName)
+                .Replace("{MAPNUMBER}", matchConfig.CurrentMapNumber.ToString())
                 .Replace("{TEAM1}", matchzyTeam1.teamName)
                 .Replace("{TEAM2}", matchzyTeam2.teamName)
                 .Replace(" ", "_");
