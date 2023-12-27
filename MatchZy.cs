@@ -8,7 +8,7 @@ using CounterStrikeSharp.API.Modules.Timers;
 
 namespace MatchZy
 {
-    [MinimumApiVersion(107)]
+    [MinimumApiVersion(140)]
     public partial class MatchZy : BasePlugin
     {
 
@@ -133,6 +133,7 @@ namespace MatchZy
                 { ".dryrun", OnDryRunCommand },
                 { ".dry", OnDryRunCommand },
                 { ".noflash", OnNoFlashCommand },
+                { ".break", OnBreakCommand },
                 { ".bot", OnBotCommand },
                 { ".crouchbot", OnCrouchBotCommand },
                 { ".boost", OnBoostBotCommand },
@@ -427,6 +428,7 @@ namespace MatchZy
             RegisterListener<Listeners.OnMapStart>(mapName => { 
                 Log($"[Listeners.OnMapStart]");
                 if (isWarmup) StartWarmup();
+                if (isPractice) StartPracticeMode();
             });
 
             // RegisterListener<Listeners.OnMapEnd>(() => {

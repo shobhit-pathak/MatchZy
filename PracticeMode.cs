@@ -70,7 +70,7 @@ namespace MatchZy
             GetSpawns();
             Server.PrintToChatAll($"{chatPrefix} Practice mode loaded!");
             Server.PrintToChatAll($"{chatPrefix} Available commands:");
-	        Server.PrintToChatAll($"{chatPrefix} \x10.spawn, .ctspawn, .tspawn, .bot, .nobots, .exitprac");
+	        Server.PrintToChatAll($"{chatPrefix} \x10.spawn, .ctspawn, .tspawn, .bot, .nobots, .dryrun, .noflash, .break, .exitprac");
 	        Server.PrintToChatAll($"{chatPrefix} \x10.loadnade <name>, .savenade <name>, .importnade <code>, .listnades <optional filter>");
             Server.PrintToChatAll($"{chatPrefix} \x10.listnades <optional filter>, .delnade <name>, .globalnades");
         }
@@ -1014,6 +1014,18 @@ namespace MatchZy
                 Server.NextFrame(() => KillFlashEffect(player));
             }
 
+        }
+
+        [ConsoleCommand("css_break", "Breaks the breakable entities")]
+        public void OnBreakCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!isPractice) return;
+            var entities = Utilities.FindAllEntitiesByDesignerName<CBreakable>("prop_dynamic")
+                .Concat(Utilities.FindAllEntitiesByDesignerName<CBreakable>("func_breakable"));
+            foreach (var entity in entities)
+            {
+                entity.AcceptInput("Break");
+            }
         }
 
         public void KillFlashEffect(CCSPlayerController player) {
