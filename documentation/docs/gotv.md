@@ -16,7 +16,7 @@ MatchZy records the demos automatically. It recording starts once all teams have
 
 Path of demos can be configured using `matchzy_demo_path <directory>/`. If defined, it must not start with a slash and must end with a slash. Set to empty string to use the csgo root.
 
-Demo files will be named according to `matchzy_demo_name_format`. The default format is: `{TIME}_{MATCH_ID}_{MAP}_{TEAM1}_{TEAM2}`
+Demo files will be named according to `matchzy_demo_name_format`. The default format is: `"{TIME}_{MATCH_ID}_{MAP}_{TEAM1}_vs_{TEAM2}"`
 
 !!! info "Broadcast delay on GOTV recording"
 
