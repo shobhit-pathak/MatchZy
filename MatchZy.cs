@@ -12,14 +12,14 @@ namespace MatchZy
     public partial class MatchZy : BasePlugin
     {
 
-        public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.6.1-alpha";
+        public override string ModuleName => "MatchZy FragBot";
+        public override string ModuleVersion => "0.1.1-alpha";
 
-        public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
+        public override string ModuleAuthor => "WD- & sphaxa";
 
         public override string ModuleDescription => "A plugin for running and managing CS2 practice/pugs/scrims/matches!";
 
-        public string chatPrefix = $"[{ChatColors.Green}MatchZy{ChatColors.Default}]";
+        public string chatPrefix = $"[{ChatColors.Green}FragBot{ChatColors.Default}]";
         public string adminChatPrefix = $"[{ChatColors.Red}ADMIN{ChatColors.Default}]";
 
         // Plugin start phase data
