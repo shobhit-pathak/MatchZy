@@ -23,7 +23,7 @@ namespace MatchZy
         public string adminChatPrefix = $"[{ChatColors.Red}ADMIN{ChatColors.Default}]";
 
         // Game state configs
-        public string warmupConfigs = "warmup.cfg;";
+        public string warmupConfigs = "";
 
         // Plugin start phase data
         public bool isPractice = false;
