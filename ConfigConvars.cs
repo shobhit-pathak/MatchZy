@@ -187,6 +187,24 @@ namespace MatchZy
             Log($"[MatchZyAdminChatPrefix] adminChatPrefix: {adminChatPrefix}");
         }
 
+        [ConsoleCommand("matchzy_warmup_exec_configs", "A semi-colon seperated list of all configs to execute when warmup starts. Default value: \"warmup.cfg;\"")]
+        public void MatchZyWarmupExecConfigs(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+
+            string args = command.ArgString.Trim();
+
+            if (string.IsNullOrEmpty(args))
+            {
+                warmupConfigs = "warmup.cfg;";
+                return;
+            }
+
+            warmupConfigs = args;
+
+            Log($"[MatchZyWarmupExecConfigs] warmupExecConfigs: {warmupConfigs}");
+        }
+
         [ConsoleCommand("matchzy_chat_messages_timer_delay", "Number of seconds of delay before sending reminder messages from MatchZy (like unready message, paused message, etc). Default: 12")]
         public void MatchZyChatMessagesTimerDelay(CCSPlayerController? player, CommandInfo command)
         {

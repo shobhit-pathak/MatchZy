@@ -17,10 +17,13 @@ namespace MatchZy
 
         public override string ModuleAuthor => "WD- & sphaxa";
 
-        public override string ModuleDescription => "A plugin for running and managing CS2 practice/pugs/scrims/matches!";
+        public override string ModuleDescription => "Fragadelphia tournament plugin.";
 
         public string chatPrefix = $"[{ChatColors.Green}FragBot{ChatColors.Default}]";
         public string adminChatPrefix = $"[{ChatColors.Red}ADMIN{ChatColors.Default}]";
+
+        // Game state configs
+        public string warmupConfigs = "warmup.cfg;";
 
         // Plugin start phase data
         public bool isPractice = false;
