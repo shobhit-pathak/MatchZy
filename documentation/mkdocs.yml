@@ -1,7 +1,7 @@
 site_name: FragBot
 site_url: https://sphaxa.github.io/MatchZy-FragBot/
 repo_url: https://github.com/sphaxa/MatchZy-FragBot
-repo_name:  sphaxa/MatchZy-FragBot
+repo_name: sphaxa/MatchZy-FragBot
 theme:
   name: material
   features:
