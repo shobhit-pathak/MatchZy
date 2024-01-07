@@ -106,7 +106,7 @@ Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <b
 :   Whether nades should be saved globally instead of being privated to players by default or not.<br>**`Default: false`**
 
 ####`matchzy_warmup_exec_configs`
-:   A semi-colon seperated list of all configs to execute when warmup starts.<br>**`Default: "example1.cfg;example2.cfg;"`**
+:   A semi-colon seperated list of all configs to execute when warmup starts.<br>**`Default: example1.cfg;example2.cfg;`**
 
 ### Configuring Warmup/Knife/Live/Prac CFGs
 Again, inside `csgo/cfg/MatchZy`, files named `warmup.cfg`, `knife.cfg`, `live.cfg` and `prac.cfg` should be present. These configs are executed when Warmup, Knife, Live and Practice Mode is started respectively.

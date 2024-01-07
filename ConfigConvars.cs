@@ -187,7 +187,7 @@ namespace MatchZy
             Log($"[MatchZyAdminChatPrefix] adminChatPrefix: {adminChatPrefix}");
         }
 
-        [ConsoleCommand("matchzy_warmup_exec_configs", "A semi-colon seperated list of all configs to execute when warmup starts. Default value: \"example1.cfg;example2.cfg;\"")]
+        [ConsoleCommand("matchzy_warmup_exec_configs", "A semi-colon seperated list of all configs to execute when warmup starts. Default value: example1.cfg;example2.cfg;")]
         public void MatchZyWarmupExecConfigs(CCSPlayerController? player, CommandInfo command)
         {
             if (player != null) return;

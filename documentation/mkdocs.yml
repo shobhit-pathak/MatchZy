@@ -1,7 +1,7 @@
-site_name: MatchZy
-site_url: https://shobhit-pathak.github.io/MatchZy/
-repo_url: https://github.com/shobhit-pathak/MatchZy
-repo_name: shobhit-pathak/MatchZy
+site_name: FragBot
+site_url: https://sphaxa.github.io/MatchZy-FragBot/
+repo_url: https://github.com/sphaxa/MatchZy-FragBot
+repo_name: sphaxa/MatchZy-FragBot
 theme:
   name: material
   features:
@@ -62,4 +62,4 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/shobhit-pathak/MatchZy
+      link: https://github.com/sphaxa/MatchZy-FragBot
