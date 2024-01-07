@@ -187,7 +187,7 @@ namespace MatchZy
             Log($"[MatchZyAdminChatPrefix] adminChatPrefix: {adminChatPrefix}");
         }
 
-        [ConsoleCommand("matchzy_warmup_exec_configs", "A semi-colon seperated list of all configs to execute when warmup starts. Default value: example1.cfg;example2.cfg;")]
+        [ConsoleCommand("matchzy_warmup_exec_configs", "A comma seperated list of all configs to execute when warmup starts. Default value: example1.cfg;example2.cfg;")]
         public void MatchZyWarmupExecConfigs(CCSPlayerController? player, CommandInfo command)
         {
             if (player != null) return;
@@ -205,7 +205,7 @@ namespace MatchZy
             Log($"[MatchZyWarmupExecConfigs] warmupExecConfigs: {warmupConfigs}");
         }
 
-        [ConsoleCommand("matchzy_knife_exec_configs", "A semi-colon seperated list of all configs to execute when knife starts. Default value: example1.cfg;example2.cfg;")]
+        [ConsoleCommand("matchzy_knife_exec_configs", "A comma seperated list of all configs to execute when knife starts. Default value: example1.cfg;example2.cfg;")]
         public void MatchZyKnifeExecConfigs(CCSPlayerController? player, CommandInfo command)
         {
             if (player != null) return;
@@ -223,7 +223,7 @@ namespace MatchZy
             Log($"[MatchZyKnifeExecConfigs] knifeExecConfigs: {knifeConfigs}");
         }
 
-        [ConsoleCommand("matchzy_live_exec_configs", "A semi-colon seperated list of all configs to execute when live starts. Default value: example1.cfg;example2.cfg;")]
+        [ConsoleCommand("matchzy_live_exec_configs", "A comma seperated list of all configs to execute when live starts. Default value: example1.cfg;example2.cfg;")]
         public void MatchZyLiveExecConfigs(CCSPlayerController? player, CommandInfo command)
         {
             if (player != null) return;
@@ -239,24 +239,6 @@ namespace MatchZy
             liveConfigs = args;
 
             Log($"[MatchZyLiveExecConfigs] liveExecConfigs: {liveConfigs}");
-        }
-
-        [ConsoleCommand("matchzy_practice_exec_configs", "A semi-colon seperated list of all configs to execute when practice starts. Default value: example1.cfg;example2.cfg;")]
-        public void MatchZyPracticeExecConfigs(CCSPlayerController? player, CommandInfo command)
-        {
-            if (player != null) return;
-
-            string args = command.ArgString.Trim();
-
-            if (string.IsNullOrEmpty(args))
-            {
-                practiceConfigs = "";
-                return;
-            }
-
-            practiceConfigs = args;
-
-            Log($"[MatchZyPracticeExecConfigs] practiceExecConfigs: {practiceConfigs}");
         }
 
         [ConsoleCommand("matchzy_chat_messages_timer_delay", "Number of seconds of delay before sending reminder messages from MatchZy (like unready message, paused message, etc). Default: 12")]

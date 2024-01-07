@@ -143,7 +143,7 @@ namespace MatchZy
         private void ExecWarmupCfg() {
             var warmupPath = Path.Join(Server.GameDirectory + "/csgo/cfg", warmupCfgPath);
 
-            var addlWarmupConfigs = warmupConfigs.Split(';');
+            var addlWarmupConfigs = warmupConfigs.Split(',');
 
             for (var i = 0; i < addlWarmupConfigs.Length; i++)
             {
@@ -193,7 +193,7 @@ namespace MatchZy
 
             var knifePath = Path.Join(Server.GameDirectory + "/csgo/cfg", knifeCfgPath);
 
-            var addlKnifeConfigs = knifeConfigs.Split(';');
+            var addlKnifeConfigs = knifeConfigs.Split(',');
 
             for (var i = 0; i < addlKnifeConfigs.Length; i++)
             {
@@ -1088,7 +1088,7 @@ namespace MatchZy
         {
             var livePath = Path.Join(Server.GameDirectory + "/csgo/cfg", liveCfgPath);
 
-            var addlLiveConfigs = liveConfigs.Split(';');
+            var addlLiveConfigs = liveConfigs.Split(',');
 
             for (var i = 0; i < addlLiveConfigs.Length; i++)
             {
