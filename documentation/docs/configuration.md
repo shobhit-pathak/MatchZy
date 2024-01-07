@@ -108,6 +108,12 @@ Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <b
 ####`matchzy_warmup_exec_configs`
 :   A semi-colon seperated list of all configs to execute when warmup starts.<br>**`Default: example1.cfg;example2.cfg;`**
 
+####`matchzy_knife_exec_configs`
+:   A semi-colon seperated list of all configs to execute when knife starts.<br>**`Default: example1.cfg;example2.cfg;`**
+
+####`matchzy_live_exec_configs`
+:   A semi-colon seperated list of all configs to execute when live starts.<br>**`Default: example1.cfg;example2.cfg;`**
+
 ### Configuring Warmup/Knife/Live/Prac CFGs
 Again, inside `csgo/cfg/MatchZy`, files named `warmup.cfg`, `knife.cfg`, `live.cfg` and `prac.cfg` should be present. These configs are executed when Warmup, Knife, Live and Practice Mode is started respectively.
 
@@ -115,7 +121,7 @@ You can modify these files according to your requirements.
 
 If these configs are not found in the expected location, MatchZy executes the default configs which are present in the code.
 
-You can also add additional configs to be executed when Warmup, Knife, Live, and Practice mode are started. Using `matchzy_warmup_exec_configs, matchzy_knife_exec_configs, matchzy_live_exec_configs, and matchzy_practice_exec_configs`.
+You can also add additional configs to be executed when Warmup, Knife, and Live mode are started. Using `matchzy_warmup_exec_configs, matchzy_knife_exec_configs, and matchzy_live_exec_configs`.
 
 ### Whitelisting players
 Again, inside `csgo/cfg/MatchZy`, there will be a file called `whitelist.cfg`. You can add Steam64 id of whitelisted players like mentioned in the below example:

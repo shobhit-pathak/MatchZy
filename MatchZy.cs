@@ -24,6 +24,8 @@ namespace MatchZy
 
         // Game state configs
         public string warmupConfigs = "";
+        public string knifeConfigs = "";
+        public string liveConfigs = "";
 
         // Plugin start phase data
         public bool isPractice = false;
