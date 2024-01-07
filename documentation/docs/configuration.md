@@ -115,6 +115,8 @@ You can modify these files according to your requirements.
 
 If these configs are not found in the expected location, MatchZy executes the default configs which are present in the code.
 
+You can also add additional configs to be executed when Warmup, Knife, Live, and Practice mode are started. Using `matchzy_warmup_exec_configs, matchzy_knife_exec_configs, matchzy_live_exec_configs, and matchzy_practice_exec_configs`.
+
 ### Whitelisting players
 Again, inside `csgo/cfg/MatchZy`, there will be a file called `whitelist.cfg`. You can add Steam64 id of whitelisted players like mentioned in the below example:
 
