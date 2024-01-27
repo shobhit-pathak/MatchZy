@@ -13,6 +13,12 @@ namespace MatchZy
 
         [JsonPropertyName("gamestate")]
         public string GameState { get; set; }
+
+        [JsonPropertyName("paused")]
+        public bool paused { get; set; } = false;
+
+        [JsonPropertyName("loaded_config_file")]
+        public string? LoadedConfigFile { get; set; } = null;
     }
 
     public class G5WebAvailable
@@ -32,7 +38,13 @@ namespace MatchZy
         public void Get5StatusCommand(CCSPlayerController? player, CommandInfo command)
         {
             // TODO: Add remaining Get5 status data as specified in https://splewis.github.io/get5/latest/commands/#get5_status
-            command.ReplyToCommand(JsonSerializer.Serialize(new Get5Status { PluginVersion = "0.15.0", GameState = getGet5Gamestate() }));
+            string gamestate = getGet5Gamestate();
+            command.ReplyToCommand(JsonSerializer.Serialize(new Get5Status { 
+                PluginVersion = "0.15.0", 
+                GameState = gamestate,
+                paused = isPaused,
+                LoadedConfigFile = loadedConfigFile
+            }));
         }
 
         [ConsoleCommand("get5_web_available", "Returns get5 web available")]

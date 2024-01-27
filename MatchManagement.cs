@@ -21,6 +21,8 @@ namespace MatchZy
 
         public bool resetCvarsOnSeriesEnd = true;
 
+        public string loadedConfigFile = "";
+
         public Team matchzyTeam1 = new() {
             teamName = "COUNTER-TERRORISTS"
         };
@@ -66,6 +68,7 @@ namespace MatchZy
                     command.ReplyToCommand("Match load failed! Resetting current match");
                     ResetMatch();
                 }
+                loadedConfigFile = fileName;
             }
             catch (Exception e)
             {
@@ -116,6 +119,7 @@ namespace MatchZy
                         command.ReplyToCommand("Match load failed! Resetting current match");
                         ResetMatch();
                     }
+                    loadedConfigFile = url;
                 }
                 else
                 {
