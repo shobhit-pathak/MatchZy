@@ -66,25 +66,15 @@ namespace MatchZy
 
     public enum Get5GameState
     {
-        [EnumMember(Value = "none")]
         None = 0,
-        [EnumMember(Value = "pre_veto")]
         PreVeto = 1,
-        [EnumMember(Value = "veto")]
         Veto = 2,
-        [EnumMember(Value = "warmup")]
         Warmup = 3,
-        [EnumMember(Value = "knife")]
         Knife = 4,
-        [EnumMember(Value = "waiting_for_knife_decision")]
         WaitingForKnifeDecision = 5,
-        [EnumMember(Value = "going_live")]
         GoingLive = 6,
-        [EnumMember(Value = "live")]
         Live = 7,
-        [EnumMember(Value = "pending_restore")]
         PendingRestore = 8,
-        [EnumMember(Value = "post_game")]
         PostGame = 9
     }
 
@@ -116,7 +106,7 @@ namespace MatchZy
             string PluginVersion = "0.15.0";
 
             Get5GameState gamestate = getGet5Gamestate();
-            string gamestateString = gamestate.ToString().ToLower();
+            string gamestateString = mapGet5GameState(gamestate);
             Get5Status get5Status = new Get5Status
             {
                 PluginVersion = PluginVersion,
@@ -182,7 +172,7 @@ namespace MatchZy
         [ConsoleCommand("get5_web_available", "Returns get5 web available")]
         public void Get5WebAvailable(CCSPlayerController? player, CommandInfo command)
         {
-            command.ReplyToCommand(JsonSerializer.Serialize(new G5WebAvailable { GameState = getGet5Gamestate().ToString().ToLower() }));
+            command.ReplyToCommand(JsonSerializer.Serialize(new G5WebAvailable { GameState = mapGet5GameState(getGet5Gamestate()) }));
         }
 
         private Get5GameState getGet5Gamestate()
@@ -238,6 +228,35 @@ namespace MatchZy
             }
 
             return state;
+        }
+
+        private string mapGet5GameState(Get5GameState state)
+        {
+            switch(state)
+            {
+                case Get5GameState.None:
+                    return "none";
+                case Get5GameState.PreVeto:
+                    return "pre_veto";
+                case Get5GameState.Veto:
+                    return "veto";
+                case Get5GameState.Warmup:
+                    return "warmup";
+                case Get5GameState.Knife:
+                    return "knife";
+                case Get5GameState.WaitingForKnifeDecision:
+                    return "waiting_for_knife_decision";
+                case Get5GameState.GoingLive:
+                    return "going_live";
+                case Get5GameState.Live:
+                    return "live";
+                case Get5GameState.PendingRestore:
+                    return "pending_restore";
+                case Get5GameState.PostGame:
+                    return "post_game";
+                default:
+                    return "none";
+            }
         }
     }
 }
