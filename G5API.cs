@@ -131,15 +131,8 @@ namespace MatchZy
                 get5Status.MapNumber = matchConfig.CurrentMapNumber;
             }
 
-            if (gamestate == Get5GameState.Live)
+            if (isMatchSetup)
             {
-                get5Status.RoundNumber = GetRoundNumer();
-            }
-
-            if (gamestate >= Get5GameState.GoingLive)
-            {
-                get5Status.Maps = matchConfig.Maplist.ToArray();
-
                 (int team1, int team2) = GetTeamsScore();
 
                 bool ready = true;
@@ -173,13 +166,23 @@ namespace MatchZy
                 };
             }
 
+            if (gamestate >= Get5GameState.GoingLive)
+            {
+                get5Status.Maps = matchConfig.Maplist.ToArray();
+            }
+
+            if (gamestate == Get5GameState.Live)
+            {
+                get5Status.RoundNumber = GetRoundNumer();
+            }
+
             command.ReplyToCommand(JsonSerializer.Serialize(get5Status));
         }
 
         [ConsoleCommand("get5_web_available", "Returns get5 web available")]
         public void Get5WebAvailable(CCSPlayerController? player, CommandInfo command)
         {
-            command.ReplyToCommand(JsonSerializer.Serialize(new G5WebAvailable{ GameState = getGet5Gamestate().ToString().ToLower() }));
+            command.ReplyToCommand(JsonSerializer.Serialize(new G5WebAvailable { GameState = getGet5Gamestate().ToString().ToLower() }));
         }
 
         private Get5GameState getGet5Gamestate()
