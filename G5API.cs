@@ -13,7 +13,7 @@ namespace MatchZy
         public required string PluginVersion { get; set; }
 
         [JsonPropertyName("gamestate")]
-        public Get5GameState GameState { get; set; }
+        public string GameState { get; set; }
 
         [JsonPropertyName("paused")]
         public bool Paused { get; set; } = false;
@@ -91,7 +91,7 @@ namespace MatchZy
     public class G5WebAvailable
     {
         [JsonPropertyName("gamestate")]
-        public Get5GameState GameState { get; init; }
+        public string GameState { get; init; }
 
         [JsonPropertyName("available")]
         public int Available { get; } = 1;
@@ -116,10 +116,11 @@ namespace MatchZy
             string PluginVersion = "0.15.0";
 
             Get5GameState gamestate = getGet5Gamestate();
+            string gamestateString = gamestate.ToString().ToLower();
             Get5Status get5Status = new Get5Status
             {
                 PluginVersion = PluginVersion,
-                GameState = gamestate,
+                GameState = gamestateString,
                 Paused = isPaused
             };
 
@@ -178,7 +179,7 @@ namespace MatchZy
         [ConsoleCommand("get5_web_available", "Returns get5 web available")]
         public void Get5WebAvailable(CCSPlayerController? player, CommandInfo command)
         {
-            command.ReplyToCommand(JsonSerializer.Serialize(new G5WebAvailable{ GameState = getGet5Gamestate() }));
+            command.ReplyToCommand(JsonSerializer.Serialize(new G5WebAvailable{ GameState = getGet5Gamestate().ToString().ToLower() }));
         }
 
         private Get5GameState getGet5Gamestate()
