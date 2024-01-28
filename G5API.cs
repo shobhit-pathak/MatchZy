@@ -88,6 +88,18 @@ namespace MatchZy
         PostGame = 9
     }
 
+    public class G5WebAvailable
+    {
+        [JsonPropertyName("gamestate")]
+        public Get5GameState GameState { get; init; }
+
+        [JsonPropertyName("available")]
+        public int Available { get; } = 1;
+
+        [JsonPropertyName("plugin_version")]
+        public string PluginVersion { get; } = "0.15.0";
+    }
+
     public partial class MatchZy
     {
         [ConsoleCommand("get5_status", "Returns get5 status")]
@@ -163,6 +175,12 @@ namespace MatchZy
             command.ReplyToCommand(JsonSerializer.Serialize(get5Status));
         }
 
+        [ConsoleCommand("get5_web_available", "Returns get5 web available")]
+        public void Get5WebAvailable(CCSPlayerController? player, CommandInfo command)
+        {
+            command.ReplyToCommand(JsonSerializer.Serialize(new G5WebAvailable{ GameState = getGet5Gamestate() }));
+        }
+
         private Get5GameState getGet5Gamestate()
         {
             // Get state from MatchZy state phase data and map to get5 state
@@ -216,24 +234,6 @@ namespace MatchZy
             }
 
             return state;
-        }
-
-        [ConsoleCommand("get5_web_available", "Returns get5 web available")]
-        public void Get5WebAvailable(CCSPlayerController? player, CommandInfo command)
-        {
-            command.ReplyToCommand(JsonSerializer.Serialize(new G5WebAvailable()));
-        }
-
-        public class G5WebAvailable
-        {
-            [JsonPropertyName("gamestate")]
-            public string GameState { get; init; }
-
-            [JsonPropertyName("available")]
-            public int Available { get; } = 1;
-
-            [JsonPropertyName("plugin_version")]
-            public string PluginVersion { get; } = "0.15.0";
         }
     }
 }
