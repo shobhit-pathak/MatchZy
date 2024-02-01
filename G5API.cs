@@ -13,7 +13,7 @@ namespace MatchZy
         public required string PluginVersion { get; set; }
 
         [JsonPropertyName("gamestate")]
-        public string GameState { get; set; }
+        public required string GameState { get; set; }
 
         [JsonPropertyName("paused")]
         public bool Paused { get; set; } = false;
@@ -81,7 +81,7 @@ namespace MatchZy
     public class G5WebAvailable
     {
         [JsonPropertyName("gamestate")]
-        public string GameState { get; init; }
+        public required string GameState { get; init; }
 
         [JsonPropertyName("available")]
         public int Available { get; } = 1;
