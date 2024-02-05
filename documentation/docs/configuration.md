@@ -40,12 +40,12 @@ There are two ways to create an admin for MatchZy; you can choose the most conve
 
     Inside `csgo/cfg/MatchZy`, a file named `admins.json` should be present. If it is not there, it will be automatically created when the plugin is loaded. You can add Steam64 id of admins in that JSON file like mentioned in the below example:
 
-        ```json
-        {
-            "76561198154367261": "",
-            "<another_steam_id>": ""
-        }
-        ```
+    ```json
+    {
+        "76561198154367261": "",
+        "<another_steam_id>": ""
+    }
+    ```
 
 ### Configuring MatchZy Settings (ConVars)
 Again, inside `csgo/cfg/MatchZy`, a file named `config.cfg` should be present. This file is executed whenever the plugin is loaded. If you make any changes in this file and want to reload the config, simply execute `exec MatchZy/config.cfg` command on the server.
