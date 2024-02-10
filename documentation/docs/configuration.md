@@ -105,6 +105,12 @@ Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <b
 ####`matchzy_save_nades_as_global_enabled`
 :   Whether nades should be saved globally instead of being privated to players by default or not.<br>**`Default: false`**
 
+####`matchzy_allow_force_ready`
+:   Whether force ready using !forceready is enabled or not (Currently works in Match Setup only).<br>**`Default: true`**
+
+####`matchzy_max_saved_last_grenades`
+:   Maximum number of grenade history that may be saved per-map, per-client. Set to 0 to disable the limit and allow unlimited grenades to be stored.<br>**`Default: 512`**
+
 ### Configuring Warmup/Knife/Live/Prac CFGs
 Again, inside `csgo/cfg/MatchZy`, files named `warmup.cfg`, `knife.cfg`, `live.cfg` and `prac.cfg` should be present. These configs are executed when Warmup, Knife, Live and Practice Mode is started respectively.
 

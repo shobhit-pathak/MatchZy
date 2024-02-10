@@ -13,7 +13,7 @@ namespace MatchZy
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.6.1-alpha";
+        public override string ModuleVersion => "0.7.0";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -170,7 +170,9 @@ namespace MatchZy
                 { ".rethrowdecoy", OnRethrowDecoyCommand },
                 { ".throwdecoy", OnRethrowDecoyCommand },
                 { ".throwmolotov", OnRethrowMolotovCommand },
-                { ".rethrowmolotov", OnRethrowMolotovCommand }
+                { ".rethrowmolotov", OnRethrowMolotovCommand },
+                { ".timer", OnTimerCommand },
+                { ".lastindex", OnLastIndexCommand }
             };
 
             RegisterEventHandler<EventPlayerConnectFull>(EventPlayerConnectFullHandler);
@@ -490,6 +492,30 @@ namespace MatchZy
                     string mapArg = message.Substring(command.Length).Trim();
 
                     HandeMapPickCommand(player, mapArg);
+                }
+                if (message.StartsWith(".back")) {
+                    string command = ".back";
+                    string commandArg = message.Substring(command.Length).Trim();
+
+                    HandleBackCommand(player, commandArg);
+                }
+                if (message.StartsWith(".delay")) {
+                    string command = ".delay";
+                    string commandArg = message.Substring(command.Length).Trim();
+
+                    HandleDelayCommand(player, commandArg);
+                }
+                if (message.StartsWith(".throwindex")) {
+                    string command = ".throwindex";
+                    string commandArg = message.Substring(command.Length).Trim();
+
+                    HandleThrowIndexCommand(player, commandArg);
+                }
+                if (message.StartsWith(".throwidx")) {
+                    string command = ".throwindex";
+                    string commandArg = message.Substring(command.Length).Trim();
+
+                    HandleThrowIndexCommand(player, commandArg);
                 }
 
                 return HookResult.Continue;

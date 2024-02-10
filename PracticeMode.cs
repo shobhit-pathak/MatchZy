@@ -78,6 +78,7 @@ namespace MatchZy
 	        Server.PrintToChatAll($"{chatPrefix} \x10.spawn, .ctspawn, .tspawn, .bot, .nobots, .dryrun, .noflash, .break, .exitprac");
 	        Server.PrintToChatAll($"{chatPrefix} \x10.loadnade <name>, .savenade <name>, .importnade <code>, .listnades <optional filter>");
             Server.PrintToChatAll($"{chatPrefix} \x10.listnades <optional filter>, .delnade <name>, .globalnades");
+            Server.PrintToChatAll($"{chatPrefix} \x10.rethrow, .throwindex <index>, .lastindex, .last, .back <number>, .delay <number>");
         }
 
         public void GetSpawns()
@@ -1171,6 +1172,13 @@ namespace MatchZy
             if (!isPractice || !IsPlayerValid(player)) return;
             int userId = player!.UserId!.Value;
 
+            if (string.IsNullOrEmpty(argString))
+            {
+                int thrownCount = lastGrenadesData.ContainsKey(userId) ? lastGrenadesData[userId].Count : 0;
+                ReplyToUserCommand(player, $"Usage: !throwindex <number> (You've thrown {thrownCount} grenades till now)");
+                return;
+            }
+
             string[] argsList = argString.Split();
 
             foreach (string arg in argsList)
@@ -1332,7 +1340,7 @@ namespace MatchZy
         }
 
         [ConsoleCommand("css_lastindex", "Returns index of the last thrown grenade")]
-        public void OnLastIndexCommand(CCSPlayerController? player, CommandInfo command)
+        public void OnLastIndexCommand(CCSPlayerController? player, CommandInfo? command)
         {
             if (!isPractice || !IsPlayerValid(player)) return;
             if (IsValidPositionForLastGrenade(player!, 1))
@@ -1356,7 +1364,7 @@ namespace MatchZy
         }
 
         [ConsoleCommand("css_timer", "Starts a timer, use .timer again to stop it.")]
-        public void OnTimerCommand(CCSPlayerController? player, CommandInfo command)
+        public void OnTimerCommand(CCSPlayerController? player, CommandInfo? command)
         {
             if (!isPractice || !IsPlayerValid(player)) return;
             int userId = player!.UserId!.Value;
@@ -1370,7 +1378,7 @@ namespace MatchZy
             }
             else
             {
-                playerTimers[userId] = new PlayerPracticeTimer(PracticeTimerType.OnMovement)
+                playerTimers[userId] = new PlayerPracticeTimer(PracticeTimerType.Immediate)
                 {
                     StartTime = DateTime.Now,
                     Timer = AddTimer(0.1f, () => DisplayPracticeTimerCenter(userId), TimerFlags.REPEAT)
@@ -1379,7 +1387,23 @@ namespace MatchZy
             }
         }
 
-        // Todo: Implement timer2 when we have OnPlayerRunCmd in CS#. Using OnTick would be its alternative, it would be very expensive and not worth it.
+        [ConsoleCommand("css_savenade", "Saves current nade position")]
+        public void OnSaveNadeCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+
+            HandleSaveNadeCommand(player, command.ArgString);
+        }
+
+        [ConsoleCommand("css_loadnade", "Saves current nade position")]
+        public void OnLoadNadeCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+
+            HandleLoadNadeCommand(player, command.ArgString);
+        }
+
+        // Todo: Implement timer2 when we have OnPlayerRunCmd in CS#. Using OnTick would be its alternative, but it would be very expensive and not worth it.
         // [ConsoleCommand("css_timer2", "Starts a timer, use .timer2 again to stop it.")]
         // public void OnTimer2Command(CCSPlayerController? player, CommandInfo command)
         // {

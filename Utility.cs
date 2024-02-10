@@ -1137,9 +1137,10 @@ namespace MatchZy
         {
             if (isPractice)
             {
-                ReplyToUserCommand(player, "Available commands: .spawn, .ctspawn, .tspawn, .bot, .nobots, .god, .clear, .fastforward");
+                ReplyToUserCommand(player, "Available commands: .spawn, .ctspawn, .tspawn, .bot, .nobots, .god, .clear, .fastforward, .dryrun");
                 ReplyToUserCommand(player, ".loadnade <name>, .savenade <name>, .importnade <code> .listnades <optional filter>");
                 ReplyToUserCommand(player, ".ct, .t, .spec, .fas");
+                ReplyToUserCommand(player, ".rethrow, .throwindex <index>, .lastindex, .last, .back <number>, .delay <number>");
                 return;
             }
             if (readyAvailable)
