@@ -12,13 +12,16 @@ namespace MatchZy
         public required string PluginVersion { get; set; }
 
         [JsonPropertyName("gamestate")]
-        public string GameState { get; set; }
+        public required string GameState { get; set; }
+
+        [JsonPropertyName("matchid")]
+        public required string MatchId { get; set; }
     }
 
     public class G5WebAvailable
     {
         [JsonPropertyName("gamestate")]
-        public string GameState { get; init; }
+        public required string GameState { get; init; }
 
         [JsonPropertyName("available")]
         public int Available { get; } = 1;
@@ -32,16 +35,16 @@ namespace MatchZy
         public void Get5StatusCommand(CCSPlayerController? player, CommandInfo command)
         {
             // TODO: Add remaining Get5 status data as specified in https://splewis.github.io/get5/latest/commands/#get5_status
-            command.ReplyToCommand(JsonSerializer.Serialize(new Get5Status { PluginVersion = "0.15.0", GameState = getGet5Gamestate() }));
+            command.ReplyToCommand(JsonSerializer.Serialize(new Get5Status { PluginVersion = "0.15.0", GameState = GetGet5Gamestate(), MatchId = liveMatchId.ToString() }));
         }
 
         [ConsoleCommand("get5_web_available", "Returns get5 web available")]
         public void Get5WebAvailable(CCSPlayerController? player, CommandInfo command)
         {
-            command.ReplyToCommand(JsonSerializer.Serialize(new G5WebAvailable()));
+            command.ReplyToCommand(JsonSerializer.Serialize(new G5WebAvailable() {GameState = GetGet5Gamestate()}));
         }
 
-        private string getGet5Gamestate()
+        private string GetGet5Gamestate()
         {
             // Get state from MatchZy state phase data and map to get5 state
             // Get5 states: pre_veto, veto, warmup, knife, waiting_for_knife_decision, going_live, live, pending_restore, post_game
