@@ -49,6 +49,7 @@ namespace MatchZy
                 if (player != null) return;
                 if (isMatchSetup)
                 {
+                    command.ReplyToCommand($"[LoadMatch] A match is already setup with id: {liveMatchId}, cannot load a new match!");
                     Log($"[LoadMatch] A match is already setup with id: {liveMatchId}, cannot load a new match!");
                     return;
                 }
@@ -56,6 +57,7 @@ namespace MatchZy
                 string filePath = Path.Join(Server.GameDirectory + "/csgo", fileName);
                 if (!File.Exists(filePath)) 
                 {
+                    command.ReplyToCommand($"[LoadMatch] Provided file does not exist! Usage: matchzy_loadmatch <filename>");
                     Log($"[LoadMatch] Provided file does not exist! Usage: matchzy_loadmatch <filename>");
                     return;
                 }
@@ -81,6 +83,7 @@ namespace MatchZy
             if (player != null) return;
             if (isMatchSetup)
             {
+                command.ReplyToCommand($"[LoadMatchDataCommand] A match is already setup with id: {liveMatchId}, cannot load a new match!");
                 Log($"[LoadMatchDataCommand] A match is already setup with id: {liveMatchId}, cannot load a new match!");
                 return;
             }
@@ -93,6 +96,7 @@ namespace MatchZy
 
             if (!IsValidUrl(url))
             {
+                command.ReplyToCommand($"[LoadMatchDataCommand] Invalid URL: {url}. Please provide a valid URL to load the match!");
                 Log($"[LoadMatchDataCommand] Invalid URL: {url}. Please provide a valid URL to load the match!");
                 return;
             }
@@ -119,6 +123,7 @@ namespace MatchZy
                 }
                 else
                 {
+                    command.ReplyToCommand($"[LoadMatchFromURL] HTTP request failed with status code: {response.StatusCode}");
                     Log($"[LoadMatchFromURL] HTTP request failed with status code: {response.StatusCode}");
                 }
             }
@@ -154,12 +159,12 @@ namespace MatchZy
                     case "min_spectators_to_ready":
                     case "num_maps":
                         int numMaps;
-                        if (!int.TryParse(jsonData[field].ToString(), out numMaps))
+                        if (!int.TryParse(jsonData[field]!.ToString(), out numMaps))
                         {
                             return $"{field} should be an integer!";
                             
                         }
-                        if (field == "num_maps" && numMaps > jsonData["maplist"].ToObject<List<string>>().Count)
+                        if (field == "num_maps" && numMaps > jsonData["maplist"]!.ToObject<List<string>>()!.Count)
                         {
                             return $"{field} should be equal to or greater than maplist!";
                         }
@@ -167,7 +172,7 @@ namespace MatchZy
                         break;
                     
                     case "cvars":
-                        if (jsonData[field].Type != JTokenType.Object)
+                        if (jsonData[field]!.Type != JTokenType.Object)
                         {
                             return $"{field} should be a JSON structure!";
                         }
@@ -176,54 +181,54 @@ namespace MatchZy
                     case "team1":
                     case "team2":
                     case "spectators":
-                        if (jsonData[field].Type != JTokenType.Object)
+                        if (jsonData[field]!.Type != JTokenType.Object)
                         {
                             return $"{field} should be a JSON structure!";
                         }
-                        if ((field != "spectators") && (jsonData[field]["players"] == null || jsonData[field]["players"].Type != JTokenType.Object)) 
+                        if ((field != "spectators") && (jsonData[field]!["players"] == null || jsonData[field]!["players"]!.Type != JTokenType.Object)) 
                         {
                             return $"{field} should have 'players' JSON!";
                         }
                         break;
 
                     case "veto_mode":
-                        if (jsonData[field].Type != JTokenType.Array)
+                        if (jsonData[field]!.Type != JTokenType.Array)
                         {
                             return $"{field} should be an Array!";
                         }
                         break;
 
                     case "maplist":
-                        if (jsonData[field].Type != JTokenType.Array)
+                        if (jsonData[field]!.Type != JTokenType.Array)
                         {
                             return $"{field} should be an Array!";
                         }
-                        if (!jsonData[field].Any())
+                        if (!jsonData[field]!.Any())
                         {
                             return $"{field} should contain atleast 1 map!";
                         }
 
                         break;
                     case "map_sides":
-                        if (jsonData[field].Type != JTokenType.Array)
+                        if (jsonData[field]!.Type != JTokenType.Array)
                         {
                             return $"{field} should be an Array!";
                         }
                         string[] allowedValues = { "team1_ct", "team1_t", "team2_ct", "team2_t", "knife" };
-                        bool allElementsValid = jsonData[field].All(element => allowedValues.Contains(element.ToString()));
+                        bool allElementsValid = jsonData[field]!.All(element => allowedValues.Contains(element.ToString()));
 
                         if (!allElementsValid) {
                             return $"{field} should be \"team1_ct\", \"team1_t\", or \"knife\"!";
                         }
                         
-                        if (jsonData[field].ToObject<List<string>>().Count < jsonData["num_maps"].Value<int>()) {
+                        if (jsonData[field]!.ToObject<List<string>>()!.Count < jsonData["num_maps"]!.Value<int>()) {
                             return $"{field} should be equal to or greater than num_maps!";
                         }
                         break;
 
                     case "skip_veto":
                     case "clinch_series":
-                        if (!bool.TryParse(jsonData[field].ToString(), out bool result))
+                        if (!bool.TryParse(jsonData[field]!.ToString(), out bool result))
                         {
                             return $"{field} should be a boolean!";
                         }
@@ -255,11 +260,11 @@ namespace MatchZy
             JToken team2 = jsonDataObject["team2"]!;
             JToken maplist = jsonDataObject["maplist"]!;
 
-            if (team1["id"] != null) matchzyTeam1.id = team1["id"].ToString();
-            if (team2["id"] != null) matchzyTeam2.id = team2["id"].ToString();
+            if (team1["id"] != null) matchzyTeam1.id = team1["id"]!.ToString();
+            if (team2["id"] != null) matchzyTeam2.id = team2["id"]!.ToString();
 
-            matchzyTeam1.teamName = RemoveSpecialCharacters(team1["name"].ToString());
-            matchzyTeam2.teamName = RemoveSpecialCharacters(team2["name"].ToString());
+            matchzyTeam1.teamName = RemoveSpecialCharacters(team1["name"]!.ToString());
+            matchzyTeam2.teamName = RemoveSpecialCharacters(team2["name"]!.ToString());
             matchzyTeam1.teamPlayers = team1["players"];
             matchzyTeam2.teamPlayers = team2["players"];
 
@@ -325,8 +330,10 @@ namespace MatchZy
                 string mapName = matchConfig.Maplist[0].ToString();
 
                 if (long.TryParse(mapName, out _)) {
+                    Server.ExecuteCommand($"bot_kick");
                     Server.ExecuteCommand($"host_workshop_map \"{mapName}\"");
                 } else if (Server.IsMapValid(mapName)) {
+                    Server.ExecuteCommand($"bot_kick");
                     Server.ExecuteCommand($"changelevel \"{mapName}\"");
                 } else {
                     Log($"[LoadMatchFromJSON] Invalid map name: {mapName}, cannot setup match!");
@@ -353,6 +360,18 @@ namespace MatchZy
             SetTeamNames();
 
             UpdatePlayersMap();
+
+            var seriesStartedEvent = new MatchZySeriesStartedEvent
+            {
+                MatchId = liveMatchId.ToString(),
+                NumberOfMaps = matchConfig.NumMaps,
+                Team1 = new(matchzyTeam1.id, matchzyTeam1.teamName),
+                Team2 = new(matchzyTeam2.id, matchzyTeam2.teamName),
+            };
+
+            Task.Run(async () => {
+                await SendEventAsync(seriesStartedEvent);
+            });
 
             Log($"[LoadMatchFromJSON] Success with matchid: {liveMatchId}!");
             return true;
@@ -396,7 +415,7 @@ namespace MatchZy
             {
                 if (jsonDataObject["cvars"] != null)
                 {
-                    foreach (JProperty cvarData in jsonDataObject["cvars"])
+                    foreach (JProperty cvarData in jsonDataObject["cvars"]!)
                     {
                         string cvarName = cvarData.Name;
                         string cvarValue = cvarData.Value.ToString();

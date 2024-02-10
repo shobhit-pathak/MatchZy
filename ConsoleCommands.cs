@@ -227,7 +227,7 @@ namespace MatchZy
 
         [ConsoleCommand("css_roundknife", "Toggles knife round for the match")]
         [ConsoleCommand("css_rk", "Toggles knife round for the match")]
-        public void OnKifeCommand(CCSPlayerController? player, CommandInfo? command) {            
+        public void OnKnifeCommand(CCSPlayerController? player, CommandInfo? command) {            
             if (IsPlayerAdmin(player, "css_roundknife", "@css/config")) {
                 isKnifeRequired = !isKnifeRequired;
                 string knifeStatus = isKnifeRequired ? "Enabled" : "Disabled";
@@ -324,8 +324,10 @@ namespace MatchZy
             }
             string currentMapName = Server.MapName;
             if (long.TryParse(currentMapName, out _)) { // Check if mapName is a long for workshop map ids
+                Server.ExecuteCommand($"bot_kick");
                 Server.ExecuteCommand($"host_workshop_map \"{currentMapName}\"");
             } else if (Server.IsMapValid(currentMapName)) {
+                Server.ExecuteCommand($"bot_kick");
                 Server.ExecuteCommand($"changelevel \"{currentMapName}\"");
             } else {
                 ReplyToUserCommand(player, "Invalid map name!");

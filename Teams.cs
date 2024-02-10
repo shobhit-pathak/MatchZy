@@ -25,9 +25,8 @@ namespace MatchZy
     public partial class MatchZy
     {
         [ConsoleCommand("css_coach", "Sets coach for the requested team")]
-        public void OnCoachCommand(CCSPlayerController? player, CommandInfo? command) 
+        public void OnCoachCommand(CCSPlayerController? player, CommandInfo command) 
         {
-            Log($"[OnCoachCommand]");
             HandleCoachCommand(player, command.ArgString);
         }
 
@@ -162,9 +161,9 @@ namespace MatchZy
                 coach.InGameMoneyServices!.Account = 0;
                 AddTimer(0.5f, () => HandleCoachTeam(coach, true));
                 // AddTimer(1, () => {
-                //     Server.ExecuteCommand("mp_suicide_penalty 0; mp_death_drop_gun 0");
-                //     coach.PlayerPawn.Value.CommitSuicide(false, true);
-                //     Server.ExecuteCommand("mp_suicide_penalty 1; mp_death_drop_gun 1");
+                    // Server.ExecuteCommand("mp_suicide_penalty 0; mp_death_drop_gun 0");
+                    // coach.PlayerPawn.Value.CommitSuicide(false, true);
+                    // Server.ExecuteCommand("mp_suicide_penalty 1; mp_death_drop_gun 1");
                 // });
                 coach.ActionTrackingServices!.MatchStats.Kills = 0;
                 coach.ActionTrackingServices!.MatchStats.Deaths = 0;

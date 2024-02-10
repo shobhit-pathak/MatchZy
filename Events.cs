@@ -103,6 +103,22 @@ public class MatchZyPlayerDisconnectedEvent : MatchZyMatchEvent
     }
 }
 
+public class MatchZySeriesStartedEvent : MatchZyMatchEvent
+{
+    [JsonPropertyName("team1")]
+    public required MatchZyTeamWrapper Team1 { get; init; }
+
+    [JsonPropertyName("team2")]
+    public required MatchZyTeamWrapper Team2 { get; init; }
+
+    [JsonPropertyName("num_maps")]
+    public required int NumberOfMaps { get; init; }
+
+    public MatchZySeriesStartedEvent() : base("series_start")
+    {
+    }
+}
+
 public class MatchZySeriesResultEvent : MatchZyMatchEvent
 {
     [JsonPropertyName("time_until_restore")]

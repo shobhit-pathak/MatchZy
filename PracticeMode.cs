@@ -8,7 +8,6 @@ using CounterStrikeSharp.API.Modules.Utils;
 using System.Text.Json;
 
 
-
 namespace MatchZy
 {
     public class Position
@@ -26,6 +25,12 @@ namespace MatchZy
 
     public partial class MatchZy
     {
+        int maxLastGrenadesSavedLimit = 512;
+        Dictionary<int, List<GrenadeThrownData>> lastGrenadesData = new();
+        Dictionary<int, Dictionary<string, GrenadeThrownData>> nadeSpecificLastGrenadeData = new();
+        Dictionary<int, DateTime> lastGrenadeThrownTime = new();
+        Dictionary<int, PlayerPracticeTimer> playerTimers = new();
+
         public Dictionary<byte, List<Position>> spawnsData = new Dictionary<byte, List<Position>> {
             { (byte)CsTeam.CounterTerrorist, new List<Position>() },
             { (byte)CsTeam.Terrorist, new List<Position>() }
@@ -114,7 +119,7 @@ namespace MatchZy
 
         private void HandleSpawnCommand(CCSPlayerController? player, string commandArg, byte teamNum, string command)
         {
-            if (!isPractice || player == null) return;
+            if (!isPractice || !IsPlayerValid(player)) return;
             if (teamNum != 2 && teamNum != 3) return;
             if (!string.IsNullOrWhiteSpace(commandArg))
             {
@@ -123,7 +128,7 @@ namespace MatchZy
                     // Adjusting the spawnNumber according to the array index.
                     spawnNumber -= 1;
                     if (spawnsData.ContainsKey(teamNum) && spawnsData[teamNum].Count <= spawnNumber) return;
-                    player.PlayerPawn.Value.Teleport(spawnsData[teamNum][spawnNumber].PlayerPosition, spawnsData[teamNum][spawnNumber].PlayerAngle, new Vector(0, 0, 0));
+                    player!.PlayerPawn.Value!.Teleport(spawnsData[teamNum][spawnNumber].PlayerPosition, spawnsData[teamNum][spawnNumber].PlayerAngle, new Vector(0, 0, 0));
                     ReplyToUserCommand(player, $"Moved to spawn: {spawnNumber+1}/{spawnsData[teamNum].Count}");
                 }
                 else
@@ -161,7 +166,7 @@ namespace MatchZy
 
         private void HandleSaveNadeCommand(CCSPlayerController? player, string saveNadeName)
         {
-            if (!isPractice || player == null) return;
+            if (!isPractice || !IsPlayerValid(player)) return;
 
             if (!string.IsNullOrWhiteSpace(saveNadeName))
             {
@@ -174,17 +179,17 @@ namespace MatchZy
                 string playerSteamID;
                 if(isSaveNadesAsGlobalEnabled == false)
                 {
-                    playerSteamID = player.SteamID.ToString();
+                    playerSteamID = player!.SteamID.ToString();
                 }
                 else
                 {
                     playerSteamID = "default";
                 }
 
-                QAngle playerAngle = player.PlayerPawn.Value.EyeAngles;
-                Vector playerPos = player.Pawn.Value.CBodyComponent!.SceneNode.AbsOrigin;
+                QAngle playerAngle = player!.PlayerPawn.Value!.EyeAngles;
+                Vector playerPos = player.Pawn.Value!.CBodyComponent!.SceneNode!.AbsOrigin;
                 string currentMapName = Server.MapName;
-                string nadeType = GetNadeType(player.PlayerPawn.Value.WeaponServices.ActiveWeapon.Value.DesignerName);
+                string nadeType = GetNadeType(player.PlayerPawn.Value.WeaponServices!.ActiveWeapon.Value!.DesignerName);
 
                 // Define the file path
                 string savednadesfileName = "MatchZy/savednades.json";
@@ -730,8 +735,7 @@ namespace MatchZy
                 }
                 isSpawningBot = true;
                 // !bot/.bot command is made using a lot of workarounds, as there is no direct way to create a bot entity and spawn it in CSSharp
-                // Hence there can be some issues with this approach. This will be revamped when we will be able to create entities and manipulate them.
-                // Todo: Now its possible to create entities in CSSharp, hence this approach needs to be improved.
+                // Hence there can be some issues with this approach. This will be revamped when we will be able to fake clients.
                 if (player.TeamNum == (byte)CsTeam.CounterTerrorist)
                 {
                     Server.ExecuteCommand("bot_join_team T");
@@ -814,9 +818,9 @@ namespace MatchZy
         {
             Log($"[TemporarilyDisableCollisions] Disabling {p1.PlayerName} {p2.PlayerName}");
             // Reference collision code: https://github.com/Source2ZE/CS2Fixes/blob/f009e399ff23a81915e5a2b2afda20da2ba93ada/src/events.cpp#L150
-            p1.PlayerPawn.Value.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DEBRIS;
+            p1.PlayerPawn.Value!.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DEBRIS;
             p1.PlayerPawn.Value.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DEBRIS;
-            p2.PlayerPawn.Value.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DEBRIS;
+            p2.PlayerPawn.Value!.Collision.CollisionAttribute.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DEBRIS;
             p2.PlayerPawn.Value.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_DEBRIS;
             // TODO: call CollisionRulesChanged
             var p1p = p1.PlayerPawn;
@@ -870,6 +874,15 @@ namespace MatchZy
         public HookResult OnPlayerSpawn(EventPlayerSpawn @event, GameEventInfo info)
         {
             var player = @event.Userid;
+            if (!IsPlayerValid(player)) return HookResult.Continue;
+
+            if (matchStarted && (matchzyTeam1.coach == player || matchzyTeam2.coach == player))
+            {
+                player.InGameMoneyServices!.Account = 0;
+
+                Utilities.SetStateChanged(player, "CCSPlayerController", "m_pInGameMoneyServices");
+                return HookResult.Continue;
+            }
 
             // Respawing a bot where it was actually spawned during practice session
             if (isPractice && player.IsValid && player.IsBot && player.UserId.HasValue)
@@ -878,11 +891,11 @@ namespace MatchZy
                 {
                     if (pracUsedBots[player.UserId.Value]["position"] is Position botPosition)
                     {
-                        player.PlayerPawn.Value.Teleport(botPosition.PlayerPosition, botPosition.PlayerAngle, new Vector(0, 0, 0));
+                        player.PlayerPawn.Value?.Teleport(botPosition.PlayerPosition, botPosition.PlayerAngle, new Vector(0, 0, 0));
                         bool isCrouched = (bool)pracUsedBots[player.UserId.Value]["crouchstate"];
                         if (isCrouched)
                         {
-                            player.PlayerPawn.Value.Flags |= (uint)PlayerFlags.FL_DUCKING;
+                            player.PlayerPawn.Value!.Flags |= (uint)PlayerFlags.FL_DUCKING;
                             CCSPlayer_MovementServices movementService = new(player.PlayerPawn.Value.MovementServices!.Handle);
                             AddTimer(0.1f, () => movementService.DuckAmount = 1);
                             AddTimer(0.2f, () => player.PlayerPawn.Value.Bot.IsCrouching = true);
@@ -907,7 +920,6 @@ namespace MatchZy
                 }
             }
 
-
             return HookResult.Continue;
         }
 
@@ -927,8 +939,9 @@ namespace MatchZy
             Dictionary<int, MoveType_t> preFastForwardMoveTypes = new();
 
             foreach (var key in playerData.Keys) {
-                preFastForwardMoveTypes[key] = playerData[key].PlayerPawn.Value.MoveType;
-                playerData[key].PlayerPawn.Value.MoveType = MoveType_t.MOVETYPE_NONE;
+                if(!IsPlayerValid(playerData[key])) continue;
+                preFastForwardMoveTypes[key] = playerData[key].PlayerPawn.Value!.MoveType;
+                playerData[key].PlayerPawn.Value!.MoveType = MoveType_t.MOVETYPE_NONE;
             }
 
             Server.PrintToChatAll($"{chatPrefix} Fastforwarding 20 seconds!");
@@ -949,7 +962,8 @@ namespace MatchZy
             if (!isPractice) return;
             Server.ExecuteCommand("host_timescale 1");
             foreach (var key in playerData.Keys) {
-                playerData[key].PlayerPawn.Value.MoveType = preFastForwardMoveTypes[key];
+                if(!IsPlayerValid(playerData[key])) continue;
+                playerData[key].PlayerPawn.Value!.MoveType = preFastForwardMoveTypes[key];
             }
         }
 
@@ -1093,5 +1107,295 @@ namespace MatchZy
             Server.ExecuteCommand("mp_death_drop_breachcharge true; mp_death_drop_defuser true; mp_death_drop_taser true; mp_drop_knife_enable false; mp_death_drop_grenade 2; ammo_grenade_limit_total 4; mp_defuser_allocation 0; sv_infinite_ammo 0; mp_force_pick_time 15");
         }
 
+        public bool IsValidPositionForLastGrenade(CCSPlayerController player, int position)
+        {
+            int userId = player.UserId!.Value;
+            if (!lastGrenadesData.ContainsKey(userId) || lastGrenadesData[userId].Count <= 0)
+            {
+                PrintToPlayerChat(player, $"You have not thrown any nade yet!");
+                return false;
+            }
+
+            if (lastGrenadesData[userId].Count < position)
+            {
+                PrintToPlayerChat(player, $"Your grenade history only goes from 1 to {lastGrenadesData[userId].Count}!");
+                return false;
+            }
+
+            return true;
+        }
+
+        public void RethrowSpecificNade(CCSPlayerController player, string nadeType)
+        {
+            if (!isPractice || !player.UserId.HasValue) return;
+            int userId = player.UserId.Value;
+            if (!nadeSpecificLastGrenadeData.ContainsKey(userId) || !nadeSpecificLastGrenadeData[userId].ContainsKey(nadeType))
+            {
+                PrintToPlayerChat(player, $"You have not thrown any {nadeType} yet!");
+                return;
+            }
+            GrenadeThrownData grenadeThrown = nadeSpecificLastGrenadeData[userId][nadeType];
+            AddTimer(grenadeThrown.Delay, () => grenadeThrown.Throw(player));
+        }
+
+        public void HandleBackCommand(CCSPlayerController player, string number)
+        {
+            if (!isPractice || player == null || !player.UserId.HasValue) return;
+            int userId = player.UserId.Value;
+            if (!string.IsNullOrWhiteSpace(number))
+            {
+                if (int.TryParse(number, out int positionNumber) && positionNumber >= 1)
+                {
+                    if (IsValidPositionForLastGrenade(player, positionNumber))
+                    {
+                        positionNumber -= 1;
+                        lastGrenadesData[userId][positionNumber].LoadPosition(player);
+                        PrintToPlayerChat(player, $"Teleported to grenade of history position: {positionNumber+1}/{lastGrenadesData[userId].Count}");
+                    }
+                }
+                else
+                {
+                    PrintToPlayerChat(player, $"Invalid value for !back command. Please specify a valid non-negative number. Usage: !back <number>");
+                    return;
+                }
+            }
+            else
+            {
+                int thrownCount = lastGrenadesData.ContainsKey(userId) ? lastGrenadesData[userId].Count : 0;
+                ReplyToUserCommand(player, $"Usage: !back <number> (You've thrown {thrownCount} grenades till now)");
+            }
+        }
+
+        public void HandleThrowIndexCommand(CCSPlayerController player, string argString)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+            int userId = player!.UserId!.Value;
+
+            string[] argsList = argString.Split();
+
+            foreach (string arg in argsList)
+            {
+                if (int.TryParse(arg, out int positionNumber) && positionNumber >= 1)
+                {
+                    if (IsValidPositionForLastGrenade(player, positionNumber))
+                    {
+                        positionNumber -= 1;
+                        GrenadeThrownData grenadeThrown = lastGrenadesData[userId][positionNumber];
+                        AddTimer(grenadeThrown.Delay, () => grenadeThrown.Throw(player));
+                        PrintToPlayerChat(player, $"Throwing grenade of history position: {positionNumber+1}/{lastGrenadesData[userId].Count}");
+                    }
+                }
+                else
+                {
+                    PrintToPlayerChat(player, $"'{arg}' is not a valid non-negative number for !throwindex command.");
+                }
+            }
+        }
+
+        public void HandleDelayCommand(CCSPlayerController player, string delay)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+
+            if (!isPractice || player == null || !player.UserId.HasValue) return;
+            int userId = player.UserId.Value;
+            if (string.IsNullOrWhiteSpace(delay))
+            {
+                ReplyToUserCommand(player, $"Usage: !delay <delay_in_seconds>");
+                return;
+            }
+            
+            if (float.TryParse(delay, out float delayInSeconds) && delayInSeconds > 0)
+            {
+                if (IsValidPositionForLastGrenade(player, 0))
+                {
+                    lastGrenadesData[userId].Last().Delay = delayInSeconds;
+                    PrintToPlayerChat(player, $"Delay of {delayInSeconds:0.00}s set for grenade of index: {lastGrenadesData[userId].Count}.");
+                }
+            }
+            else
+            {
+                PrintToPlayerChat(player, $"Delay should be valid float number and greater than 0 seconds.");
+                return;
+            }
+        }
+
+        public void DisplayPracticeTimerCenter(int userId)
+        {
+            if (!playerData.ContainsKey(userId) || !playerTimers.ContainsKey(userId)) return;
+            if (!IsPlayerValid(playerData[userId])) return;
+            playerTimers[userId].DisplayTimerCenter(playerData[userId]);
+        }
+
+        [ConsoleCommand("css_throw", "Throws the last thrown grenade")]
+        [ConsoleCommand("css_rethrow", "Throws the last thrown grenade")]
+        public void OnRethrowCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+
+            if (!isPractice || player == null || !player.UserId.HasValue) return;
+            int userId = player.UserId.Value;
+            if (!lastGrenadesData.ContainsKey(userId) || lastGrenadesData[userId].Count <= 0)
+            {
+                PrintToPlayerChat(player, $"You have not thrown any nade yet!");
+                return;
+            }
+            GrenadeThrownData lastGrenade = lastGrenadesData[userId].Last();
+            AddTimer(lastGrenade.Delay, () => lastGrenade.Throw(player));
+        }
+
+        [ConsoleCommand("css_throwsmoke", "Throws the last thrown smoke")]
+        [ConsoleCommand("css_rethrowsmoke", "Throws the last thrown smoke")]
+        public void OnRethrowSmokeCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (player == null) return;
+            RethrowSpecificNade(player, "smoke");
+        }
+
+        [ConsoleCommand("css_throwflash", "Throws the last thrown flash")]
+        [ConsoleCommand("css_rethrowflash", "Throws the last thrown flash")]
+        public void OnRethrowFlashCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (player == null) return;
+            RethrowSpecificNade(player, "flash");
+        }
+
+        [ConsoleCommand("css_throwgrenade", "Throws the last thrown he grenade")]
+        [ConsoleCommand("css_rethrowgrenade", "Throws the last thrown he grenade")]
+        [ConsoleCommand("css_thrownade", "Throws the last thrown he grenade")]
+        [ConsoleCommand("css_rethrownade", "Throws the last thrown he grenade")]
+        public void OnRethrowGrenadeCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (player == null) return;
+            RethrowSpecificNade(player, "hegrenade");
+        }
+
+        [ConsoleCommand("css_throwmolotov", "Throws the last thrown molotov")]
+        [ConsoleCommand("css_rethrowmolotov", "Throws the last thrown molotov")]
+        public void OnRethrowMolotovCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (player == null) return;
+            RethrowSpecificNade(player, "molotov");
+        }
+
+        [ConsoleCommand("css_throwdecoy", "Throws the last thrown decoy")]
+        [ConsoleCommand("css_rethrowdecoy", "Throws the last thrown decoy")]
+        public void OnRethrowDecoyCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (player == null) return;
+            RethrowSpecificNade(player, "decoy");
+        }
+
+        [ConsoleCommand("css_last", "Teleports to the last thrown grenade position")]
+        public void OnLastCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!isPractice || player == null || !player.UserId.HasValue) return;
+            int userId = player.UserId.Value;
+            if (!lastGrenadesData.ContainsKey(userId) || lastGrenadesData[userId].Count <= 0)
+            {
+                PrintToPlayerChat(player, $"You have not thrown any nade yet!");
+                return;
+            }
+            lastGrenadesData[userId].Last().LoadPosition(player);
+        }
+
+        [ConsoleCommand("css_back", "Teleports to the provided position in grenade thrown history")]
+        public void OnBackCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (!isPractice || player == null || !player.UserId.HasValue) return;
+            if (command.ArgCount >= 2) 
+            {
+                string commandArg = command.ArgByIndex(1);
+                HandleBackCommand(player, commandArg);
+            }
+            else 
+            {
+                int userId = player!.UserId!.Value;
+                int thrownCount = lastGrenadesData.ContainsKey(userId) ? lastGrenadesData[userId].Count : 0;
+                ReplyToUserCommand(player, $"Usage: !back <number> (You've thrown {thrownCount} grenades till now)");
+            }      
+        }
+
+        [ConsoleCommand("css_throwidx", "Throws grenade of provided position in grenade thrown history")]
+        [ConsoleCommand("css_throwindex", "Throws grenade of provided position in grenade thrown history")]
+        public void OnThrowIndexCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+            if (command.ArgCount >= 2) 
+            {
+                HandleThrowIndexCommand(player!, command.ArgString);
+            }
+            else 
+            {
+                int userId = player!.UserId!.Value;
+                int thrownCount = lastGrenadesData.ContainsKey(userId) ? lastGrenadesData[userId].Count : 0;
+                ReplyToUserCommand(player, $"Usage: !throwindex <number> (You've thrown {thrownCount} grenades till now)");
+            }      
+        }
+
+        [ConsoleCommand("css_lastindex", "Returns index of the last thrown grenade")]
+        public void OnLastIndexCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+            if (IsValidPositionForLastGrenade(player!, 1))
+            {
+                PrintToPlayerChat(player!, $"Index of last thrown grenade: {lastGrenadesData[player!.UserId!.Value].Count}");
+            } 
+        }
+
+        [ConsoleCommand("css_delay", "Adds a delay to the last thrown grenade. Usage: !delay <delay_in_seconds>")]
+        public void OnDelayCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+            if (command.ArgCount >= 2) 
+            {
+                HandleDelayCommand(player!, command.ArgByIndex(1));
+            }
+            else 
+            {
+                ReplyToUserCommand(player, $"Usage: !delay <delay_in_seconds>");
+            }      
+        }
+
+        [ConsoleCommand("css_timer", "Starts a timer, use .timer again to stop it.")]
+        public void OnTimerCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+            int userId = player!.UserId!.Value;
+            if (playerTimers.ContainsKey(userId))
+            {
+                playerTimers[userId].KillTimer();
+                double timerResult = playerTimers[userId].GetTimerResult();
+                player.PrintToCenter($"Timer: {timerResult}s");
+                PrintToPlayerChat(player, $"Timer stopped! Result: {timerResult}s");
+                playerTimers.Remove(userId);
+            }
+            else
+            {
+                playerTimers[userId] = new PlayerPracticeTimer(PracticeTimerType.OnMovement)
+                {
+                    StartTime = DateTime.Now,
+                    Timer = AddTimer(0.1f, () => DisplayPracticeTimerCenter(userId), TimerFlags.REPEAT)
+                };
+                PrintToPlayerChat(player, $"Timer started! User !timer to stop it.");
+            }
+        }
+
+        // Todo: Implement timer2 when we have OnPlayerRunCmd in CS#. Using OnTick would be its alternative, it would be very expensive and not worth it.
+        // [ConsoleCommand("css_timer2", "Starts a timer, use .timer2 again to stop it.")]
+        // public void OnTimer2Command(CCSPlayerController? player, CommandInfo command)
+        // {
+        //     if (!isPractice || !IsPlayerValid(player)) return;
+        //     int userId = player!.UserId!.Value;
+        //     if (playerTimers.ContainsKey(userId))
+        //     {
+        //         PrintToPlayerChat(player, $"Timer stopped! Result: {playerTimers[userId].GetTimerResult()}s");
+        //         playerTimers[userId].KillTimer();
+        //         playerTimers.Remove(userId);
+        //     }
+        //     else
+        //     {
+        //         playerTimers[userId] = new PlayerPracticeTimer(PracticeTimerType.OnMovement);
+        //         PrintToPlayerChat(player, $"When you start moving a timer will run until you stop moving.");
+        //     }
+        // }
     }
 }
