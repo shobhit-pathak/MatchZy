@@ -31,7 +31,7 @@ MatchZy is a plugin for CS2 (Counter Strike 2) for running and managing practice
 
 ## Donation
 
-Buy Me A Coffe:
+Buy Me A Coffee:
 
 [!["Buy Me A Coffee"](https://cdn.buymeacoffee.com/buttons/default-blue.png)](https://www.buymeacoffee.com/shobhitwd)
 
