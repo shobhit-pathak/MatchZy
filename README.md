@@ -29,6 +29,16 @@ MatchZy is a plugin for CS2 (Counter Strike 2) for running and managing practice
 
 ## [shobhit-pathak.github.io/MatchZy/](https://shobhit-pathak.github.io/MatchZy/)
 
+## Donation
+
+Buy Me A Coffe:
+
+[!["Buy Me A Coffee"](https://cdn.buymeacoffee.com/buttons/default-blue.png)](https://www.buymeacoffee.com/shobhitwd)
+
+Steam Tradelink: 
+
+https://steamcommunity.com/tradeoffer/new/?partner=194101533&token=1TI76S3p
+
 ## License
 MIT
 
