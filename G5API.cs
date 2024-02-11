@@ -21,7 +21,7 @@ namespace MatchZy
     public class G5WebAvailable
     {
         [JsonPropertyName("gamestate")]
-        public required string GameState { get; init; }
+        public int GameState { get; init; }
 
         [JsonPropertyName("available")]
         public int Available { get; } = 1;
@@ -41,7 +41,7 @@ namespace MatchZy
         [ConsoleCommand("get5_web_available", "Returns get5 web available")]
         public void Get5WebAvailable(CCSPlayerController? player, CommandInfo command)
         {
-            command.ReplyToCommand(JsonSerializer.Serialize(new G5WebAvailable() {GameState = GetGet5Gamestate()}));
+            command.ReplyToCommand(JsonSerializer.Serialize(new G5WebAvailable() {GameState = GetGet5Gamestate() == "none" ? 0 : 1}));
         }
 
         private string GetGet5Gamestate()
