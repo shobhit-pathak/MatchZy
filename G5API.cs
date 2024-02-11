@@ -23,8 +23,6 @@ namespace MatchZy
 
         [JsonPropertyName("matchid")]
         public long? MatchId { get; set; } = null;
-        [JsonPropertyName("matchid")]
-        public required string MatchId { get; set; }
 
         [JsonPropertyName("map_number")]
         public int? MapNumber { get; set; } = null;
