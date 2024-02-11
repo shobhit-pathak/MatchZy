@@ -1,9 +1,19 @@
+using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Core.Attributes.Registration;
+using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
 
 namespace MatchZy;
 
 public partial class MatchZy
 {
+    public Dictionary<CsTeam, bool> teamReadyOverride = new() {
+        {CsTeam.Terrorist, false},
+        {CsTeam.CounterTerrorist, false},
+        {CsTeam.Spectator, false}
+    };
+
+    public bool allowForceReady = true;
 
     public bool IsTeamsReady()
     {
@@ -41,12 +51,10 @@ public partial class MatchZy
             return true;
         }
 
-        // Todo: Implement Force ready system
-
-        // if (IsTeamForcedReady(team) && readyCount >= minReady)
-        // {
-        //     return true;
-        // }
+        if (IsTeamForcedReady((CsTeam)team) && readyCount >= minReady)
+        {
+            return true;
+        }
 
         return false;
     }
@@ -78,5 +86,37 @@ public partial class MatchZy
             }
         }
         return (playerCount, readyCount);
+    }
+
+    public bool IsTeamForcedReady(CsTeam team) {
+        return teamReadyOverride[team];
+    }
+
+    [ConsoleCommand("css_forceready", "Force-readies the team")]
+    public void OnForceReadyCommandCommand(CCSPlayerController? player, CommandInfo? command)
+    {
+        Log($"{readyAvailable} {isMatchSetup} {allowForceReady} {IsPlayerValid(player)}");
+        if (!readyAvailable || !isMatchSetup || !allowForceReady || !IsPlayerValid(player)) return;
+
+        int minReady = GetTeamMinReady(player!.TeamNum);
+        (int playerCount, int readyCount) = GetTeamPlayerCount(player!.TeamNum, false);
+
+        if (playerCount < minReady) 
+        {
+            ReplyToUserCommand(player, $"You must have at least {minReady} player(s) on the server to ready up.");
+            return;
+        }
+
+        foreach (var key in playerData.Keys)
+        {
+            if (!playerData[key].IsValid) continue;
+            if (playerData[key].TeamNum == player.TeamNum) {
+                playerReadyStatus[key] = true;
+                ReplyToUserCommand(playerData[key], $"Your team was force-readied by {player.PlayerName}");
+            }
+        }
+
+        teamReadyOverride[(CsTeam)player.TeamNum] = true;
+        CheckLiveRequired();
     }
 }

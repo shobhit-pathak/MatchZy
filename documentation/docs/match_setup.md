@@ -57,7 +57,7 @@ There are 2 commands available which can be used to load a match:
     }
   },
   "clinch_series": true,
-  "min_players_to_ready": 2,
+  "players_per_team": 5,
   "cvars": {
     "hostname": "MatchZy: Astralis vs NaVi #27",
     "mp_friendlyfire": "0"

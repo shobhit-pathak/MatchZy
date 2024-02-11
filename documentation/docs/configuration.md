@@ -40,12 +40,12 @@ There are two ways to create an admin for MatchZy; you can choose the most conve
 
     Inside `csgo/cfg/MatchZy`, a file named `admins.json` should be present. If it is not there, it will be automatically created when the plugin is loaded. You can add Steam64 id of admins in that JSON file like mentioned in the below example:
 
-        ```json
-        {
-            "76561198154367261": "",
-            "<another_steam_id>": ""
-        }
-        ```
+    ```json
+    {
+        "76561198154367261": "",
+        "<another_steam_id>": ""
+    }
+    ```
 
 ### Configuring MatchZy Settings (ConVars)
 Again, inside `csgo/cfg/MatchZy`, a file named `config.cfg` should be present. This file is executed whenever the plugin is loaded. If you make any changes in this file and want to reload the config, simply execute `exec MatchZy/config.cfg` command on the server.
@@ -104,6 +104,12 @@ Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <b
 
 ####`matchzy_save_nades_as_global_enabled`
 :   Whether nades should be saved globally instead of being privated to players by default or not.<br>**`Default: false`**
+
+####`matchzy_allow_force_ready`
+:   Whether force ready using !forceready is enabled or not (Currently works in Match Setup only).<br>**`Default: true`**
+
+####`matchzy_max_saved_last_grenades`
+:   Maximum number of grenade history that may be saved per-map, per-client. Set to 0 to disable the limit and allow unlimited grenades to be stored.<br>**`Default: 512`**
 
 ### Configuring Warmup/Knife/Live/Prac CFGs
 Again, inside `csgo/cfg/MatchZy`, files named `warmup.cfg`, `knife.cfg`, `live.cfg` and `prac.cfg` should be present. These configs are executed when Warmup, Knife, Live and Practice Mode is started respectively.
