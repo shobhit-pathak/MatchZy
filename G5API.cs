@@ -64,7 +64,7 @@ namespace MatchZy
         public required string Side { get; set; }
     }
 
-    public enum Get5GameState
+    public enum Get5GameState : int
     {
         None = 0,
         PreVeto = 1,
@@ -81,7 +81,7 @@ namespace MatchZy
     public class G5WebAvailable
     {
         [JsonPropertyName("gamestate")]
-        public required string GameState { get; init; }
+        public required int GameState { get; init; }
 
         [JsonPropertyName("available")]
         public int Available { get; } = 1;
@@ -172,7 +172,7 @@ namespace MatchZy
         [ConsoleCommand("get5_web_available", "Returns get5 web available")]
         public void Get5WebAvailable(CCSPlayerController? player, CommandInfo command)
         {
-            command.ReplyToCommand(JsonSerializer.Serialize(new G5WebAvailable { GameState = mapGet5GameState(getGet5Gamestate()) }));
+            command.ReplyToCommand(JsonSerializer.Serialize(new G5WebAvailable { GameState = (int) getGet5Gamestate() }));
         }
 
         private Get5GameState getGet5Gamestate()
