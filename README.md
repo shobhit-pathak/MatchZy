@@ -39,6 +39,11 @@ Steam Tradelink:
 
 https://steamcommunity.com/tradeoffer/new/?partner=194101533&token=1TI76S3p
 
+## Want CS2 Server with MatchZy?
+
+Buy it from DatHost (MatchZy can be installed directly on DatHost servers by using their 1-click installer from mods and plugins section!):
+https://dathost.net/r/matchzy 
+
 ## License
 MIT
 
