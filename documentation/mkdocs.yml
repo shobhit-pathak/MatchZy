@@ -38,6 +38,7 @@ nav:
       - GOTV & Demos: gotv.md
   - Advanced:
       - Developers: developers.md
+      - Events & Forwards: events_and_forwards.md
       - Database Stats: database_stats.md
   - Donation: donation.md
   - Credits and thanks!: credits.md

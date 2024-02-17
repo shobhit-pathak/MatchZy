@@ -1,4 +1,4 @@
-## Configuration
+# Configuration
 
 All the configuration files related to MatchZy can be found in `csgo/cfg/MatchZy` (If you have extracted the contents properly, `MatchZy` folder should be there inside the cfg folder).
 
@@ -156,3 +156,15 @@ Once a match is over, data is pulled from the database and a CSV file is written
 `csgo/MatchZy_Stats`. This folder will contain CSV file for each match (file name pattern: `match_data_map{mapNumber}_{matchId}.csv`) and it will have the same data which is present in `matchzy_stats_players`.
 
 There is a scope of improvement here, like having the match score in the CSV file or atleast in the file name patter. I'll make this change soon!
+
+
+## Events and HTTP Logging
+
+####`matchzy_remote_log_url`
+:   The URL to send all [events](../events_and_forwards) to (POST request). Set to empty string to disable.<br>**`Default: ""`**<br>Usage: `matchzy_remote_log_url "url"`<br>Alias: `get5_remote_log_url`
+
+####`matchzy_remote_log_header_key`
+:   If this and matchzy_remote_log_header_value are defined, this header name and value will be added in your [HTTP Post requests'](../events_and_forwards) header.<br>**`Default: ""`**<br>Usage: `matchzy_remote_log_header_key "Authorization"`<br>Alias: `get5_remote_log_header_key`
+
+####`matchzy_remote_log_header_value`
+:   If this and matchzy_remote_log_header_key are defined, this header name and value will be added in your [HTTP Post requests'](../events_and_forwards) header.<br>**`Default: ""`**<br>Usage: `matchzy_remote_log_header_value "header_value"`<br>Alias: `get5_remote_log_header_value`
