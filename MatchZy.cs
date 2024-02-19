@@ -111,21 +111,24 @@ namespace MatchZy
             commandActions = new Dictionary<string, Action<CCSPlayerController?, CommandInfo?>> {
                 { ".ready", OnPlayerReady },
                 { ".r", OnPlayerReady },
+                { ".forceready", OnForceReadyCommandCommand },
                 { ".unready", OnPlayerUnReady },
                 { ".ur", OnPlayerUnReady },
                 { ".stay", OnTeamStay },
                 { ".switch", OnTeamSwitch },
                 { ".swap", OnTeamSwitch },
                 { ".tech", OnTechCommand },
+                { ".p", OnPauseCommand },
                 { ".pause", OnPauseCommand },
                 { ".unpause", OnUnpauseCommand },
+                { ".up", OnUnpauseCommand },
                 { ".forcepause", OnForcePauseCommand },
                 { ".fp", OnForcePauseCommand },
                 { ".forceunpause", OnForceUnpauseCommand },
                 { ".fup", OnForceUnpauseCommand },
                 { ".tac", OnTacCommand },
-                { ".roundknife", OnKifeCommand },
-                { ".rk", OnKifeCommand },
+                { ".roundknife", OnKnifeCommand },
+                { ".rk", OnKnifeCommand },
                 { ".playout", OnPlayoutCommand },
                 { ".start", OnStartCommand },
                 { ".restart", OnRestartMatchCommand },
@@ -157,175 +160,38 @@ namespace MatchZy
                 { ".ct", OnCTCommand },
                 { ".spec", OnSpecCommand },
                 { ".fas", OnFASCommand },
-                { ".watchme", OnFASCommand }
+                { ".watchme", OnFASCommand },
+                { ".last", OnLastCommand },
+                { ".throw", OnRethrowCommand },
+                { ".rethrow", OnRethrowCommand },
+                { ".throwsmoke", OnRethrowSmokeCommand },
+                { ".rethrowsmoke", OnRethrowSmokeCommand },
+                { ".thrownade", OnRethrowGrenadeCommand },
+                { ".rethrownade", OnRethrowGrenadeCommand },
+                { ".rethrowgrenade", OnRethrowGrenadeCommand },
+                { ".throwgrenade", OnRethrowGrenadeCommand },
+                { ".rethrowflash", OnRethrowFlashCommand },
+                { ".throwflash", OnRethrowFlashCommand },
+                { ".rethrowdecoy", OnRethrowDecoyCommand },
+                { ".throwdecoy", OnRethrowDecoyCommand },
+                { ".throwmolotov", OnRethrowMolotovCommand },
+                { ".rethrowmolotov", OnRethrowMolotovCommand },
+                { ".timer", OnTimerCommand },
+                { ".lastindex", OnLastIndexCommand }
             };
 
-            RegisterEventHandler<EventPlayerConnectFull>((@event, info) => {
-                try 
-                {
-                    Log($"[FULL CONNECT] Player ID: {@event.Userid.UserId}, Name: {@event.Userid.PlayerName} has connected!");
-                    CCSPlayerController player = @event.Userid;
-
-                    // Handling whitelisted players
-                    if(!player.IsBot || !player.IsHLTV) 
-                    {
-                        var steamId = player.SteamID;
-                
-                        string whitelistfileName = "MatchZy/whitelist.cfg";
-                        string whitelistPath = Path.Join(Server.GameDirectory + "/csgo/cfg", whitelistfileName);
-                        string? directoryPath = Path.GetDirectoryName(whitelistPath);
-                        if (directoryPath != null)
-                        {
-                            if (!Directory.Exists(directoryPath))
-                            {
-                                Directory.CreateDirectory(directoryPath);
-                            }
-                        }
-                        if(!File.Exists(whitelistPath)) File.WriteAllLines(whitelistPath, new []{"Steamid1", "Steamid2"});
-                
-                        var whiteList = File.ReadAllLines(whitelistPath);
-            
-                        if (isWhitelistRequired == true)
-                        {
-                            if (!whiteList.Contains(steamId.ToString()))
-                            {
-                                Log($"[EventPlayerConnectFull] KICKING PLAYER STEAMID: {steamId}, Name: {player.PlayerName} (Not whitelisted!)");
-                                Server.ExecuteCommand($"kickid {(ushort)player.UserId}");
-                                return HookResult.Continue;
-                            }
-                        }
-                        if (isMatchSetup || matchModeOnly) {
-                            CsTeam team = GetPlayerTeam(player);
-                            Log($"[EventPlayerConnectFull] KICKING PLAYER STEAMID: {steamId}, Name: {player.PlayerName} (NOT ALLOWED!)");
-                            if (team == CsTeam.None) {
-                                Server.ExecuteCommand($"kickid {(ushort)player.UserId}");
-                                return HookResult.Continue;
-                            }
-                        }
-                    }
-
-                    if (player.UserId.HasValue) {
-                        
-                        playerData[player.UserId.Value] = player;
-                        connectedPlayers++;
-                        if (readyAvailable && !matchStarted) {
-                            playerReadyStatus[player.UserId.Value] = false;
-                        } else {
-                            playerReadyStatus[player.UserId.Value] = true;
-                        }
-                    }
-                    // May not be required, but just to be on safe side so that player data is properly updated in dictionaries
-                    UpdatePlayersMap();
-
-                    if (readyAvailable && !matchStarted) {
-                        // Start Warmup when first player connect and match is not started.
-                        if (GetRealPlayersCount() == 1) {
-                            Log($"[FULL CONNECT] First player has connected, starting warmup!");
-                            ExecUnpracCommands();
-                            AutoStart();
-                        }
-                    }
-                    return HookResult.Continue;
-
-                }
-                catch (Exception e)
-                {
-                    Log($"[EventPlayerConnectFull FATAL] An error occurred: {e.Message}");
-                    return HookResult.Continue;
-                }
-            });
-
-            RegisterEventHandler<EventPlayerDisconnect>((@event, info) => {
-                try
-                {
-                    CCSPlayerController player = @event.Userid;
-                    if (player.UserId.HasValue) {
-                        if (playerReadyStatus.ContainsKey(player.UserId.Value)) {
-                            playerReadyStatus.Remove(player.UserId.Value);
-                            connectedPlayers--;
-                        }
-                        if (playerData.ContainsKey(player.UserId.Value)) {
-                            playerData.Remove(player.UserId.Value);
-                        }
-                        
-                        if (matchzyTeam1.coach == player) {
-                            matchzyTeam1.coach = null;
-                            player.Clan = "";
-                        } else if (matchzyTeam2.coach == player) {
-                            matchzyTeam2.coach = null;
-                            player.Clan = "";
-                        }
-                        if (noFlashList.Contains(player.UserId.Value))
-                        {
-                            noFlashList.Remove(player.UserId.Value);
-                        }
-                    }
-
-                    return HookResult.Continue;
-                }
-                catch (Exception e)
-                {
-                    Log($"[EventPlayerDisconnect FATAL] An error occurred: {e.Message}");
-                    return HookResult.Continue;
-                }
-            });
-
+            RegisterEventHandler<EventPlayerConnectFull>(EventPlayerConnectFullHandler);
+            RegisterEventHandler<EventPlayerDisconnect>(EventPlayerDisconnectHandler);
+            RegisterEventHandler<EventCsWinPanelRound>(EventCsWinPanelRoundHandler, hookMode: HookMode.Pre);
+            RegisterEventHandler<EventCsWinPanelMatch>(EventCsWinPanelMatchHandler);
+            RegisterEventHandler<EventRoundStart>(EventRoundStartHandler);
+            RegisterEventHandler<EventPlayerDeath>(EventPlayerDeathPreHandler, hookMode: HookMode.Pre);
+            RegisterEventHandler<EventRoundFreezeEnd>(EventRoundFreezeEndHandler);
             RegisterListener<Listeners.OnClientDisconnectPost>(playerSlot => { 
                // May not be required, but just to be on safe side so that player data is properly updated in dictionaries
                 UpdatePlayersMap();
             });
-
-            RegisterEventHandler<EventCsWinPanelRound>((@event, info) => {
-                Log($"[EventCsWinPanelRound PRE] finalEvent: {@event.FinalEvent}");
-                if (isKnifeRound && matchStarted) {
-                    HandleKnifeWinner(@event);
-                }
-                return HookResult.Continue;
-            }, HookMode.Pre);
-
-            RegisterEventHandler<EventCsWinPanelMatch>((@event, info) => {
-                try
-                {
-                    Log($"[EventCsWinPanelMatch]");
-                    HandleMatchEnd();
-                    // ResetMatch();
-                    return HookResult.Continue;
-                }
-                catch (Exception e)
-                {
-                    Log($"[EventCsWinPanelMatch FATAL] An error occurred: {e.Message}");
-                    return HookResult.Continue;
-                }
-
-            });
-
-           RegisterEventHandler<EventRoundStart>((@event, info) => {
-                try
-                {
-                    HandlePostRoundStartEvent(@event);
-                    return HookResult.Continue;
-                }
-                catch (Exception e)
-                {
-                    Log($"[EventRoundStart FATAL] An error occurred: {e.Message}");
-                    return HookResult.Continue;
-                }
-
-            });
-
-            RegisterEventHandler<EventRoundFreezeEnd>((@event, info) => {
-                try
-                {
-                    HandlePostRoundFreezeEndEvent(@event);
-                    return HookResult.Continue;
-                }
-                catch (Exception e)
-                {
-                    Log($"[EventRoundFreezeEnd FATAL] An error occurred: {e.Message}");
-                    return HookResult.Continue;
-                }
-
-            });
+            RegisterListener<Listeners.OnEntitySpawned>(OnEntitySpawnedHandler);
 
             RegisterEventHandler<EventPlayerTeam>((@event, info) => {
                 CCSPlayerController player = @event.Userid;
@@ -348,8 +214,6 @@ namespace MatchZy
 
                 CsTeam playerTeam = GetPlayerTeam(player);
 
-                Log($"[EventPlayerTeam] PLAYER TEAM DETERMINED: {(int)playerTeam}");
-
                 if (@event.Team != (int)playerTeam)
                 {
                     if (player.IsValid)
@@ -358,10 +222,6 @@ namespace MatchZy
                         Server.NextFrame(() =>
                         {
                             player.SwitchTeam(playerTeam);
-                            // Server.NextFrame(() =>
-                            // {
-                            //     player.PlayerPawn.Value.CommitSuicide(explode: true, force: true);
-                            // });
                         });
                     }
                 }
@@ -373,33 +233,32 @@ namespace MatchZy
                 if (isMatchSetup && player != null && player.IsValid) {
                     if (int.TryParse(info.ArgByIndex(1), out int joiningTeam)) {
                         int playerTeam = (int)GetPlayerTeam(player);
-                        Log($"[jointeam] PLAYER TEAM DETERMINED: PlayerName: {player.PlayerName}, PlayerTeam: {playerTeam}");
                         if (joiningTeam != playerTeam) {
                             return HookResult.Stop;
                         }
                     }
- 
                 }
                 return HookResult.Continue;
             });
 
-            RegisterEventHandler<EventRoundEnd>((@event, info) => {
-                if (isKnifeRound) {
-                    Log($"[EventRoundEnd PRE] Winner: {@event.Winner}, Reason: {@event.Reason}");
-                    @event.Winner = knifeWinner;
-                    int finalEvent = 10;
-                    if (knifeWinner == 3) {
-                        finalEvent = 8;
-                    } else if (knifeWinner == 2) {
-                        finalEvent = 9;
-                    }
-                    @event.Reason = finalEvent;
-                    Log($"[EventRoundEnd Updated] Winner: {@event.Winner}, Reason: {@event.Reason}");
-                    isSideSelectionPhase = true;
-                    isKnifeRound = false;
-                    StartAfterKnifeWarmup();
+            RegisterEventHandler<EventRoundEnd>((@event, info) => 
+            {
+                if (!isKnifeRound) return HookResult.Continue;
+
+                DetermineKnifeWinner();
+                @event.Winner = knifeWinner;
+                int finalEvent = 10;
+                if (knifeWinner == 3) {
+                    finalEvent = 8;
+                } else if (knifeWinner == 2) {
+                    finalEvent = 9;
                 }
-                return HookResult.Continue;
+                @event.Reason = finalEvent;
+                isSideSelectionPhase = true;
+                isKnifeRound = false;
+                StartAfterKnifeWarmup();
+
+                return HookResult.Changed;
             }, HookMode.Pre);
 
            RegisterEventHandler<EventRoundEnd>((@event, info) => {
@@ -412,7 +271,6 @@ namespace MatchZy
                         return HookResult.Continue;
                     }
                     if (!isMatchLive) return HookResult.Continue;
-                    Log($"[EventRoundEnd POST] Winner: {@event.Winner}, Reason: {@event.Reason}");
                     HandlePostRoundEndEvent(@event);
                     return HookResult.Continue;
                 }
@@ -431,7 +289,11 @@ namespace MatchZy
             // });
 
             RegisterListener<Listeners.OnMapStart>(mapName => { 
-                Log($"[Listeners.OnMapStart]");
+                if (!isMatchSetup)
+                {
+                    AutoStart();
+                    return;
+                }
                 if (isWarmup) StartWarmup();
                 if (isPractice) StartPracticeMode();
             });
@@ -490,7 +352,6 @@ namespace MatchZy
                     index += 1;
                 }
                 var playerUserId = NativeAPI.GetUseridFromIndex(index);
-                Log($"[EventPlayerChat] UserId(Index): {index} playerUserId: {playerUserId} Message: {@event.Text}");
 
                 var originalMessage = @event.Text.Trim();
                 var message = @event.Text.Trim().ToLower();
@@ -552,6 +413,12 @@ namespace MatchZy
                 if (message.StartsWith(".delnade"))
                 {
                     string command = ".delnade";
+                    string commandArg = message.Substring(command.Length).Trim();
+                    HandleDeleteNadeCommand(player, commandArg);
+                }
+                if (message.StartsWith(".deletenade"))
+                {
+                    string command = ".deletenade";
                     string commandArg = message.Substring(command.Length).Trim();
                     HandleDeleteNadeCommand(player, commandArg);
                 }
@@ -631,6 +498,30 @@ namespace MatchZy
 
                     HandeMapPickCommand(player, mapArg);
                 }
+                if (message.StartsWith(".back")) {
+                    string command = ".back";
+                    string commandArg = message.Substring(command.Length).Trim();
+
+                    HandleBackCommand(player, commandArg);
+                }
+                if (message.StartsWith(".delay")) {
+                    string command = ".delay";
+                    string commandArg = message.Substring(command.Length).Trim();
+
+                    HandleDelayCommand(player, commandArg);
+                }
+                if (message.StartsWith(".throwindex")) {
+                    string command = ".throwindex";
+                    string commandArg = message.Substring(command.Length).Trim();
+
+                    HandleThrowIndexCommand(player, commandArg);
+                }
+                if (message.StartsWith(".throwidx")) {
+                    string command = ".throwindex";
+                    string commandArg = message.Substring(command.Length).Trim();
+
+                    HandleThrowIndexCommand(player, commandArg);
+                }
 
                 return HookResult.Continue;
             });
@@ -638,23 +529,29 @@ namespace MatchZy
             RegisterEventHandler<EventPlayerBlind>((@event, info) =>
             {
                 CCSPlayerController player = @event.Userid;
-                if (isPractice)
+                if (!isPractice) return HookResult.Continue;
+
+                if (@event.Attacker.IsValid && player.SteamID != @event.Attacker.SteamID)
                 {
-                    if (player.SteamID != @event.Attacker.SteamID)
-                    {
-                        double roundedBlindDuration = Math.Round(@event.BlindDuration, 2);
-                        @event.Attacker.PrintToChat($"{chatPrefix} Flashed {@event.Userid.PlayerName}. Blind time: {roundedBlindDuration} seconds");
-                    }
-                    var userId = player.UserId;
-                    if (userId != null && noFlashList.Contains((int)userId))
-                    {
-                        Server.NextFrame(() => KillFlashEffect(player));
-                    }
+                    double roundedBlindDuration = Math.Round(@event.BlindDuration, 2);
+                    @event.Attacker.PrintToChat($"{chatPrefix} Flashed {@event.Userid.PlayerName}. Blind time: {roundedBlindDuration} seconds");
                 }
+                var userId = player.UserId;
+                if (userId != null && noFlashList.Contains((int)userId))
+                {
+                    Server.NextFrame(() => KillFlashEffect(player));
+                }
+
                 return HookResult.Continue;
             });
 
-            Console.WriteLine("[MatchZy LOADED] MatchZy by WD- (https://github.com/shobhit-pathak/)");
+            RegisterEventHandler<EventSmokegrenadeDetonate>(EventSmokegrenadeDetonateHandler);
+            RegisterEventHandler<EventFlashbangDetonate>(EventFlashbangDetonateHandler);
+            RegisterEventHandler<EventHegrenadeDetonate>(EventHegrenadeDetonateHandler);
+            RegisterEventHandler<EventMolotovDetonate>(EventMolotovDetonateHandler);
+            RegisterEventHandler<EventDecoyDetonate>(EventDecoyDetonateHandler);
+
+            Console.WriteLine($"[{ModuleName} {ModuleVersion} LOADED] MatchZy by WD- (https://github.com/shobhit-pathak/)");
         }
     }
 }

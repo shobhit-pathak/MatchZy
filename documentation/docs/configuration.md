@@ -1,4 +1,4 @@
-## Configuration
+# Configuration
 
 All the configuration files related to MatchZy can be found in `csgo/cfg/MatchZy` (If you have extracted the contents properly, `MatchZy` folder should be there inside the cfg folder).
 
@@ -40,12 +40,12 @@ There are two ways to create an admin for MatchZy; you can choose the most conve
 
     Inside `csgo/cfg/MatchZy`, a file named `admins.json` should be present. If it is not there, it will be automatically created when the plugin is loaded. You can add Steam64 id of admins in that JSON file like mentioned in the below example:
 
-        ```json
-        {
-            "76561198154367261": "",
-            "<another_steam_id>": ""
-        }
-        ```
+    ```json
+    {
+        "76561198154367261": "",
+        "<another_steam_id>": ""
+    }
+    ```
 
 ### Configuring MatchZy Settings (ConVars)
 Again, inside `csgo/cfg/MatchZy`, a file named `config.cfg` should be present. This file is executed whenever the plugin is loaded. If you make any changes in this file and want to reload the config, simply execute `exec MatchZy/config.cfg` command on the server.
@@ -114,6 +114,13 @@ Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <b
 ####`matchzy_live_exec_configs`
 :   A comma seperated list of all configs to execute when live starts.<br>**`Default: example1.cfg,example2.cfg`**
 
+####`matchzy_allow_force_ready`
+:   Whether force ready using !forceready is enabled or not (Currently works in Match Setup only).<br>**`Default: true`**
+
+####`matchzy_max_saved_last_grenades`
+:   Maximum number of grenade history that may be saved per-map, per-client. Set to 0 to disable the limit and allow unlimited grenades to be stored.<br>**`Default: 512`**
+
+
 ### Configuring Warmup/Knife/Live/Prac CFGs
 Again, inside `csgo/cfg/MatchZy`, files named `warmup.cfg`, `knife.cfg`, `live.cfg` and `prac.cfg` should be present. These configs are executed when Warmup, Knife, Live and Practice Mode is started respectively.
 
@@ -161,3 +168,15 @@ Once a match is over, data is pulled from the database and a CSV file is written
 `csgo/MatchZy_Stats`. This folder will contain CSV file for each match (file name pattern: `match_data_map{mapNumber}_{matchId}.csv`) and it will have the same data which is present in `matchzy_stats_players`.
 
 There is a scope of improvement here, like having the match score in the CSV file or atleast in the file name patter. I'll make this change soon!
+
+
+## Events and HTTP Logging
+
+####`matchzy_remote_log_url`
+:   The URL to send all [events](../events_and_forwards) to (POST request). Set to empty string to disable.<br>**`Default: ""`**<br>Usage: `matchzy_remote_log_url "url"`<br>Alias: `get5_remote_log_url`
+
+####`matchzy_remote_log_header_key`
+:   If this and matchzy_remote_log_header_value are defined, this header name and value will be added in your [HTTP Post requests'](../events_and_forwards) header.<br>**`Default: ""`**<br>Usage: `matchzy_remote_log_header_key "Authorization"`<br>Alias: `get5_remote_log_header_key`
+
+####`matchzy_remote_log_header_value`
+:   If this and matchzy_remote_log_header_key are defined, this header name and value will be added in your [HTTP Post requests'](../events_and_forwards) header.<br>**`Default: ""`**<br>Usage: `matchzy_remote_log_header_value "header_value"`<br>Alias: `get5_remote_log_header_value`

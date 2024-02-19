@@ -1,0 +1,573 @@
+---
+openapi: "3.1.0"
+info:
+  title: "MatchZy Event Documentation"
+  version: ""
+  description: |
+    This is the documentation of all JSON events and native plugin forwards for MatchZy. All HTTP events get
+    sent as POST requests to the root of the URL you provided for
+    [`matchzy_remote_log_url`](configuration#matchzy_remote_log_url) in your MatchZy configuration. You should inspect the value
+    of the `event` property to determine the type of event. You cannot select which events to receive, but you can
+    instead discard the ones you don't need.
+    
+    You are expected to return a 200-range HTTP code to all request, or MatchZy will consider them failed. The HTTP timeout
+    is 15 seconds and there are no automatic retries.
+    Note: This documentation is heavily inspired by Get5. Currently only those events are supported which are required for proper functioning of G5V/G5API. Though these events should be enough for now to get
+    most of the match and player related data.
+webhooks:
+  "MatchZyOnSeriesInit":
+    post:
+      tags:
+        - Series Flow
+      summary: MatchZyOnSeriesInit
+      description: |
+        Fired when a series is started after loading a match config.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: MatchZySeriesStartedEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyMatchEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - series_start
+                    num_maps:
+                      type: integer
+                      minimum: 1
+                      description: The number of maps in the series, i.e. 3 for a Bo3.
+                    team1:
+                      "$ref": "#/components/schemas/MatchZyTeamWrapper"
+                    team2:
+                      "$ref": "#/components/schemas/MatchZyTeamWrapper"
+  "MatchZyOnMapResult":
+    post:
+      tags:
+        - Series Flow
+      summary: MatchZyOnMapResult
+      description: |
+        Fired when the map ends.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: MapResultEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyMapEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - map_result
+                    team1:
+                      $ref: "#/components/schemas/MatchZyStatsTeam"
+                    team2:
+                      $ref: "#/components/schemas/MatchZyStatsTeam"
+                    winner:
+                      $ref: "#/components/schemas/Winner"
+  "MatchZyOnSeriesResult":
+    post:
+      tags:
+        - Series Flow
+      summary: MatchZyOnSeriesResult
+      description: |
+        Fired when a series ends.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: MatchZySeriesResultEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyMatchEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - series_end
+                    team1_series_score:
+                      type: integer
+                      minimum: 0
+                      example: 2
+                      description: The map/series score of team1.
+                    team2_series_score:
+                      type: integer
+                      minimum: 0
+                      description: The map/series score of team2.
+                    winner:
+                      $ref: "#/components/schemas/Winner"
+                    time_until_restore:
+                      type: integer
+                      minimum: 0
+                      example: 45
+                      description: |
+                        The number of seconds until MatchZy restores any changed ConVars and resets its game state to
+                        `none` after the series has ended.
+  "MatchZyOnSidePicked":
+    post:
+      tags:
+        - Series Flow
+      summary: MatchZyOnSidePicked
+      description: |
+        Fired when a side is picked by a team.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: MatchZySidePickedEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyMapSelectionEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - side_picked
+                    side:
+                      $ref: "#/components/schemas/Side"
+                    map_number:
+                      type: integer
+                      minimum: 0
+                      description: The map number the team chose a side for.
+  "MatchZyOnMapPicked":
+    post:
+      tags:
+        - Series Flow
+      summary: MatchZyOnMapPicked
+      description: |
+        Fired when a team picks a map.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: MatchZyMapPickedEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyMapSelectionEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - map_picked
+                    map_number:
+                      type: integer
+                      minimum: 0
+                      description: The map number of the chosen map.
+  "MatchZyOnMapVetoed":
+    post:
+      tags:
+        - Series Flow
+      summary: MatchZyOnMapVetoed
+      description: |
+        Fired when a team vetos a map.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: MatchZyMapPickedEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyMapSelectionEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - map_vetoed
+
+  "MatchZyOnGoingLive":
+    post:
+      tags:
+        - Map Flow
+      summary: MatchZyOnGoingLive
+      description: |
+        Fired when a map is going live.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: GoingLiveEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyMapEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - going_live
+  "MatchZyOnRoundEnd":
+    post:
+      tags:
+        - Live
+      summary: MatchZyOnRoundEnd
+      description: |
+        Fired when a round ends - when the result is in; not when the round stops. Game activity can occur after this.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: MatchZyRoundEndedEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyTimedRoundEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - round_end
+                    reason:
+                      type: integer
+                      minimum: 0
+                      description: The reason for the round ending. See https://github.com/roflmuffin/CounterStrikeSharp/blob/main/managed/CounterStrikeSharp.API/Modules/Entities/Constants/RoundEndReason.cs#L19.
+                    winner:
+                      $ref: "#/components/schemas/Winner"
+                    team1:
+                      title: MatchZyStatsTeam
+                      description: The stats for team 1.
+                      allOf:
+                        - $ref: "#/components/schemas/MatchZyStatsTeam"
+                    team2:
+                      title: MatchZyStatsTeam
+                      description: The stats for team 2.
+                      allOf:
+                        - $ref: "#/components/schemas/MatchZyStatsTeam"
+
+components:
+  schemas:
+    MatchZyEvent:
+      type: object
+      properties:
+        event:
+          type: string
+          description: The name of the event.
+    MatchZyMatchEvent:
+      allOf:
+        - "$ref": "#/components/schemas/MatchZyEvent"
+        - type: object
+          properties:
+            matchid:
+              type: string
+              description: The ID of the match.
+              example: '14272'
+    MatchZyMatchTeamEvent:
+      allOf:
+        - "$ref": "#/components/schemas/MatchZyMatchEvent"
+        - type: object
+          properties:
+            team:
+              $ref: "#/components/schemas/Team"
+    MatchZyMapEvent:
+      allOf:
+        - "$ref": "#/components/schemas/MatchZyMatchEvent"
+        - type: object
+          properties:
+            map_number:
+              type: integer
+              minimum: 0
+              example: 0
+              description: The map number in the series, starting at 0.
+    MatchZyMapSelectionEvent:
+      allOf:
+        - "$ref": "#/components/schemas/MatchZyMatchTeamEvent"
+        - type: object
+          properties:
+            map_name:
+              type: string
+              example: de_nuke
+              description: The name of the map related to the event (map picked/banned
+                etc.).
+    MatchZyMapTeamEvent:
+      allOf:
+        - "$ref": "#/components/schemas/MatchZyMapEvent"
+        - type: object
+          properties:
+            team:
+              $ref: "#/components/schemas/Team"
+    MatchZyRoundEvent:
+      allOf:
+        - "$ref": "#/components/schemas/MatchZyMapEvent"
+        - type: object
+          properties:
+            round_number:
+              type: integer
+              minimum: 0
+              example: 13
+              description: The round number of the map, starting at 0.
+    MatchZyTimedRoundEvent:
+      allOf:
+        - "$ref": "#/components/schemas/MatchZyRoundEvent"
+        - type: object
+          properties:
+            round_time:
+              type: integer
+              description: The number of milliseconds into the round the event occurred.
+              minimum: 0
+              example: 51434
+    Winner:
+      type: object
+      description: Describes a winning team (their side and team number).
+      properties:
+        side:
+          $ref: "#/components/schemas/Side"
+        team:
+          $ref: "#/components/schemas/Team"
+    Team:
+      type: string
+      nullable: true
+      description: Represents a team. `null` if no team. Represented as an integer enum.
+      enum:
+        - team1
+        - team2
+        - spec
+    Side:
+      type: string
+      nullable: true
+      description: Represents a side (CT vs T). `null` if no side. Represented as an integer enum.
+      enum:
+        - ct
+        - t
+        - spec
+    MatchZyTeamWrapper:
+      type: object
+      description: Describes a team (`Team1` or `Team2`).
+      properties:
+        id:
+          type: string
+          description: User-supplied ID of the team, if one was provided.
+          example: "2843"
+          nullable: true
+        name:
+          type: string
+          description: The name of the team.
+          example: Natus Vincere
+    MatchZyStatsTeam:
+      description: Describes a team with its score and player stats.
+      allOf:
+        - $ref: "#/components/schemas/MatchZyTeamWrapper"
+        - type: object
+          properties:
+            series_score:
+              type: integer
+              minimum: 0
+              description: The team's current series score, i.e. the number of maps they have won in the series.
+            score:
+              type: integer
+              minimum: 0
+              description: The team's total score on the current map.
+              example: 14
+            score_ct:
+              type: integer
+              minimum: 0
+              description: The team's score on the CT side on the current map.
+              example: 10
+            score_t:
+              type: integer
+              minimum: 0
+              description: The team's score on the T side on the current map.
+              example: 14
+            players:
+              type: array
+              description: The players on the team.
+              items:
+                $ref: "#/components/schemas/StatsPlayer"
+            side:
+              title: Side
+              description: The current side of the team.
+              allOf:
+                - $ref: "#/components/schemas/Side"
+            starting_side:
+              title: Side
+              description: The starting side of the team.
+              allOf:
+                - $ref: "#/components/schemas/Side"
+    StatsPlayer:
+      allOf:
+        - type: object
+          properties:
+            steamid:
+              type: string
+              example: '76561198279375306'
+              description: |
+                The SteamID64 of the player.
+            name:
+              type: string
+              description: |
+                The in-game name of the player.
+              example: s1mple
+            stats:
+              $ref: "#/components/schemas/PlayerStats"
+    PlayerStats:
+      type: object
+      description: The stats of the player.
+      properties:
+        kills:
+          type: integer
+          minimum: 0
+          description: 'The number of kills the player had.'
+          example: 34
+        deaths:
+          type: integer
+          minimum: 0
+          description: 'The number of deaths the player had.'
+          example: 8
+        assists:
+          type: integer
+          minimum: 0
+          description: 'The number of assists the player had.'
+          example: 5
+        flash_assists:
+          type: integer
+          minimum: 0
+          description: 'The number of flashbang assists the player had.'
+          example: 3
+        team_kills:
+          type: integer
+          minimum: 0
+          description: 'The number of team-kills the player had.'
+          example: 0
+        suicides:
+          type: integer
+          minimum: 0
+          description: 'The number of suicides the player had.'
+          example: 0
+        damage:
+          type: integer
+          minimum: 0
+          description: 'The total amount of damage the player dealt.'
+          example: 2948
+        utility_damage:
+          type: integer
+          minimum: 0
+          description: 'The total amount of damage the player dealt via utility.'
+          example: 173
+        enemies_flashed:
+          type: integer
+          minimum: 0
+          description: 'The number of enemies flashed by the player.'
+          example: 6
+        friendlies_flashed:
+          type: integer
+          minimum: 0
+          description: 'The number of teammates flashed by the player.'
+          example: 2
+        knife_kills:
+          type: integer
+          minimum: 0
+          description: 'The number kills the player had with a knife.'
+          example: 1
+        headshot_kills:
+          type: integer
+          minimum: 0
+          description: 'The number kills the player had that were headshots.'
+          example: 19
+        rounds_played:
+          type: integer
+          minimum: 0
+          description: 'The number of rounds the player started.'
+          example: 27
+        bomb_defuses:
+          type: integer
+          minimum: 0
+          description: 'The number of times the player defused the bomb.'
+          example: 4
+        bomb_plants:
+          type: integer
+          minimum: 0
+          description: 'The number of times the player planted the bomb.'
+          example: 3
+        1k:
+          type: integer
+          minimum: 0
+          description: 'The number of rounds where the player killed 1 opponent.'
+          example: 3
+        2k:
+          type: integer
+          minimum: 0
+          description: 'The number of rounds where the player killed 2 opponents.'
+          example: 2
+        3k:
+          type: integer
+          minimum: 0
+          description: 'The number of rounds where the player killed 3 opponents.'
+          example: 3
+        4k:
+          type: integer
+          minimum: 0
+          description: 'The number of rounds where the player killed 4 opponents.'
+          example: 0
+        5k:
+          type: integer
+          minimum: 0
+          description: 'The number of rounds where the player killed 5 opponents.'
+          example: 1
+        1v1:
+          type: integer
+          minimum: 0
+          description: 'The number of 1v1s the player won.'
+          example: 1
+        1v2:
+          type: integer
+          minimum: 0
+          description: 'The number of 1v2s the player won.'
+          example: 3
+        1v3:
+          type: integer
+          minimum: 0
+          description: 'The number of 1v3s the player won.'
+          example: 2
+        1v4:
+          type: integer
+          minimum: 0
+          description: 'The number of 1v4s the player won.'
+          example: 0
+        1v5:
+          type: integer
+          minimum: 0
+          description: 'The number of 1v5s the player won.'
+          example: 1
+        first_kills_t:
+          type: integer
+          minimum: 0
+          description: 'The number of rounds where the player had the first kill in the round while playing the T side.'
+          example: 6
+        first_kills_ct:
+          type: integer
+          minimum: 0
+          description: 'The number of rounds where the player had the first kill in the round while playing the CT side.'
+          example: 5
+        first_deaths_t:
+          type: integer
+          minimum: 0
+          description: 'The number of rounds where the player was the first to die in the round while playing the T side.'
+          example: 1
+        first_deaths_ct:
+          type: integer
+          minimum: 0
+          description: 'The number of rounds where the player was the first to die in the round while playing the CT side.'
+          example: 1
+        trade_kills:
+          type: integer
+          minimum: 0
+          description: 'The number of times the player got a kill in a trade.'
+          example: 3
+        kast:
+          type: integer
+          minimum: 0
+          description: 'The number of rounds where the player (k)illed a player, had an (a)ssist, (s)urvived or was (t)raded.'
+          example: 23
+        score:
+          type: integer
+          minimum: 0
+          description: 'The in-game "score" of the player.'
+          example: 45
+        mvp:
+          type: integer
+          minimum: 0
+          description: 'The number of times the player was elected the round MVP.'
+          example: 4
+tags:
+  - name: All Events
+    description: Forward fired for all events.
+  - name: Series Flow
+    description: Events that occur in relation to setting up a match or series.
+  - name: Map Flow
+    description: Events that occur in relation to a map pick or match-events on a map.
+  - name: Live
+    description: Events that only occur during live rounds (not during knife, veto or warmup).
+  # - name: Client Actions
+  #   description: Events that occur based on players' chat or connection activity.
