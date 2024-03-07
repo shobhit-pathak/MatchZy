@@ -134,7 +134,7 @@ namespace MatchZy
             }
         }
 
-        static string ValidateMatchJsonStructure(JObject jsonData)
+        private string ValidateMatchJsonStructure(JObject jsonData)
         {
             string[] requiredFields = { "maplist", "team1", "team2", "num_maps" };
 
@@ -185,7 +185,7 @@ namespace MatchZy
                         {
                             return $"{field} should be a JSON structure!";
                         }
-                        if ((field != "spectators") && (jsonData[field]!["players"] == null || jsonData[field]!["players"]!.Type != JTokenType.Object)) 
+                        if ((field != "spectators") && (!enableMatchScrim) && (jsonData[field]!["players"] == null || jsonData[field]!["players"]!.Type != JTokenType.Object)) 
                         {
                             return $"{field} should have 'players' JSON!";
                         }

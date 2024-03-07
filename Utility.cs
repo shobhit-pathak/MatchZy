@@ -414,7 +414,7 @@ namespace MatchZy
 
                     if (isMatchSetup || matchModeOnly) {
                         CsTeam team = GetPlayerTeam(player);
-                        if (team == CsTeam.None && player.UserId.HasValue) {
+                        if (!enableMatchScrim && team == CsTeam.None && player.UserId.HasValue) {
                             Server.ExecuteCommand($"kickid {(ushort)player.UserId}");
                             continue;
                         }

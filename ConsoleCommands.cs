@@ -60,7 +60,14 @@ namespace MatchZy
                         player.PrintToChat($"{chatPrefix} You are already ready!");
                     } else {
                         playerReadyStatus[player.UserId.Value] = true;
-                        player.PrintToChat($"{chatPrefix} You have been marked ready!");
+
+                        if (enableMatchScrim && (player.TeamNum == 3 || player.TeamNum == 2)) {
+                            string teamName = player.TeamNum == 3 ? reverseTeamSides["CT"].teamName : reverseTeamSides["TERRORIST"].teamName;
+                            Server.PrintToChatAll($"{chatPrefix} You have been marked ready on team {ChatColors.Green}{teamName}{ChatColors.Default}!");
+                        }
+                        else {
+                            player.PrintToChat($"{chatPrefix} You have been marked ready!");
+                        }
                     }
                     CheckLiveRequired();
                     HandleClanTags();
