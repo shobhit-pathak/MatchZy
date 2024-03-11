@@ -228,8 +228,11 @@ namespace MatchZy
                 if (isMatchSetup && player != null && player.IsValid) {
                     if (int.TryParse(info.ArgByIndex(1), out int joiningTeam)) {
                         int playerTeam = (int)GetPlayerTeam(player);
-                        if (!enableMatchScrim && joiningTeam != playerTeam) {
-                            return HookResult.Stop;
+                        // if scrim, then only check once match has started
+                        if ((enableMatchScrim && matchStarted) || !enableMatchScrim) {
+                            if (joiningTeam != playerTeam) {
+                                return HookResult.Stop;
+                            }
                         }
                     }
                 }
