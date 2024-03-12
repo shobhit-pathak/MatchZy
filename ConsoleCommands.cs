@@ -231,9 +231,9 @@ namespace MatchZy
             if (IsPlayerAdmin(player, "css_skipveto", "@css/config")) {
                 if (matchStarted) {
                     if (player == null) {
-                        ReplyToUserCommand(player, $"Skip veto command cannot be used if match Match has already started!");
+                        ReplyToUserCommand(player, $"Skip veto command cannot be used if match has already started!");
                     } else {
-                        player.PrintToChat($"{chatPrefix} Skip veto command cannot be used if match Match has already started!");
+                        player.PrintToChat($"{chatPrefix} Skip veto command cannot be used if match has already started!");
                     }
                 }
                 else {
