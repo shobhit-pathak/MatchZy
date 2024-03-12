@@ -229,7 +229,6 @@ namespace MatchZy
         [ConsoleCommand("css_sv", "Skips the current veto phase")]
         public void OnSkipVetoCommand(CCSPlayerController? player, CommandInfo? command) {            
             if (IsPlayerAdmin(player, "css_skipveto", "@css/config")) {
-                SkipVeto();
                 if (matchStarted) {
                     if (player == null) {
                         ReplyToUserCommand(player, $"Match has already started!");
@@ -238,6 +237,7 @@ namespace MatchZy
                     }
                 }
                 else {
+                    SkipVeto();
                     if (player == null) {
                         ReplyToUserCommand(player, $"Veto phase has been cancelled!");
                     } else {
