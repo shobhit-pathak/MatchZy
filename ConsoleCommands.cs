@@ -61,8 +61,8 @@ namespace MatchZy
                     } else {
                         playerReadyStatus[player.UserId.Value] = true;
 
-                        if (enableMatchScrim && (player.TeamNum == 3 || player.TeamNum == 2)) {
-                            string teamName = player.TeamNum == 3 ? reverseTeamSides["CT"].teamName : reverseTeamSides["TERRORIST"].teamName;
+                        if (enableMatchScrim && (player.TeamNum == (int)CsTeam.CounterTerrorist || player.TeamNum == (int)CsTeam.Terrorist)) {
+                            string teamName = player.TeamNum == (int)CsTeam.CounterTerrorist ? reverseTeamSides["CT"].teamName : reverseTeamSides["TERRORIST"].teamName;
                             Server.PrintToChatAll($"{chatPrefix} You have been marked ready on team {ChatColors.Green}{teamName}{ChatColors.Default}!");
                         }
                         else {

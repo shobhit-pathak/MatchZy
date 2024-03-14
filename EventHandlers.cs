@@ -46,7 +46,7 @@ public partial class MatchZy
                 {
                     CsTeam team = GetPlayerTeam(player);
                     Log($"[EventPlayerConnectFull] KICKING PLAYER STEAMID: {steamId}, Name: {player.PlayerName} (NOT ALLOWED!)");
-                    if (!enableMatchScrim && team == CsTeam.None)
+                    if ((enableMatchScrim && matchStarted) || (!enableMatchScrim && team == CsTeam.None))
                     {
                         KickPlayer(player);
                         return HookResult.Continue;

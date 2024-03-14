@@ -265,8 +265,8 @@ namespace MatchZy
 
             matchzyTeam1.teamName = RemoveSpecialCharacters(team1["name"]!.ToString());
             matchzyTeam2.teamName = RemoveSpecialCharacters(team2["name"]!.ToString());
-            matchzyTeam1.teamPlayers = team1["players"];
-            matchzyTeam2.teamPlayers = team2["players"];
+            matchzyTeam1.teamPlayers = team1["players"] == null || team1["players"]!.Type == JTokenType.Null ? null : team1["players"];
+            matchzyTeam2.teamPlayers = team2["players"] == null || team2["players"]!.Type == JTokenType.Null ? null : team2["players"];
 
             matchConfig = new()
             {
@@ -374,6 +374,29 @@ namespace MatchZy
             });
 
             Log($"[LoadMatchFromJSON] Success with matchid: {liveMatchId}!");
+            return true;
+        }
+
+        public bool LockTeamsManually() {
+            CsTeam team1 = teamSides[matchzyTeam1] == "CT" ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
+            CsTeam team2 = teamSides[matchzyTeam2] == "CT" ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
+
+            Dictionary<ulong, string> team1Players = new();
+            Dictionary<ulong, string> team2Players = new();
+            Dictionary<ulong, string> spectatorPlayers = new();
+
+            foreach (var key in playerData.Keys)
+            {
+                if (!playerData[key].IsValid) continue;
+                if (playerData[key].TeamNum == (int)team1) team1Players.Add(playerData[key].SteamID, playerData[key].PlayerName);
+                else if (playerData[key].TeamNum == (int)team2) team2Players.Add(playerData[key].SteamID, playerData[key].PlayerName);
+                else if (playerData[key].TeamNum == (int)CsTeam.Spectator) spectatorPlayers.Add(playerData[key].SteamID, playerData[key].PlayerName);
+            }
+
+            matchzyTeam1.teamPlayers = JToken.FromObject(team1Players);
+            matchzyTeam2.teamPlayers = JToken.FromObject(team2Players);
+            matchConfig.Spectators = JToken.FromObject(spectatorPlayers);
+
             return true;
         }
 
