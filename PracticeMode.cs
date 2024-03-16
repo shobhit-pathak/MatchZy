@@ -50,6 +50,8 @@ namespace MatchZy
 
         public List<int> noFlashList = new List<int>();
 
+        public bool enableMatchScrim = false;
+
         public void StartPracticeMode()
         {
             if (matchStarted) return;
