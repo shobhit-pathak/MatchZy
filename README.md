@@ -29,6 +29,21 @@ MatchZy is a plugin for CS2 (Counter Strike 2) for running and managing practice
 
 ## [shobhit-pathak.github.io/MatchZy/](https://shobhit-pathak.github.io/MatchZy/)
 
+## Donation
+
+Buy Me A Coffee:
+
+[!["Buy Me A Coffee"](https://cdn.buymeacoffee.com/buttons/default-blue.png)](https://www.buymeacoffee.com/shobhitwd)
+
+Steam Tradelink: 
+
+https://steamcommunity.com/tradeoffer/new/?partner=194101533&token=1TI76S3p
+
+## Want CS2 Server with MatchZy?
+
+Buy it from DatHost (MatchZy can be installed directly on DatHost servers by using their 1-click installer from mods and plugins section!):
+https://dathost.net/r/matchzy 
+
 ## License
 MIT
 
