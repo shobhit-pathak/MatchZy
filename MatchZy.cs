@@ -127,6 +127,8 @@ namespace MatchZy
                 { ".rk", OnKnifeCommand },
                 { ".playout", OnPlayoutCommand },
                 { ".start", OnStartCommand },
+                { ".skipveto", OnSkipVetoCommand },
+                { ".sv", OnSkipVetoCommand },
                 { ".restart", OnRestartMatchCommand },
                 { ".reloadmap", OnMapReloadCommand },
                 { ".settings", OnMatchSettingsCommand },

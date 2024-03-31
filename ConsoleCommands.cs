@@ -222,6 +222,30 @@ namespace MatchZy
             }
         }
 
+        [ConsoleCommand("css_skipveto", "Skips the current veto phase")]
+        [ConsoleCommand("css_sv", "Skips the current veto phase")]
+        public void OnSkipVetoCommand(CCSPlayerController? player, CommandInfo? command) {            
+            if (IsPlayerAdmin(player, "css_skipveto", "@css/config")) {
+                if (matchStarted) {
+                    if (player == null) {
+                        ReplyToUserCommand(player, $"Skip veto command cannot be used if match has already started!");
+                    } else {
+                        player.PrintToChat($"{chatPrefix} Skip veto command cannot be used if match has already started!");
+                    }
+                }
+                else {
+                    SkipVeto();
+                    if (player == null) {
+                        ReplyToUserCommand(player, $"Veto phase has been cancelled!");
+                    } else {
+                        player.PrintToChat($"{chatPrefix} Veto phase has been cancelled!");
+                    }
+                }
+            } else {
+                SendPlayerNotAdminMessage(player);
+            }
+        }
+
         [ConsoleCommand("css_roundknife", "Toggles knife round for the match")]
         [ConsoleCommand("css_rk", "Toggles knife round for the match")]
         public void OnKnifeCommand(CCSPlayerController? player, CommandInfo? command) {            

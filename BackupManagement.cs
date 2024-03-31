@@ -145,10 +145,8 @@ namespace MatchZy
 
             Server.ExecuteCommand($"mp_backup_restore_load_file {fileName}");
 
-            (int t1score, int t2score) = GetTeamsScore();
-
             if (round == "") {
-                round = (t1score + t2score).ToString("D2");
+                round = GetRoundNumer().ToString("D2");
             }
 
             string matchZyBackupFileName = $"matchzy_data_backup_{liveMatchId}_{matchConfig.CurrentMapNumber}_round_{round}.json";
@@ -222,8 +220,7 @@ namespace MatchZy
             if (!isMatchLive) return;
             try
             {
-                (int t1score, int t2score) = GetTeamsScore();
-                string round = (t1score + t2score).ToString("D2");
+                string round = GetRoundNumer().ToString("D2");
                 string matchZyBackupFileName = $"matchzy_data_backup_{liveMatchId}_{matchConfig.CurrentMapNumber}_round_{round}.json";
                 string filePath = Server.GameDirectory + "/csgo/MatchZyDataBackup/" + matchZyBackupFileName;
                 string? directoryPath = Path.GetDirectoryName(filePath);
