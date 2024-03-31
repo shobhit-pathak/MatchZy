@@ -21,6 +21,37 @@ namespace MatchZy
             PlayerPosition = new Vector(playerPosition.X, playerPosition.Y, playerPosition.Z);
             PlayerAngle = new QAngle(playerAngle.X, playerAngle.Y, playerAngle.Z);
         }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            Position otherPosition = (Position)obj;
+
+            return PlayerPosition.X == otherPosition.PlayerPosition.X &&
+                PlayerPosition.Y == otherPosition.PlayerPosition.Y &&
+                PlayerAngle.X == otherPosition.PlayerAngle.X &&
+                PlayerAngle.Y == otherPosition.PlayerAngle.Y &&
+                PlayerAngle.Z == otherPosition.PlayerAngle.Z;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 23 + PlayerPosition.X.GetHashCode();
+                hash = hash * 23 + PlayerPosition.Y.GetHashCode();
+                hash = hash * 23 + PlayerPosition.Z.GetHashCode();
+                hash = hash * 23 + PlayerAngle.X.GetHashCode();
+                hash = hash * 23 + PlayerAngle.Y.GetHashCode();
+                hash = hash * 23 + PlayerAngle.Z.GetHashCode();
+                return hash;
+            }
+        }
     }
 
     public partial class MatchZy
@@ -711,6 +742,7 @@ namespace MatchZy
         [ConsoleCommand("css_boost", "Spawns a bot at the player's position and boost the player on it")]
         public void OnBoostBotCommand(CCSPlayerController? player, CommandInfo? command)
         {
+            if (!isPractice) return;
             AddBot(player, false);
             AddTimer(0.2f, () => ElevatePlayer(player));
         }
@@ -718,6 +750,7 @@ namespace MatchZy
         [ConsoleCommand("css_crouchboost", "Spawns a crouched bot at the player's position and boost the player on it")]
         public void OnCrouchBoostBotCommand(CCSPlayerController? player, CommandInfo? command)
         {
+            if (!isPractice) return;
             AddBot(player, true);
             AddTimer(0.2f, () => ElevatePlayer(player));
         }
@@ -882,6 +915,9 @@ namespace MatchZy
                 player.InGameMoneyServices!.Account = 0;
 
                 Utilities.SetStateChanged(player, "CCSPlayerController", "m_pInGameMoneyServices");
+                player.PlayerPawn.Value!.MoveType = MoveType_t.MOVETYPE_NONE;
+                player.PlayerPawn.Value!.ActualMoveType = MoveType_t.MOVETYPE_NONE;
+                
                 return HookResult.Continue;
             }
 

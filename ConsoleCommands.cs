@@ -1,16 +1,8 @@
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
-using CounterStrikeSharp.API.Modules.Entities;
-using CounterStrikeSharp.API.Modules.Events;
-using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Utils;
-using CounterStrikeSharp.API.Modules.Timers;
 using System.Text.RegularExpressions;
 
 namespace MatchZy
@@ -57,10 +49,12 @@ namespace MatchZy
                         playerReadyStatus[player.UserId.Value] = false;
                     }
                     if (playerReadyStatus[player.UserId.Value]) {
-                        player.PrintToChat($"{chatPrefix} You are already ready!");
+                        // player.PrintToChat($"{chatPrefix} You are already ready!");
+                        PrintToPlayerChat(player, Localizer["matchzy.ready.markedready"]);
                     } else {
                         playerReadyStatus[player.UserId.Value] = true;
-                        player.PrintToChat($"{chatPrefix} You have been marked ready!");
+                        // player.PrintToChat($"{chatPrefix} {Localizer["matchzy.youareready"]}");
+                        PrintToPlayerChat(player, Localizer["matchzy.ready.markedready"]);
                     }
                     CheckLiveRequired();
                     HandleClanTags();
@@ -78,10 +72,10 @@ namespace MatchZy
                         playerReadyStatus[player.UserId.Value] = false;
                     }
                     if (!playerReadyStatus[player.UserId.Value]) {
-                        player.PrintToChat($"{chatPrefix} You are already unready!");
+                        PrintToPlayerChat(player, Localizer["matchzy.ready.markedunready"]);
                     } else {
                         playerReadyStatus[player.UserId.Value] = false;
-                        player.PrintToChat($"{chatPrefix} You have been marked unready!");
+                        PrintToPlayerChat(player, Localizer["matchzy.ready.markedunready"]);
                     }
                     HandleClanTags();
                 }
@@ -95,7 +89,8 @@ namespace MatchZy
             Log($"[!stay command] {player.UserId}, TeamNum: {player.TeamNum}, knifeWinner: {knifeWinner}, isSideSelectionPhase: {isSideSelectionPhase}");
             if (isSideSelectionPhase) {
                 if (player.TeamNum == knifeWinner) {
-                    Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} has decided to stay!");
+                    PrintToAllChat(Localizer["matchzy.knife.decidedtostay", knifeWinnerName]);
+                    // Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} has decided to stay!");
                     StartLive();
                 }
             }
@@ -111,14 +106,15 @@ namespace MatchZy
                 if (player.TeamNum == knifeWinner) {
                     Server.ExecuteCommand("mp_swapteams;");
                     SwapSidesInTeamData(true);
-                    Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} has decided to switch!");
+                    PrintToAllChat(Localizer["matchzy.knife.decidedtoswitch", knifeWinnerName]);
+                    // Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} has decided to switch!");
                     StartLive();
                 }
             }
         }
 
         [ConsoleCommand("css_tech", "Pause the match")]
-        public void OnTechCommand(CCSPlayerController? player, CommandInfo? command) {            
+        public void OnTechCommand(CCSPlayerController? player, CommandInfo? command) {       
             PauseMatch(player, command);
         }
 
@@ -152,8 +148,8 @@ namespace MatchZy
         public void OnUnpauseCommand(CCSPlayerController? player, CommandInfo? command) {
             if (isMatchLive && isPaused) {
                 var pauseTeamName = unpauseData["pauseTeam"];
-                if ((string)pauseTeamName == "Admin") {
-                    player?.PrintToChat($"{chatPrefix} Match has been paused by an admin, hence it can be unpaused by an admin only.");
+                if ((string)pauseTeamName == "Admin" && player != null) {
+                    PrintToPlayerChat(player, Localizer["matchzy.pause.onlyadmincanunpause"]);
                     return;
                 }
 
@@ -176,19 +172,20 @@ namespace MatchZy
                     return;
                 }
                 if ((bool)unpauseData["t"] && (bool)unpauseData["ct"]) {
-                    Server.PrintToChatAll($"{chatPrefix} Both teams has unpaused the match, resuming the match!");
+                    PrintToAllChat(Localizer["matchzy.pause.teamsunpausedthematch"]);
                     Server.ExecuteCommand("mp_unpause_match;");
                     isPaused = false;
                     unpauseData["ct"] = false;
                     unpauseData["t"] = false;
                 } else if (unpauseTeamName == "Admin") {
-                    Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{unpauseTeamName}{ChatColors.Default} has unpaused the match, resuming the match!");
+                    PrintToAllChat(Localizer["matchzy.pause.adminunpausedthematch"]);
                     Server.ExecuteCommand("mp_unpause_match;");
                     isPaused = false;
                     unpauseData["ct"] = false;
                     unpauseData["t"] = false;
                 } else {
-                    Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{unpauseTeamName}{ChatColors.Default} wants to unpause the match. {ChatColors.Green}{remainingUnpauseTeam}{ChatColors.Default}, please write !unpause to confirm.");
+                    PrintToAllChat(Localizer["matchzy.pause.teamwantstounpause", unpauseTeamName, remainingUnpauseTeam]);
+                    // Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{unpauseTeamName}{ChatColors.Default} wants to unpause the match. {ChatColors.Green}{remainingUnpauseTeam}{ChatColors.Default}, please write !unpause to confirm.");
                 }
                 if (!isPaused && pausedStateTimer != null) {
                     pausedStateTimer.Kill();
@@ -441,9 +438,11 @@ namespace MatchZy
                 }
                 
                 if (isPlayOutEnabled) {
+                    Server.ExecuteCommand("mp_overtime_enable 0");
                     Server.ExecuteCommand("mp_match_can_clinch false");
                 } else {
                     Server.ExecuteCommand("mp_match_can_clinch true");
+                    Server.ExecuteCommand("mp_overtime_enable 1");
                 }
                 
             } else {

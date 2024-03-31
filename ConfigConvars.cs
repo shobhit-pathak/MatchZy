@@ -2,6 +2,7 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
+using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Utils;
 
 
@@ -9,6 +10,13 @@ namespace MatchZy
 {
     public partial class MatchZy
     {
+
+        public FakeConVar<bool> techPauseEnabled = new("matchzy_enable_tech_pause", "Whether .tech command is enabled or not. Default: true", true);
+        public FakeConVar<int> techPauseDuration  = new("matchzy_tech_pause_duration", "Tech pause duration in seconds. Default value: 300", 300);
+
+        public FakeConVar<int> maxTechPausesAllowed  = new("matchzy_max_tech_pauses_allowed", " Max tech pauses allowed. Default value: 2", 2);
+
+        public FakeConVar<bool> everyoneIsAdmin = new("matchzy_everyone_is_admin", "If set to true, all the players will have admin privilege. Default: false", false);
 
         [ConsoleCommand("matchzy_whitelist_enabled_default", "Whether Whitelist is enabled by default or not. Default value: false")]
         public void MatchZyWLConvar(CCSPlayerController? player, CommandInfo command)

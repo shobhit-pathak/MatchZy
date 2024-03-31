@@ -8,12 +8,12 @@ using CounterStrikeSharp.API.Modules.Timers;
 
 namespace MatchZy
 {
-    [MinimumApiVersion(140)]
+    [MinimumApiVersion(201)]
     public partial class MatchZy : BasePlugin
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.7.0";
+        public override string ModuleVersion => "0.7.1";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -101,6 +101,7 @@ namespace MatchZy
                 // Pluign should not be reloaded while a match is live (this would messup with the match flags which were set)
                 // Only hot-reload the plugin if you are testing something and don't want to restart the server time and again.
                 UpdatePlayersMap();
+                AutoStart();
             }
 
             commandActions = new Dictionary<string, Action<CCSPlayerController?, CommandInfo?>> {

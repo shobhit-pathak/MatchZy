@@ -5,7 +5,6 @@ using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Utils;
 using Newtonsoft.Json.Linq;
 
-
 namespace MatchZy
 {
 
@@ -148,7 +147,7 @@ namespace MatchZy
 
         public void HandleCoaches() 
         {
-            List<CCSPlayerController?> coaches = new List<CCSPlayerController?>
+            List<CCSPlayerController?> coaches = new()
             {
                 matchzyTeam1.coach,
                 matchzyTeam2.coach
@@ -157,18 +156,89 @@ namespace MatchZy
             foreach (var coach in coaches) 
             {
                 if (coach == null) continue;
-                Log($"Found coach: {coach.PlayerName}");
+                Team coachTeam = coach == matchzyTeam1.coach ? matchzyTeam1 : matchzyTeam2;
+                int coachTeamNum = teamSides[coachTeam] == "CT" ? 3 : 2;
                 coach.InGameMoneyServices!.Account = 0;
                 AddTimer(0.5f, () => HandleCoachTeam(coach, true));
-                // AddTimer(1, () => {
-                    // Server.ExecuteCommand("mp_suicide_penalty 0; mp_death_drop_gun 0");
-                    // coach.PlayerPawn.Value.CommitSuicide(false, true);
-                    // Server.ExecuteCommand("mp_suicide_penalty 1; mp_death_drop_gun 1");
-                // });
+
                 coach.ActionTrackingServices!.MatchStats.Kills = 0;
                 coach.ActionTrackingServices!.MatchStats.Deaths = 0;
                 coach.ActionTrackingServices!.MatchStats.Assists = 0;
                 coach.ActionTrackingServices!.MatchStats.Damage = 0;
+
+                bool isCompetitiveSpawn = false;
+
+                Position coachPosition = new(coach.PlayerPawn.Value!.CBodyComponent!.SceneNode!.AbsOrigin, coach.PlayerPawn.Value!.CBodyComponent!.SceneNode!.AbsRotation);
+                List<Position> teamPositions = spawnsData[(byte)coachTeamNum];
+                Server.PrintToChatAll($"TOTAL COMPETITIVE SPAWNS ON THIS TEAM: {teamPositions.Count}");
+
+                // Elevating the coach so that they don't block the players.
+                coach!.PlayerPawn.Value!.Teleport(new Vector(coach.PlayerPawn.Value.CBodyComponent!.SceneNode!.AbsOrigin.X, coach.PlayerPawn.Value.CBodyComponent!.SceneNode!.AbsOrigin.Y, coach.PlayerPawn.Value.CBodyComponent!.SceneNode!.AbsOrigin.Z + 150.0f), coach.PlayerPawn.Value.EyeAngles, new Vector(0, 0, 0));
+                coach.PlayerPawn.Value!.MoveType = MoveType_t.MOVETYPE_NONE;
+                coach.PlayerPawn.Value!.ActualMoveType = MoveType_t.MOVETYPE_NONE;
+
+                foreach (Position position in teamPositions) 
+                {
+                    if (position.Equals(coachPosition)) 
+                    {
+                        isCompetitiveSpawn = true;
+                        break;
+                    }
+                }
+                if (isCompetitiveSpawn)
+                {
+                    foreach (var key in playerData.Keys)
+                    {
+                        CCSPlayerController player = playerData[key];
+                        if (!IsPlayerValid(player) || player == coach || player.TeamNum != (byte)coachTeamNum) continue;
+                        bool playerOnCompetitiveSpawn = false;
+                        Position playerPosition = new(player.PlayerPawn.Value!.CBodyComponent!.SceneNode!.AbsOrigin, player.PlayerPawn.Value!.CBodyComponent!.SceneNode!.AbsRotation);
+                        foreach (Position position in teamPositions)
+                        {
+                            if (position.Equals(playerPosition))
+                            {
+                                playerOnCompetitiveSpawn = true;
+                                break;
+                            }
+                        }
+                        // No need to swap the player if they are already on a competitive spawn.
+                        if (playerOnCompetitiveSpawn) continue;
+                        // Swapping positions of the coach and the player so that the coach doesn't take any competitive spawn.
+                        AddTimer(0.1f, () => 
+                        {
+                            coach!.PlayerPawn.Value.Teleport(new Vector(playerPosition.PlayerPosition.X, playerPosition.PlayerPosition.Y, playerPosition.PlayerPosition.Z + 150.0f), playerPosition.PlayerAngle, new Vector(0, 0, 0));
+                            player!.PlayerPawn.Value.Teleport(coachPosition.PlayerPosition, coachPosition.PlayerAngle, new Vector(0, 0, 0));
+                        });
+                    }
+                }
+                HandleCoachWeapons(coach);
+            }
+        }
+
+        private void HandleCoachWeapons(CCSPlayerController coach)
+        {
+            if (!IsPlayerValid(coach)) return;
+
+            var coachWeaponServices = coach.PlayerPawn.Value!.WeaponServices;
+            if (coachWeaponServices == null) return;
+            bool coachHasC4 = false;
+            foreach (var weapon in coachWeaponServices.MyWeapons)
+            {
+                if (weapon == null || !weapon.IsValid || weapon.Value == null || !weapon.Value.IsValid) continue;
+                if (weapon.Value.DesignerName == "weapon_c4") coachHasC4 = true;
+            }
+
+            coach.RemoveWeapons();
+
+            if (!coachHasC4) return;
+
+            // Giving a random player from coach's team the C4
+            var randomKeys = playerData.Keys.OrderBy(k => Guid.NewGuid());
+            foreach (var key in randomKeys)
+            {
+                CCSPlayerController player = playerData[key];
+                if (!IsPlayerValid(player) || player == coach || player.TeamNum != coach.TeamNum) continue;
+                player.GiveNamedItem("weapon_c4");
             }
         }
 

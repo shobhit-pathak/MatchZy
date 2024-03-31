@@ -74,7 +74,8 @@ namespace MatchZy
                     }
 
                 } else {
-                    Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{stopTeamName}{ChatColors.Default} wants to restore the game to the beginning of the current round. {ChatColors.Green}{remainingStopTeam}{ChatColors.Default}, please write !stop to confirm.");
+                    PrintToAllChat(Localizer["matchzy.restore.teamwantstorestore", stopTeamName, remainingStopTeam]);
+                    // Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{stopTeamName}{ChatColors.Default} wants to restore the game to the beginning of the current round. {ChatColors.Green}{remainingStopTeam}{ChatColors.Default}, please write !stop to confirm.");
                 }
             }
         }
@@ -203,7 +204,7 @@ namespace MatchZy
                 Log($"[RestoreRoundBackup FATAL] Required backup data file does not exist! File: {filePath}");
             }
 
-            Server.PrintToChatAll($"{chatPrefix} Backup file restored successfully: {fileName}");
+            PrintToAllChat(Localizer["matchzy.restore.restoredsuccessfully", fileName]);
             if (pauseAfterRoundRestore) {
                 Server.ExecuteCommand("mp_pause_match;");
                 stopData["ct"] = false;
