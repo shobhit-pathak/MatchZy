@@ -811,6 +811,13 @@ namespace MatchZy
             return (t1score, t2score);
         }
 
+        private int GetRoundNumer()
+        {
+            (int t1score, int t2score) = GetTeamsScore();
+
+            return t1score + t2score;
+        }
+
         public void HandlePostRoundStartEvent(EventRoundStart @event) {
             HandleCoaches();
             CreateMatchZyRoundDataBackup();
@@ -899,7 +906,7 @@ namespace MatchZy
                     {
                         MatchId = liveMatchId.ToString(),
                         MapNumber = matchConfig.CurrentMapNumber,
-                        RoundNumber = t1score + t2score,
+                        RoundNumber = GetRoundNumer(),
                         Reason = @event.Reason,
                         RoundTime = 0,
                         Winner = winner,
@@ -913,7 +920,7 @@ namespace MatchZy
                         await database.UpdateMapStatsAsync(matchId, currentMapNumber, t1score, t2score);
                     });
 
-                    string round = (t1score + t2score).ToString("D2");
+                    string round = GetRoundNumer().ToString("D2");
                     lastBackupFileName = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}_round{round}.txt";
                     Log($"[HandlePostRoundEndEvent] Setting lastBackupFileName to {lastBackupFileName}");
 
