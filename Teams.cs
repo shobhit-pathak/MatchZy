@@ -170,7 +170,6 @@ namespace MatchZy
 
                 Position coachPosition = new(coach.PlayerPawn.Value!.CBodyComponent!.SceneNode!.AbsOrigin, coach.PlayerPawn.Value!.CBodyComponent!.SceneNode!.AbsRotation);
                 List<Position> teamPositions = spawnsData[(byte)coachTeamNum];
-                Server.PrintToChatAll($"TOTAL COMPETITIVE SPAWNS ON THIS TEAM: {teamPositions.Count}");
 
                 // Elevating the coach so that they don't block the players.
                 coach!.PlayerPawn.Value!.Teleport(new Vector(coach.PlayerPawn.Value.CBodyComponent!.SceneNode!.AbsOrigin.X, coach.PlayerPawn.Value.CBodyComponent!.SceneNode!.AbsOrigin.Y, coach.PlayerPawn.Value.CBodyComponent!.SceneNode!.AbsOrigin.Z + 150.0f), coach.PlayerPawn.Value.EyeAngles, new Vector(0, 0, 0));
