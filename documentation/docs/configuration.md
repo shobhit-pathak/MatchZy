@@ -111,6 +111,9 @@ Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <b
 ####`matchzy_max_saved_last_grenades`
 :   Maximum number of grenade history that may be saved per-map, per-client. Set to 0 to disable the limit and allow unlimited grenades to be stored.<br>**`Default: 512`**
 
+####`matchzy_everyone_is_admin`
+:   If set to true, everyone will be granted admin permissions for MatchZy.<br>**`Default: false`**
+
 ### Configuring Warmup/Knife/Live/Prac CFGs
 Again, inside `csgo/cfg/MatchZy`, files named `warmup.cfg`, `knife.cfg`, `live.cfg` and `prac.cfg` should be present. These configs are executed when Warmup, Knife, Live and Practice Mode is started respectively.
 
