@@ -57,9 +57,9 @@ namespace MatchZy
             string demoPath = Path.Join(Server.GameDirectory + "/csgo/", activeDemoFile);
             AddTimer(delay, () =>
             {
-                if (isDemoRecording) {
+                if (isDemoRecording) 
+                {
                     Server.ExecuteCommand($"tv_stoprecord");
-                    Log("[MATCHZY] tv_stoprecord");
                 }
                 AddTimer(15, () =>
                 {
