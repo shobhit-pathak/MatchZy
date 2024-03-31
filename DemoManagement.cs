@@ -57,7 +57,10 @@ namespace MatchZy
             string demoPath = Path.Join(Server.GameDirectory + "/csgo/", activeDemoFile);
             AddTimer(delay, () =>
             {
-                if (isDemoRecording) Server.ExecuteCommand($"tv_stoprecord");
+                if (isDemoRecording) {
+                    Server.ExecuteCommand($"tv_stoprecord");
+                    Log("[MATCHZY] tv_stoprecord");
+                }
                 AddTimer(15, () =>
                 {
                     Task.Run(async () =>
@@ -88,6 +91,7 @@ namespace MatchZy
             if (demoPath == null || demoUploadURL == "")
             {
                 Log($"[UploadDemoAsync] Not able to upload demo, either demoPath or demoUploadURL is not set. demoPath: {demoPath} demoUploadURL: {demoUploadURL}");
+                return;
             }
 
             try
