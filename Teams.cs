@@ -238,6 +238,7 @@ namespace MatchZy
                 CCSPlayerController player = playerData[key];
                 if (!IsPlayerValid(player) || player == coach || player.TeamNum != coach.TeamNum) continue;
                 player.GiveNamedItem("weapon_c4");
+                break;
             }
         }
 
