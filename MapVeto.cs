@@ -26,6 +26,7 @@ namespace MatchZy
 
         public void CreateVeto()
         {
+            SwapPlayersToTeams();
             vetoCaptains["team1"] = GetTeamCaptain("team1");
             vetoCaptains["team2"] = GetTeamCaptain("team2");
             // Todo: Implement pauseOnVeto CVAR
@@ -378,6 +379,15 @@ namespace MatchZy
             }
 
             return -1;
+        }
+
+        public void SwapPlayersToTeams()
+        {
+            foreach (var key in playerData.Keys)
+            {
+                if (!playerData[key].IsValid || playerData[key].IsBot) continue;
+                playerData[key].SwitchTeam(GetPlayerTeam(playerData[key]));
+            }
         }
 
         public string GetCurrentMapSelectionOption()
