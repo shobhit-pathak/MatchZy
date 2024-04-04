@@ -205,7 +205,7 @@ namespace MatchZy
             {
                 CCSPlayerController player = @event.Userid;
 
-                if (player.IsHLTV || player.IsBot || !isMatchSetup)
+                if (player.IsHLTV || player.IsBot || (!isMatchSetup && !isVeto))
                 {
                     return HookResult.Continue;
                 }
@@ -228,7 +228,7 @@ namespace MatchZy
 
             AddCommandListener("jointeam", (player, info) =>
             {
-                if (isMatchSetup && player != null && player.IsValid) {
+                if ((isMatchSetup || isVeto) && player != null && player.IsValid) {
                     if (int.TryParse(info.ArgByIndex(1), out int joiningTeam)) {
                         int playerTeam = (int)GetPlayerTeam(player);
                         if (joiningTeam != playerTeam) {
