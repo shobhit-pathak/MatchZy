@@ -1,5 +1,12 @@
 # MatchZy Changelog
 
+# 0.7.3
+
+#### April 06, 2024
+
+- Added an automated build and release pipeline.
+- Now all the players will be put in their team on veto start.
+
 # 0.7.2
 
 #### April 02, 2024
