@@ -1,0 +1,107 @@
+name: Build and Release
+
+on:
+  push:
+    paths-ignore:
+        - "documentation/**"
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    outputs:
+        MATCHZY_VERSION: ${{ steps.MATCHZY_VERSION.outputs.MATCHZY_VERSION }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0'
+
+      - name: Get MatchZy Version
+        id: MATCHZY_VERSION
+        run: |
+            MATCHZY_VERSION=$(grep -oP 'ModuleVersion\s*=>\s*"\K[^"]*' MatchZy.cs)
+            echo "MATCHZY_VERSION=$MATCHZY_VERSION" >> $GITHUB_ENV
+      - name: Build and Release Artifacts
+        run: |
+          CSSHARP_VERSION=$(grep -Po '<PackageReference Include="CounterStrikeSharp.API" Version="\K\d+(\.\d+)*' MatchZy.csproj | sed 's|1.0.||g')
+          echo "Creating MatchZy base package with version: $MATCHZY_VERSION"
+          dotnet publish -o package/addons/counterstrikesharp/plugins/MatchZy
+          cp -r cfg package 
+          cd package && zip -q -r ../MatchZy-$MATCHZY_VERSION.zip * && cd ..
+    
+          echo "Creating package with CounterStrikeSharp (CSSharp) v$CSSHARP_VERSION for Linux"
+          cd package/
+          echo "Installing CounterStrikeSharp (CSSharp) v$CSSHARP_VERSION"
+          [ -e addons/counterstrikesharp ] && rm -rf addons/counterstrikesharp && echo "CounterStrikeSharp removed" || echo "old CounterStrikeSharp not found"
+          curl -s https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/tags/v$CSSHARP_VERSION |
+              grep "/counterstrikesharp-with-runtime-build-$CSSHARP_VERSION-linux" |
+              cut -d : -f 2,3 |
+              tr -d \" |
+              head -n 1 |
+              wget -O cssharp-linux.zip -qi -
+          unzip -o cssharp-linux.zip -d .
+          rm cssharp-linux.zip
+          cd ../
+
+          dotnet publish -o package/addons/counterstrikesharp/plugins/MatchZy
+
+          cd package && zip -q -r ../MatchZy-$MATCHZY_VERSION-with-cssharp-linux.zip * && cd ..
+
+          rm -r package/*
+
+          echo "Creating package with CounterStrikeSharp (CSSharp) v$CSSHARP_VERSION for Windows"
+          cd package/
+          echo "Installing CounterStrikeSharp (CSSharp) v$CSSHARP_VERSION"
+          [ -e addons/counterstrikesharp ] && rm -rf addons/counterstrikesharp && echo "CounterStrikeSharp removed" || echo "old CounterStrikeSharp not found"
+          curl -s https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/tags/v$CSSHARP_VERSION |
+              grep "/counterstrikesharp-with-runtime-build-$CSSHARP_VERSION-windows" |
+              cut -d : -f 2,3 |
+              tr -d \" |
+              head -n 1 |
+              wget -O cssharp-windows.zip -qi -
+          unzip -o cssharp-windows.zip -d .
+          rm cssharp-windows.zip
+          cd ../
+
+          dotnet publish -o package/addons/counterstrikesharp/plugins/MatchZy
+
+          cd package && zip -q -r ../MatchZy-$MATCHZY_VERSION-with-cssharp-windows.zip * && cd ..
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          name: MatchZy ${{ env.MATCHZY_VERSION }}
+          tag_name: ${{ env.MATCHZY_VERSION }}
+          body: |
+            Please see the [`CHANGELOG.md`](https://github.com/shobhit-pathak/MatchZy/blob/main/CHANGELOG.md) for details on changes.
+
+            Installation:
+            There are 3 files attached here:
+            One is the MatchZy-${{ env.MATCHZY_VERSION }}.zip which only contains the MatchZy plugin files. Extract its contents in csgo/ directory of the server. (Prerequisite: Metamod and CounterStrikeSharp should be already installed on the server)
+            
+            Second one is MatchZy-${{ env.MATCHZY_VERSION }}-with-cssharp-linux.zip which contains MatchZy plugin file as well as CounterStrikeSharp files (for linux) so that you don't have to install CounterStrikeSharp separately. Simply extract its contents in csgo/ directory of the server. 
+            Third one is MatchZy-${{ env.MATCHZY_VERSION }}-with-cssharp-windows.zip which is same as above, but for Windows.
+            (Prerequisite: Metamod should be already installed on the server, rest CounterStrikeSharp and MatchZy will be installed once you extract the contents) (WITH CSSHARP RELEASE IS RECOMMENDED FOR FIRST TIME INSTALLERS)
+          draft: false
+          prerelease: false
+          files: |
+            MatchZy-${{ env.MATCHZY_VERSION }}.zip
+            MatchZy-${{ env.MATCHZY_VERSION }}-with-cssharp-linux.zip
+            MatchZy-${{ env.MATCHZY_VERSION }}-with-cssharp-windows.zip
+
+      - name: Publish Discord Notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        uses: Ilshidur/action-discord@0.3.2
+        with:
+          args: "A new release of MatchZy is here! MatchZy v${{ env.MATCHZY_VERSION }} (${{ steps.create_release.outputs.url }})"
