@@ -280,7 +280,7 @@ public partial class MatchZy
         if (!isPractice || isDryRun) return HookResult.Continue;
         if(lastGrenadeThrownTime.TryGetValue(@event.Entityid, out var thrownTime)) 
         {
-            PrintToPlayerChat(@event.Userid, $"Smoke thrown by {@event.Userid.PlayerName} took {(DateTime.Now - thrownTime).TotalSeconds:0.00}s to detonate");
+            PrintToPlayerChat(@event.Userid, $"Smoke thrown by \u0007{@event.Userid.PlayerName}\u0001 took \u0004{(DateTime.Now - thrownTime).TotalSeconds:0.00}\u0001s to detonate");
             lastGrenadeThrownTime.Remove(@event.Entityid);
         }
         return HookResult.Continue;
@@ -291,7 +291,7 @@ public partial class MatchZy
         if (!isPractice || isDryRun) return HookResult.Continue;
         if(lastGrenadeThrownTime.TryGetValue(@event.Entityid, out var thrownTime)) 
         {
-            PrintToPlayerChat(@event.Userid, $"Flash thrown by {@event.Userid.PlayerName} took {(DateTime.Now - thrownTime).TotalSeconds:0.00}s to detonate");
+            PrintToPlayerChat(@event.Userid, $"Flash thrown by \u0007{@event.Userid.PlayerName}\u0001 took \u0004{(DateTime.Now - thrownTime).TotalSeconds:0.00}\u0001s to detonate");
             lastGrenadeThrownTime.Remove(@event.Entityid);
         }
         return HookResult.Continue;
@@ -302,7 +302,7 @@ public partial class MatchZy
         if (!isPractice || isDryRun) return HookResult.Continue;
         if(lastGrenadeThrownTime.TryGetValue(@event.Entityid, out var thrownTime)) 
         {
-            PrintToPlayerChat(@event.Userid, $"Grenade thrown by {@event.Userid.PlayerName} took {(DateTime.Now - thrownTime).TotalSeconds:0.00}s to detonate");
+            PrintToPlayerChat(@event.Userid, $"Grenade thrown by \u0007{@event.Userid.PlayerName}\u0001 took \u0004{(DateTime.Now - thrownTime).TotalSeconds:0.00}\u0001s to detonate");
             lastGrenadeThrownTime.Remove(@event.Entityid);
         }
         return HookResult.Continue;
@@ -314,7 +314,7 @@ public partial class MatchZy
         if (!isPractice || isDryRun) return HookResult.Continue;
         if(lastGrenadeThrownTime.TryGetValue(@event.Get<int>("entityid"), out var thrownTime)) 
         {
-            PrintToPlayerChat(@event.Userid, $"Molotov thrown by {@event.Userid.PlayerName} took {(DateTime.Now - thrownTime).TotalSeconds:0.00}s to detonate");
+            PrintToPlayerChat(@event.Userid, $"Molotov thrown by \u0007{@event.Userid.PlayerName}\u0001 took \u0004{(DateTime.Now - thrownTime).TotalSeconds:0.00}\u0001s to detonate");
             lastGrenadeThrownTime.Remove(@event.Get<int>("entityid"));
         }
         return HookResult.Continue;
@@ -325,7 +325,7 @@ public partial class MatchZy
         if (!isPractice || isDryRun) return HookResult.Continue;
         if(lastGrenadeThrownTime.TryGetValue(@event.Entityid, out var thrownTime)) 
         {
-            PrintToPlayerChat(@event.Userid, $"Decoy thrown by {@event.Userid.PlayerName} took {(DateTime.Now - thrownTime).TotalSeconds:0.00}s to detonate");
+            PrintToPlayerChat(@event.Userid, $"Decoy thrown by \u0007{@event.Userid.PlayerName}\u0001 took \u0004{(DateTime.Now - thrownTime).TotalSeconds:0.00}\u0001s to detonate");
             lastGrenadeThrownTime.Remove(@event.Entityid);
         }
         return HookResult.Continue;

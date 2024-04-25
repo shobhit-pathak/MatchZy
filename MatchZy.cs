@@ -320,7 +320,7 @@ namespace MatchZy
                     if (victim.IsBot) {
                         int damage = @event.DmgHealth;
                         int postDamageHealth = @event.Health;
-                        @event.Attacker.PrintToChat($"{chatPrefix} {damage} damage to BOT {victim.PlayerName}({postDamageHealth} health)");
+                        @event.Attacker.PrintToChat($"{chatPrefix} \u000B{victim.PlayerName}\u0001 has been damaged for \u0004{damage}\u0001hp");
                     }
                     return HookResult.Continue;
                 }
@@ -529,10 +529,10 @@ namespace MatchZy
                 CCSPlayerController player = @event.Userid;
                 if (!isPractice) return HookResult.Continue;
 
-                if (@event.Attacker.IsValid && player.SteamID != @event.Attacker.SteamID)
+                if (@event.Attacker.IsValid)
                 {
                     double roundedBlindDuration = Math.Round(@event.BlindDuration, 2);
-                    @event.Attacker.PrintToChat($"{chatPrefix} Flashed {@event.Userid.PlayerName}. Blind time: {roundedBlindDuration} seconds");
+                    @event.Attacker.PrintToChat($"{chatPrefix} \u000B{@event.Userid.PlayerName}\u0001 has been blinded for \u0004{roundedBlindDuration}\u0001s");
                 }
                 var userId = player.UserId;
                 if (userId != null && noFlashList.Contains((int)userId))
