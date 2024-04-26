@@ -280,7 +280,7 @@ public partial class MatchZy
         if (!isPractice || isDryRun) return HookResult.Continue;
         if(lastGrenadeThrownTime.TryGetValue(@event.Entityid, out var thrownTime)) 
         {
-            PrintToPlayerChat(@event.Userid, $"Smoke thrown by {ChatColors.Red}{@event.Userid.PlayerName}{ChatColors.Default} took {ChatColors.Green}{(DateTime.Now - thrownTime).TotalSeconds:0.00}{ChatColors.Default}s to detonate");
+            PrintToPlayerChat(@event.Userid, Localizer["matchzy.pracc.smoke", @event.Userid.PlayerName, $"{(DateTime.Now - thrownTime).TotalSeconds:0.00}"]);
             lastGrenadeThrownTime.Remove(@event.Entityid);
         }
         return HookResult.Continue;
@@ -291,7 +291,7 @@ public partial class MatchZy
         if (!isPractice || isDryRun) return HookResult.Continue;
         if(lastGrenadeThrownTime.TryGetValue(@event.Entityid, out var thrownTime)) 
         {
-            PrintToPlayerChat(@event.Userid, $"Flash thrown by {ChatColors.Red}{@event.Userid.PlayerName}{ChatColors.Default} took {ChatColors.Green}{(DateTime.Now - thrownTime).TotalSeconds:0.00}{ChatColors.Default}s to detonate");
+            PrintToPlayerChat(@event.Userid, Localizer["matchzy.pracc.flash", @event.Userid.PlayerName, $"{(DateTime.Now - thrownTime).TotalSeconds:0.00}"]);
             lastGrenadeThrownTime.Remove(@event.Entityid);
         }
         return HookResult.Continue;
@@ -302,7 +302,7 @@ public partial class MatchZy
         if (!isPractice || isDryRun) return HookResult.Continue;
         if(lastGrenadeThrownTime.TryGetValue(@event.Entityid, out var thrownTime)) 
         {
-            PrintToPlayerChat(@event.Userid, $"Grenade thrown by {ChatColors.Red}{@event.Userid.PlayerName}{ChatColors.Default} took {ChatColors.Green}{(DateTime.Now - thrownTime).TotalSeconds:0.00}{ChatColors.Default}s to detonate");
+            PrintToPlayerChat(@event.Userid, Localizer["matchzy.pracc.grenade", @event.Userid.PlayerName, $"{(DateTime.Now - thrownTime).TotalSeconds:0.00}"]);
             lastGrenadeThrownTime.Remove(@event.Entityid);
         }
         return HookResult.Continue;
@@ -314,8 +314,7 @@ public partial class MatchZy
         if (!isPractice || isDryRun) return HookResult.Continue;
         if(lastGrenadeThrownTime.TryGetValue(@event.Get<int>("entityid"), out var thrownTime)) 
         {
-            PrintToPlayerChat(@event.Userid, $"Molotov thrown by {ChatColors.Red}{@event.Userid.PlayerName}{ChatColors.Default} took {ChatColors.Green}{(DateTime.Now - thrownTime).TotalSeconds:0.00}{ChatColors.Default}s to detonate");
-            lastGrenadeThrownTime.Remove(@event.Get<int>("entityid"));
+            PrintToPlayerChat(@event.Userid, Localizer["matchzy.pracc.molotov", @event.Userid.PlayerName, $"{(DateTime.Now - thrownTime).TotalSeconds:0.00}"]);
         }
         return HookResult.Continue;
     }
@@ -325,7 +324,7 @@ public partial class MatchZy
         if (!isPractice || isDryRun) return HookResult.Continue;
         if(lastGrenadeThrownTime.TryGetValue(@event.Entityid, out var thrownTime)) 
         {
-            PrintToPlayerChat(@event.Userid, $"Decoy thrown by {ChatColors.Red}{@event.Userid.PlayerName}{ChatColors.Default} took {ChatColors.Green}{(DateTime.Now - thrownTime).TotalSeconds:0.00}{ChatColors.Default}s to detonate");
+            PrintToPlayerChat(@event.Userid, Localizer["matchzy.pracc.decop", @event.Userid.PlayerName, $"{(DateTime.Now - thrownTime).TotalSeconds:0.00}"]);
             lastGrenadeThrownTime.Remove(@event.Entityid);
         }
         return HookResult.Continue;

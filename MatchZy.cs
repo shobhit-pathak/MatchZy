@@ -319,8 +319,8 @@ namespace MatchZy
                 {
                     if (victim.IsBot) {
                         int damage = @event.DmgHealth;
-                        int postDamageHealth = @event.Health;
-                        @event.Attacker.PrintToChat($"{chatPrefix} {ChatColors.LightBlue}{victim.PlayerName}{ChatColors.Default} has been damaged for {ChatColors.Green}{damage}{ChatColors.Default}hp");
+                        /* int postDamageHealth = @event.Health; */
+                        PrintToPlayerChat(@event.Attacker, Localizer["matchzy.pracc.damage", victim.PlayerName, damage]);
                     }
                     return HookResult.Continue;
                 }
@@ -532,7 +532,7 @@ namespace MatchZy
                 if (@event.Attacker.IsValid)
                 {
                     double roundedBlindDuration = Math.Round(@event.BlindDuration, 2);
-                    @event.Attacker.PrintToChat($"{chatPrefix} {ChatColors.LightBlue}{@event.Userid.PlayerName}{ChatColors.Default} has been blinded for {ChatColors.Green}{roundedBlindDuration}{ChatColors.Default}s");
+                    PrintToPlayerChat(@event.Attacker, Localizer["matchzy.pracc.blind", @event.Userid.PlayerName, roundedBlindDuration]);
                 }
                 var userId = player.UserId;
                 if (userId != null && noFlashList.Contains((int)userId))

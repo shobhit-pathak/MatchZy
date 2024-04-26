@@ -17,5 +17,13 @@
     "matchzy.pause.notechpauseleft": "{green}{0}{default} 没有更多的技术暂停了！",
                                                             
     "matchzy.restore.teamwantstorestore": "{green}{0}{default} 想要回溯游戏至本回合开始时。 {green}{1}{default}, 请输入 !stop 来确定。",
-    "matchzy.restore.restoredsuccessfully": "成功恢复备份文件: {0}"
+    "matchzy.restore.restoredsuccessfully": "成功恢复备份文件: {0}",
+
+    "matchzy.pracc.smoke": "Smoke thrown by {red}{0}{default} took {green}{1}{default}s to detonate",
+    "matchzy.pracc.flash": "Flash thrown by {red}{0}{default} took {green}{1}{default}s to detonate",
+    "matchzy.pracc.grenade": "Grenade thrown by {red}{0}{default} took {green}{1}{default}s to detonate",
+    "matchzy.pracc.molotov": "Molotov thrown by {red}{0}{default} took {green}{1}{default}s to detonate",
+    "matchzy.pracc.decoy": "Decoy thrown by {red}{0}{default} took {green}{1}{default}s to detonate",
+    "matchzy.pracc.damage": "{lightblue}{0}{default} has been damaged for {green}{1}{default}hp",
+    "matchzy.pracc.blind": "{lightblue}{0}{default} has been blinded for {green}{1}{default}s"
 }

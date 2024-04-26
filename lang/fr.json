@@ -18,5 +18,13 @@
     "matchzy.pause.notacpauseleft": "{green}{0}{default} n'a plus de pauses tactiques !",
 
     "matchzy.restore.teamwantstorestore": "{green}{0}{default} souhaite restaurer le jeu au début du round actuel. {green}{1}{default}, veuillez écrire !stop pour confirmer.",
-    "matchzy.restore.restoredsuccessfully": "Fichier de sauvegarde restauré avec succès : {0}"
+    "matchzy.restore.restoredsuccessfully": "Fichier de sauvegarde restauré avec succès : {0}",
+
+    "matchzy.pracc.smoke": "Smoke thrown by {red}{0}{default} took {green}{1}{default}s to detonate",
+    "matchzy.pracc.flash": "Flash thrown by {red}{0}{default} took {green}{1}{default}s to detonate",
+    "matchzy.pracc.grenade": "Grenade thrown by {red}{0}{default} took {green}{1}{default}s to detonate",
+    "matchzy.pracc.molotov": "Molotov thrown by {red}{0}{default} took {green}{1}{default}s to detonate",
+    "matchzy.pracc.decoy": "Decoy thrown by {red}{0}{default} took {green}{1}{default}s to detonate",
+    "matchzy.pracc.damage": "{lightblue}{0}{default} has been damaged for {green}{1}{default}hp",
+    "matchzy.pracc.blind": "{lightblue}{0}{default} has been blinded for {green}{1}{default}s"
 }
