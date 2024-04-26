@@ -1,5 +1,13 @@
 # MatchZy Changelog
 
+# 0.7.4
+
+#### April 26, 2024
+
+- Upgraded CounterStrikeSharp to v215
+- Added Chinese (Simplified) translations.
+- Fixed wrong `[EventPlayerConnectFull] KICKING PLAYER` during match setup.
+
 # 0.7.3
 
 #### April 06, 2024

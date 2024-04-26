@@ -8,12 +8,12 @@ using CounterStrikeSharp.API.Modules.Timers;
 
 namespace MatchZy
 {
-    [MinimumApiVersion(201)]
+    [MinimumApiVersion(215)]
     public partial class MatchZy : BasePlugin
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.7.3";
+        public override string ModuleVersion => "0.7.4";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
