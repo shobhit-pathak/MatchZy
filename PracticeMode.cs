@@ -104,12 +104,12 @@ namespace MatchZy
                 Server.ExecuteCommand("""mp_t_default_grenades "weapon_molotov weapon_hegrenade weapon_smokegrenade weapon_flashbang weapon_decoy"; mp_t_default_primary "weapon_ak47"; mp_warmup_online_enabled "true"; mp_warmup_pausetimer "1"; mp_warmup_start; bot_quota_mode fill; mp_solid_teammates 2; mp_autoteambalance false; mp_teammates_are_enemies false; buddha 1; buddha_ignore_bots 1; buddha_reset_hp 100;""");
             }
             GetSpawns();
-            Server.PrintToChatAll($"{chatPrefix} Practice mode loaded!");
-            Server.PrintToChatAll($"{chatPrefix} Available commands:");
-	        Server.PrintToChatAll($"{chatPrefix} \x10.spawn, .ctspawn, .tspawn, .bot, .nobots, .dryrun, .noflash, .break, .exitprac");
-	        Server.PrintToChatAll($"{chatPrefix} \x10.loadnade <name>, .savenade <name>, .importnade <code>, .listnades <optional filter>");
-            Server.PrintToChatAll($"{chatPrefix} \x10.listnades <optional filter>, .delnade <name>, .globalnades");
-            Server.PrintToChatAll($"{chatPrefix} \x10.rethrow, .throwindex <index>, .lastindex, .last, .back <number>, .delay <number>");
+            PrintToAllChat($"Practice mode loaded!");
+            PrintToAllChat($"Available commands:");
+            PrintToAllChat($".spawn, .ctspawn, .tspawn, .bot, .nobots, .dryrun, .noflash, .break, .exitprac");
+            PrintToAllChat($".loadnade <name>, .savenade <name>, .importnade <code>, .listnades <optional filter>");
+            PrintToAllChat($".listnades <optional filter>, .delnade <name>, .globalnades");
+            PrintToAllChat($".rethrow, .throwindex <index>, .lastindex, .last, .back <number>, .delay <number>");
         }
 
         public void GetSpawns()
@@ -161,11 +161,13 @@ namespace MatchZy
                     spawnNumber -= 1;
                     if (spawnsData.ContainsKey(teamNum) && spawnsData[teamNum].Count <= spawnNumber) return;
                     player!.PlayerPawn.Value!.Teleport(spawnsData[teamNum][spawnNumber].PlayerPosition, spawnsData[teamNum][spawnNumber].PlayerAngle, new Vector(0, 0, 0));
-                    ReplyToUserCommand(player, $"Moved to spawn: {spawnNumber+1}/{spawnsData[teamNum].Count}");
+                    // ReplyToUserCommand(player, $"Moved to spawn: {spawnNumber+1}/{spawnsData[teamNum].Count}");
+                    ReplyToUserCommand(player, Localizer["matchzy.pm.movedtospawn", $"{spawnNumber + 1}/{spawnsData[teamNum].Count}"]);
                 }
                 else
                 {
-                    ReplyToUserCommand(player, $"Invalid value for {command} command. Please specify a valid non-negative number. Usage: !{command} <number>");
+                    // ReplyToUserCommand(player, $"Invalid value for {command} command. Please specify a valid non-negative number. Usage: !{command} <number>");
+                    ReplyToUserCommand(player, Localizer["matchzy.pm.negativenumber"]);
                     return;
                 }
             }
@@ -246,7 +248,8 @@ namespace MatchZy
                     if (savedNadesDict.ContainsKey(playerSteamID) && savedNadesDict[playerSteamID].ContainsKey(lineupName))
                     {
                         // Lineup already exists, reply to the user and return
-                        ReplyToUserCommand(player, $"Lineup already exists! Please use a different name or use .delnade <nade>");
+                        // ReplyToUserCommand(player, $"Lineup already exists! Please use a different name or use .delnade <nade>");
+                        ReplyToUserCommand(player, Localizer["matchzy.pm.lineupissaved"]);
                         return;
                     }
 
@@ -272,9 +275,12 @@ namespace MatchZy
                     File.WriteAllText(savednadesPath, updatedJson);
 
                     //Reply to user
-                    ReplyToUserCommand(player, $" \x0DLineup \x06'{lineupName}' \x0Dsaved successfully!");
-					player.PrintToCenter($"Lineup '{lineupName}' saved successfully!");
-					Server.PrintToChatAll($"{chatPrefix} \x0D{player.PlayerName} Just saved a Lineup! Lineup Code: \x06{lineupName} {playerPos} {playerAngle}");
+                    // ReplyToUserCommand(player, $"Lineup {ChatColors.Green}{lineupName}{ChatColors.Default} saved successfully!");
+                    ReplyToUserCommand(player, Localizer["matchzy.pm.lineupsavedsucces", lineupName]);
+                    // player.PrintToCenter($"Lineup {ChatColors.Green}{lineupName}{ChatColors.Default} saved successfully!");
+                    PrintToPlayerChat(player, Localizer["matchzy.pm.lineupsavedsucces", lineupName]);
+                    // Server.PrintToChatAll($"{chatPrefix} {ChatColors.LightBlue}{player.PlayerName}{ChatColors.Default} Just saved a Lineup! Lineup Code: {ChatColors.Green}{lineupName} {playerPos} {playerAngle}{ChatColors.Default}");
+                    PrintToAllChat(Localizer["matchzy.pm.playersavedlineup", player.PlayerName, $"{lineupName} {playerPos} {playerAngle}"]);
                 }
                 catch (JsonException ex)
                 {
@@ -331,11 +337,13 @@ namespace MatchZy
                         // Write the updated JSON content back to the file
                         File.WriteAllText(savednadesPath, updatedJson);
 
-                        ReplyToUserCommand(player, $"Lineup '{saveNadeName}' deleted successfully.");
+                        // ReplyToUserCommand(player, $"Lineup '{saveNadeName}' deleted successfully.");
+                        ReplyToUserCommand(player, Localizer["matchzy.pm.lineupdeletesuccess", saveNadeName]);
                     }
                     else
                     {
-                        ReplyToUserCommand(player, $"Lineup '{saveNadeName}' not found!");
+                        // ReplyToUserCommand(player, $"Lineup '{saveNadeName}' not found!");
+                        ReplyToUserCommand(player, Localizer["matchzy.pm.lineupnotfound", saveNadeName]);
                     }
                 }
                 catch (JsonException ex)
@@ -388,7 +396,8 @@ namespace MatchZy
                         if (savedNadesDict.ContainsKey(playerSteamID) && savedNadesDict[playerSteamID].ContainsKey(lineupName))
                         {
                             // Lineup already exists, reply to the user and return
-                            ReplyToUserCommand(player, $"Lineup '{lineupName}' already exists! Please use a different name or use .delnade <nade>");
+                            // ReplyToUserCommand(player, $"Lineup '{lineupName}' already exists! Please use a different name or use .delnade <nade>");
+                            ReplyToUserCommand(player, Localizer["matchzy.pm.lineupalreadyexists", lineupName]);
                             return;
                         }
 
@@ -412,11 +421,13 @@ namespace MatchZy
                         // Write the updated JSON content back to the file
                         File.WriteAllText(savednadesPath, updatedJson);
 
-                        ReplyToUserCommand(player, $"Lineup '{lineupName}' imported and saved successfully.");
+                        // ReplyToUserCommand(player, $"Lineup '{lineupName}' imported and saved successfully.");
+                        ReplyToUserCommand(player, Localizer["matchzy.pm.lineupimportedsuccess"]);
                     }
                     else
                     {
-                        ReplyToUserCommand(player, $"Invalid code format. Please provide a valid code with name, pos, and ang.");
+                        // ReplyToUserCommand(player, $"Invalid code format. Please provide a valid code with name, pos, and ang.");
+                        ReplyToUserCommand(player, Localizer["matchzy.pm.lineupinvalidcode"]);
                     }
                 }
                 catch (JsonException ex)
@@ -481,7 +492,9 @@ namespace MatchZy
             }
             else
             {
-                ReplyToUserCommand(player, $"No saved lineups found for the specified SteamID: ({steamID}).");
+                // ReplyToUserCommand(player, $"No saved lineups found for the specified SteamID: ({steamID}).");
+                ReplyToUserCommand(player, Localizer["matchzy.pm.nosavedlineups", steamID]);
+
             }
         }
 
@@ -561,12 +574,14 @@ namespace MatchZy
                                 string lineupDesc = lineupInfo.ContainsKey("Desc") ? lineupInfo["Desc"] : null;
 
                                 // Print messages
-                                ReplyToUserCommand(player, $" \x0D Lineup \x06'{loadNadeName}' \x0Dloaded successfully!");
+                                // ReplyToUserCommand(player, $"Lineup {ChatColors.Green}{loadNadeName}{ChatColors.Default} loaded successfully!");
+                                ReplyToUserCommand(player, Localizer["matchzy.pm.lineuploadedsuccess", loadNadeName]);
 
                                 if (!string.IsNullOrWhiteSpace(lineupDesc))
                                 {
                                     player.PrintToCenter($"{lineupDesc}");
-                                    ReplyToUserCommand(player, $" \x0D Description: \x06'{lineupDesc}'");
+                                    // ReplyToUserCommand(player, $"Description: {ChatColors.Green}{lineupDesc}{ChatColors.Default}");
+                                    ReplyToUserCommand(player, Localizer["matchzy.pm.lineupdesc", lineupDesc]);
                                 }
 
                                 lineupFound = true;
@@ -574,7 +589,8 @@ namespace MatchZy
                             }
                             else
                             {
-                                ReplyToUserCommand(player, $"Nade '{loadNadeName}' not found on the current map!");
+                                // ReplyToUserCommand(player, $"Nade {ChatColor.Green}{loadNadeName}{ChatColor.Default} not found on the current map!");
+                                ReplyToUserCommand(player, Localizer["matchzy.pm.nadenotfoundonmap", loadNadeName]);
                                 lineupOnWrongMap = true;
                             }
                         }
@@ -583,7 +599,8 @@ namespace MatchZy
                     if (!lineupFound && !lineupOnWrongMap)
                     {
                         // Lineup not found
-                        ReplyToUserCommand(player, $"Nade '{loadNadeName}' not found!");
+                        // ReplyToUserCommand(player, $"Nade {ChatColor.Green}{loadNadeName}{ChatColor.Default} not found!");
+                        ReplyToUserCommand(player, Localizer["matchzy.pm.nadenotfound", loadNadeName]);
                     }
                 }
                 catch (JsonException ex)
@@ -628,7 +645,8 @@ namespace MatchZy
 
             if (matchStarted)
             {
-                ReplyToUserCommand(player, "Practice Mode cannot be started when a match has been started!");
+                // ReplyToUserCommand(player, "Practice Mode cannot be started when a match has been started!");
+                ReplyToUserCommand(player, Localizer["matchzy.pm.pracmatchstarted"]);
                 return;
             }
 	    
@@ -651,12 +669,14 @@ namespace MatchZy
             }
             if (matchStarted)
             {
-                ReplyToUserCommand(player, "Dryrun cannot be started when a match has been started!");
+                // ReplyToUserCommand(player, "Dryrun cannot be started when a match has been started!");
+                ReplyToUserCommand(player, Localizer["matchzy.pm.dryrunmatchstarted"]);
                 return;
             }
             if (!isPractice)
             {
-                ReplyToUserCommand(player, "Dryrun can only be started in practice mode!");
+                // ReplyToUserCommand(player, "Dryrun can only be started in practice mode!");
+                ReplyToUserCommand(player, Localizer["matchzy.pm.dryrunnopractice"]);
                 return;
             }
 
@@ -837,7 +857,8 @@ namespace MatchZy
                     }
                 }
                 if (!unusedBotFound) {
-                    Server.PrintToChatAll($"{chatPrefix} Cannot add bots, the team is full! Use .nobots to remove the current bots.");
+                    // Server.PrintToChatAll($"{chatPrefix} Cannot add bots, the team is full! Use .nobots to remove the current bots.");
+                    PrintToAllChat(Localizer["matchzy.pm.botlimit"]);
                 }
 
                 isSpawningBot = false;
@@ -1090,7 +1111,8 @@ namespace MatchZy
         private void SideSwitchCommand(CCSPlayerController player, CsTeam team) {
           if (team > CsTeam.None) {
             if(player.TeamNum == (byte)CsTeam.Spectator) {
-              ReplyToUserCommand(player, "Switching to a team from spectator is currently broken, use the team menu.");
+              // ReplyToUserCommand(player, "Switching to a team from spectator is currently broken, use the team menu.");
+              ReplyToUserCommand(player, Localizer["matchzy.pm.spectatorbroken"]);
               return;
             }
             player.ChangeTeam(team);
@@ -1149,13 +1171,15 @@ namespace MatchZy
             int userId = player.UserId!.Value;
             if (!lastGrenadesData.ContainsKey(userId) || lastGrenadesData[userId].Count <= 0)
             {
-                PrintToPlayerChat(player, $"You have not thrown any nade yet!");
+                // PrintToPlayerChat(player, $"You have not thrown any nade yet!");
+                PrintToPlayerChat(player, Localizer["matchzy.pm.nothrownnades"]);
                 return false;
             }
 
             if (lastGrenadesData[userId].Count < position)
             {
-                PrintToPlayerChat(player, $"Your grenade history only goes from 1 to {lastGrenadesData[userId].Count}!");
+                // PrintToPlayerChat(player, $"Your grenade history only goes from 1 to {lastGrenadesData[userId].Count}!");
+                PrintToPlayerChat(player, Localizer["matchzy.pm.grenadehistory", $"{lastGrenadesData[userId].Count}"]);
                 return false;
             }
 
@@ -1168,7 +1192,8 @@ namespace MatchZy
             int userId = player.UserId.Value;
             if (!nadeSpecificLastGrenadeData.ContainsKey(userId) || !nadeSpecificLastGrenadeData[userId].ContainsKey(nadeType))
             {
-                PrintToPlayerChat(player, $"You have not thrown any {nadeType} yet!");
+                // PrintToPlayerChat(player, $"You have not thrown any {nadeType} yet!");
+                PrintToPlayerChat(player, Localizer["matchzy.pm.nothrownnadestype", nadeType]);
                 return;
             }
             GrenadeThrownData grenadeThrown = nadeSpecificLastGrenadeData[userId][nadeType];
@@ -1187,12 +1212,14 @@ namespace MatchZy
                     {
                         positionNumber -= 1;
                         lastGrenadesData[userId][positionNumber].LoadPosition(player);
-                        PrintToPlayerChat(player, $"Teleported to grenade of history position: {positionNumber+1}/{lastGrenadesData[userId].Count}");
+                        // PrintToPlayerChat(player, $"Teleported to grenade of history position: {positionNumber+1}/{lastGrenadesData[userId].Count}");
+                        PrintToPlayerChat(player, Localizer["matchzy.pm.tptogrenade", $"{positionNumber + 1}/{lastGrenadesData[userId].Count}"]);
                     }
                 }
                 else
                 {
-                    PrintToPlayerChat(player, $"Invalid value for !back command. Please specify a valid non-negative number. Usage: !back <number>");
+                    // PrintToPlayerChat(player, $"Invalid value for !back command. Please specify a valid non-negative number. Usage: !back <number>");
+                    PrintToPlayerChat(player, Localizer["matchzy.pm.backinvalidvalue"]);
                     return;
                 }
             }
@@ -1226,12 +1253,14 @@ namespace MatchZy
                         positionNumber -= 1;
                         GrenadeThrownData grenadeThrown = lastGrenadesData[userId][positionNumber];
                         AddTimer(grenadeThrown.Delay, () => grenadeThrown.Throw(player));
-                        PrintToPlayerChat(player, $"Throwing grenade of history position: {positionNumber+1}/{lastGrenadesData[userId].Count}");
+                        // PrintToPlayerChat(player, $"Throwing grenade of history position: {positionNumber+1}/{lastGrenadesData[userId].Count}");
+                        PrintToPlayerChat(player, Localizer["matchzy.pm.throwgrenadehistory", $"{positionNumber + 1}/{lastGrenadesData[userId].Count}"]);
                     }
                 }
                 else
                 {
-                    PrintToPlayerChat(player, $"'{arg}' is not a valid non-negative number for !throwindex command.");
+                    // PrintToPlayerChat(player, $"'{arg}' is not a valid non-negative number for !throwindex command.");
+                    PrintToPlayerChat(player, Localizer["matchzy.pm.backnegativenumber", arg]);
                 }
             }
         }
@@ -1253,12 +1282,14 @@ namespace MatchZy
                 if (IsValidPositionForLastGrenade(player, 0))
                 {
                     lastGrenadesData[userId].Last().Delay = delayInSeconds;
-                    PrintToPlayerChat(player, $"Delay of {delayInSeconds:0.00}s set for grenade of index: {lastGrenadesData[userId].Count}.");
+                    // PrintToPlayerChat(player, $"Delay of {delayInSeconds:0.00}s set for grenade of index: {lastGrenadesData[userId].Count}.");
+                    PrintToPlayerChat(player, Localizer["matchzy.pm.delaygrenade", $"{delayInSeconds:0.00}", $"{lastGrenadesData[userId].Count}"]);
                 }
             }
             else
             {
-                PrintToPlayerChat(player, $"Delay should be valid float number and greater than 0 seconds.");
+                // PrintToPlayerChat(player, $"Delay of {delayInSeconds:0.00}s set for grenade of index: {lastGrenadesData[userId].Count}.);
+                PrintToPlayerChat(player, Localizer["matchzy.pm.delayvalidnumber", $"{delayInSeconds:0.00}", $"{lastGrenadesData[userId].Count}"]);
                 return;
             }
         }
@@ -1279,7 +1310,8 @@ namespace MatchZy
             int userId = player.UserId.Value;
             if (!lastGrenadesData.ContainsKey(userId) || lastGrenadesData[userId].Count <= 0)
             {
-                PrintToPlayerChat(player, $"You have not thrown any nade yet!");
+                // PrintToPlayerChat(player, $"You have not thrown any nade yet!");
+                PrintToPlayerChat(player, Localizer["matchzy.pm.notthrownnade"]);
                 return;
             }
             GrenadeThrownData lastGrenade = lastGrenadesData[userId].Last();
@@ -1335,7 +1367,8 @@ namespace MatchZy
             int userId = player.UserId.Value;
             if (!lastGrenadesData.ContainsKey(userId) || lastGrenadesData[userId].Count <= 0)
             {
-                PrintToPlayerChat(player, $"You have not thrown any nade yet!");
+                // PrintToPlayerChat(player, $"You have not thrown any nade yet!");
+                PrintToPlayerChat(player, Localizer["matchzy.pm.notthrownnade"]);
                 return;
             }
             lastGrenadesData[userId].Last().LoadPosition(player);
@@ -1381,7 +1414,8 @@ namespace MatchZy
             if (!isPractice || !IsPlayerValid(player)) return;
             if (IsValidPositionForLastGrenade(player!, 1))
             {
-                PrintToPlayerChat(player!, $"Index of last thrown grenade: {lastGrenadesData[player!.UserId!.Value].Count}");
+                // PrintToPlayerChat(player!, $"Index of last thrown grenade: {lastGrenadesData[player!.UserId!.Value].Count}");
+                PrintToPlayerChat(player, Localizer["matchzy.pm.indexlastgrenade", $"{lastGrenadesData[player!.UserId!.Value].Count}"])
             } 
         }
 
