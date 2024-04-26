@@ -30,7 +30,7 @@ public partial class MatchZy
         if (IsHalfTimePhase())
         {
             // ReplyToUserCommand(player, "You cannot use this command during halftime.");
-            ReplyToUserCommand(player, Localier["matchzy.pause.duringhalftime"]); ;
+            ReplyToUserCommand(player, Localizer["matchzy.pause.duringhalftime"]); ;
             return;
         }
         if (IsPostGamePhase())

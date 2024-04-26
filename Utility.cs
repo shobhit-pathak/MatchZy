@@ -1151,7 +1151,7 @@ namespace MatchZy
 
         private void SendPlayerNotAdminMessage(CCSPlayerController? player) {
             // ReplyToUserCommand(player, "You do not have permission to use this command!");
-            ReplyToUserCommand(player, Localizer["matchzy.utility.dontpermission"])
+            ReplyToUserCommand(player, Localizer["matchzy.utility.dontpermission"]);
         }
 
         private string GetColorTreatedString(string message)

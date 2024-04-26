@@ -1415,7 +1415,7 @@ namespace MatchZy
             if (IsValidPositionForLastGrenade(player!, 1))
             {
                 // PrintToPlayerChat(player!, $"Index of last thrown grenade: {lastGrenadesData[player!.UserId!.Value].Count}");
-                PrintToPlayerChat(player, Localizer["matchzy.pm.indexlastgrenade", $"{lastGrenadesData[player!.UserId!.Value].Count}"])
+                PrintToPlayerChat(player, Localizer["matchzy.pm.indexlastgrenade", $"{lastGrenadesData[player!.UserId!.Value].Count}"]);
             } 
         }
 
