@@ -1,5 +1,13 @@
 # MatchZy Changelog
 
+# 0.7.5
+
+#### April 27, 2024
+
+- Upgraded CounterStrikeSharp to v217
+- Fixed CFG execution on Map Start (After the latest update, CFGs were getting overriden by gamemodes cfg. Hence, added a timer to delay MatchZy's CFG execution on MapStart)
+- Fixed BO2 setup, now Get5 server will be freed once the BO2 match is over
+
 # 0.7.4
 
 #### April 26, 2024
