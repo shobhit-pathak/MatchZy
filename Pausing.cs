@@ -12,7 +12,6 @@ public partial class MatchZy
     public void TechPause(CCSPlayerController? player, CommandInfo? command)
     {
         // Tech Pause is WIP
-        return;
         if (!isMatchLive) return;
 
         // Treating .tech command as .forcepause if it is used via server console.
@@ -24,22 +23,26 @@ public partial class MatchZy
 
         if (isPaused)
         {
-            ReplyToUserCommand(player, "Match is already paused!");
+            // ReplyToUserCommand(player, "Match is already paused!");
+            ReplyToUserCommand(player, Localizer["matchzy.pause.ispaused"]);
             return;
         }
         if (IsHalfTimePhase())
         {
-            ReplyToUserCommand(player, "You cannot use this command during halftime.");
+            // ReplyToUserCommand(player, "You cannot use this command during halftime.");
+            ReplyToUserCommand(player, Localizer["matchzy.pause.duringhalftime"]); ;
             return;
         }
         if (IsPostGamePhase())
         {
-            ReplyToUserCommand(player, "You cannot use this command after the game has ended.");
+            // ReplyToUserCommand(player, "You cannot use this command after the game has ended.");
+            ReplyToUserCommand(player, Localizer["matchzy.pause.matchended"]);
             return;
         }
         if (IsTacticalTimeoutActive())
         {
-            ReplyToUserCommand(player, "You cannot use this command when tactical timeout is active.");
+            // ReplyToUserCommand(player, "You cannot use this command when tactical timeout is active.");
+            ReplyToUserCommand(player, Localizer["matchzy.pause.tacticaltimeout"]);
             return;
         }
 

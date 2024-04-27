@@ -321,8 +321,8 @@ namespace MatchZy
                 {
                     if (victim.IsBot) {
                         int damage = @event.DmgHealth;
-                        int postDamageHealth = @event.Health;
-                        @event.Attacker.PrintToChat($"{chatPrefix} {damage} damage to BOT {victim.PlayerName}({postDamageHealth} health)");
+                        /* int postDamageHealth = @event.Health; */
+                        PrintToPlayerChat(@event.Attacker, Localizer["matchzy.pracc.damage", victim.PlayerName, damage]);
                     }
                     return HookResult.Continue;
                 }
@@ -398,7 +398,8 @@ namespace MatchZy
                         if (commandArg != "") {
                             Server.PrintToChatAll($"{adminChatPrefix} {commandArg}");
                         } else {
-                            ReplyToUserCommand(player, "Usage: .asay <message>");
+                            // ReplyToUserCommand(player, "Usage: .asay <message>");
+                            ReplyToUserCommand(player, Localizer["matchzy.cc.usage, $".asay <message>"]);
                         }
                     } else {
                         SendPlayerNotAdminMessage(player);
@@ -531,10 +532,10 @@ namespace MatchZy
                 CCSPlayerController player = @event.Userid;
                 if (!isPractice) return HookResult.Continue;
 
-                if (@event.Attacker.IsValid && player.SteamID != @event.Attacker.SteamID)
+                if (@event.Attacker.IsValid)
                 {
                     double roundedBlindDuration = Math.Round(@event.BlindDuration, 2);
-                    @event.Attacker.PrintToChat($"{chatPrefix} Flashed {@event.Userid.PlayerName}. Blind time: {roundedBlindDuration} seconds");
+                    PrintToPlayerChat(@event.Attacker, Localizer["matchzy.pracc.blind", @event.Userid.PlayerName, roundedBlindDuration]);
                 }
                 var userId = player.UserId;
                 if (userId != null && noFlashList.Contains((int)userId))
