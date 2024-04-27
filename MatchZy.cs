@@ -13,7 +13,7 @@ namespace MatchZy
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.7.4";
+        public override string ModuleVersion => "0.7.5";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -287,13 +287,15 @@ namespace MatchZy
             // });
 
             RegisterListener<Listeners.OnMapStart>(mapName => { 
-                if (!isMatchSetup)
-                {
-                    AutoStart();
-                    return;
-                }
-                if (isWarmup) StartWarmup();
-                if (isPractice) StartPracticeMode();
+                AddTimer(1.0f, () => {
+                    if (!isMatchSetup)
+                    {
+                        AutoStart();
+                        return;
+                    }
+                    if (isWarmup) StartWarmup();
+                    if (isPractice) StartPracticeMode();
+                });
             });
 
             // RegisterListener<Listeners.OnMapEnd>(() => {

@@ -726,7 +726,11 @@ namespace MatchZy
 
             int remainingMaps = matchConfig.NumMaps - matchzyTeam1.seriesScore - matchzyTeam2.seriesScore;
             Log($"[HandleMatchEnd] MATCH ENDED, remainingMaps: {remainingMaps}, NumMaps: {matchConfig.NumMaps}, Team1SeriesScore: {matchzyTeam1.seriesScore}, Team2SeriesScore: {matchzyTeam2.seriesScore}");
-            if (matchConfig.SeriesCanClinch) {
+            if (matchzyTeam1.seriesScore == matchzyTeam2.seriesScore && remainingMaps <= 0) 
+            {
+                EndSeries(null, restartDelay - 1);
+            }
+            else if (matchConfig.SeriesCanClinch) {
                 int mapsToWinSeries = (matchConfig.NumMaps / 2) + 1;
                 if (matchzyTeam1.seriesScore == mapsToWinSeries) {
                     EndSeries(winnerName, restartDelay - 1);

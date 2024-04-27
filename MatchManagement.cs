@@ -38,7 +38,7 @@ namespace MatchZy
             HandleTeamNameChangeCommand(player, command.ArgString, 1);
         }
 
-        [ConsoleCommand("css_team2", "Sets team name for team1")]
+        [ConsoleCommand("css_team2", "Sets team name for team2")]
         public void OnTeam2Command(CCSPlayerController? player, CommandInfo command) {
             HandleTeamNameChangeCommand(player, command.ArgString, 2);
         }
@@ -560,15 +560,24 @@ namespace MatchZy
             return playerTeam;
         }
 
-        public void EndSeries(string winnerName, int restartDelay)
+        public void EndSeries(string? winnerName, int restartDelay)
         {
-            Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{winnerName}{ChatColors.Default} has won the match");
+            if (winnerName == null)
+            {
+                PrintToAllChat($"{ChatColors.Green}{matchzyTeam1.teamName}{ChatColors.Default} and {ChatColors.Green}{matchzyTeam2.teamName}{ChatColors.Default} have tied the match");
+            }
+            else
+            {
+                Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{winnerName}{ChatColors.Default} has won the match");
+            }
+
+            string winnerTeam = (winnerName == null) ? "none" : matchzyTeam1.seriesScore > matchzyTeam2.seriesScore ? "team1" : "team2";
 
             (int t1score, int t2score) = GetTeamsScore();
             var seriesResultEvent = new MatchZySeriesResultEvent()
             {
                 MatchId = liveMatchId.ToString(),
-                Winner = new Winner(t1score > t2score && reverseTeamSides["CT"] == matchzyTeam1 ? "3" : "2", matchzyTeam1.seriesScore > matchzyTeam2.seriesScore ? "team1" : "team2"),
+                Winner = new Winner(t1score > t2score && reverseTeamSides["CT"] == matchzyTeam1 ? "3" : "2", winnerTeam),
                 Team1SeriesScore = matchzyTeam1.seriesScore,
                 Team2SeriesScore = matchzyTeam2.seriesScore,
                 TimeUntilRestore = 10,
@@ -578,7 +587,7 @@ namespace MatchZy
                 await Task.Delay(2000);
                 await SendEventAsync(seriesResultEvent);
             });
-            database.SetMatchEndData(liveMatchId, winnerName, matchzyTeam1.seriesScore, matchzyTeam2.seriesScore);
+            database.SetMatchEndData(liveMatchId, winnerName ?? "Draw", matchzyTeam1.seriesScore, matchzyTeam2.seriesScore);
             if (resetCvarsOnSeriesEnd) ResetChangedConvars();
             isMatchLive = false;
             AddTimer(restartDelay, () => {
