@@ -32,8 +32,12 @@
   "matchzy.backup.restoretacticaltimeout": "You cannot use this command when tactical timeout is active.",
   "matchzy.backup.restoredoesntexist": "Backup file {0} does not exist, please make sure you are restoring a valid backup.",
 
+  "matchzy.cvars.invalidvalue": "Invalid value for matchzy_chat_messages_timer_delay. Please specify a valid non-negative number.",
+
   "matchzy.cc.enabled": "{green}Enabled{default}",
   "matchzy.cc.disabled": "{red}Disabled{default}",
+  "matchzy.cc.usage": "Usage: {0}",
+  "matchzy.cc.invalidmap": "Invalid map name!",
   "matchzy.cc.globalnades": "Saving/Loading Lineups Globally is now {0}!",
   "matchzy.cc.wl": "Whitelist is now {0}!",
   "matchzy.cc.playout": "Playout is now {0}!",
@@ -58,6 +62,14 @@
   "matchzy.cc.skipveto": "Veto phase has been cancelled!",
   "matchzy.cc.matchpaused": "Match is already paused, cannot start a tactical timeout!",
   "matchzy.cc.nomorepauses": "You do not have any tactical timeouts left!",
+
+  "matchzy.mm.matchisalreadysetup": "[LoadMatch] A match is already setup with id: {green}{0}{default}, cannot load a new match!",
+  "matchzy.mm.filedoesntexist": "[LoadMatch] Provided file does not exist! Usage: matchzy_loadmatch <filename>",
+  "matchzy.mm.matchloadfailed": "Match load failed! Resetting current match",
+  "matchzy.mm.get5matchisalreadysetup": "[LoadMatchDataCommand] A match is already setup with id: {0}, cannot load a new match!",
+  "matchzy.mm.invalidurl": "[LoadMatchDataCommand] Invalid URL: {green}{0}{default}. Please provide a valid URL to load the match!",
+  "matchzy.mm.httprequestfailed": "[LoadMatchFromURL] HTTP request failed with status code: {0}",
+  "matchzy.mm.teamcannotbechanged": "Team names cannot be changed once the match is started!",
 
   "matchzy.pm.movedtospawn": "Moved to spawn: {0}",
   "matchzy.pm.negativenumber": "Invalid value for {command} command. Please specify a valid non-negative number. Usage: !{command} <number>",
@@ -90,6 +102,14 @@
   "matchzy.pm.delayvalidnumber": "Delay of {0}s set for grenade of index: {1}.",
   "matchzy.pm.notthrownnade": "You have not thrown any nade yet!",
   "matchzy.pm.indexlastgrenade": "Index of last thrown grenade: {0}",
+  "matchzy.pm.loadnadenotfound": "Nade not found! Usage: .loadnade <name>",
+  "matchzy.pm.backtonumber": "Usage: !back <number> (You've thrown {green}{0}{default} grenades till now)",
+  "matchzy.pm.throwindextonumber": "Usage: !throwindex <number> (You've thrown {green}{0}{default} grenades till now)",
+
+  "matchzy.rs.minreadyplayers": "You must have at least {green}{0}{default} player(s) on the server to ready up.",
+  "matchzy.rs.forcereadiedby": "Your team was force-readied by {green}{0}{default}",
+
+  "matchzy.sleep.sleepwhenmatchstared": "Sleep Mode cannot be started when a match has been started!",
 
   "matchzy.utility.unreadyplayers": "Unready players: {0}. Please type .ready to ready up! {1}",
   "matchzy.utility.readyplayers": "Current ready players: {green}{0}{default}",

@@ -91,7 +91,8 @@ namespace MatchZy
                     HandleRestoreCommand(player, commandArg);
                 }
                 else {
-                    ReplyToUserCommand(player, $"Usage: !restore <round>");
+                    // ReplyToUserCommand(player, $"Usage: !restore <round>");
+                    ReplyToUserCommand(player, Localizer["matchzy.cc.usage", "!restore <round>"]);
                 }                
             } else {
                 SendPlayerNotAdminMessage(player);
@@ -117,7 +118,8 @@ namespace MatchZy
                 }
             }
             else {
-                ReplyToUserCommand(player, $"Usage: !restore <round>");
+                // ReplyToUserCommand(player, $"Usage: !restore <round>");
+                ReplyToUserCommand(player, Localizer["matchzy.cc.usage", "!restore <round>"]);
             }
         }
 

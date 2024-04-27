@@ -173,7 +173,8 @@ namespace MatchZy
             }
             else
             {
-                ReplyToUserCommand(player, $"Usage: !{command} <number>");
+                // ReplyToUserCommand(player, $"Usage: !{command} <number>");
+                ReplyToUserCommand(player, Localizer["matchzy.cc.usage", $"!{command} <number>"]);
             }
         }
 
@@ -289,7 +290,8 @@ namespace MatchZy
             }
             else
             {
-                ReplyToUserCommand(player, $"Usage: .savenade <name>");
+                // ReplyToUserCommand(player, $"Usage: .savenade <name>");
+                ReplyToUserCommand(player, Localizer["matchzy.cc.usage", $".savenade <name>"]);
             }
         }
 
@@ -353,7 +355,8 @@ namespace MatchZy
             }
             else
             {
-                ReplyToUserCommand(player, $"Usage: .delnade <name>");
+                // ReplyToUserCommand(player, $"Usage: .delnade <name>");
+                ReplyToUserCommand(player, Localizer["matchzy.cc.usage", $".delnade <name>"]);
             }
         }
 
@@ -437,7 +440,8 @@ namespace MatchZy
             }
             else
             {
-                ReplyToUserCommand(player, $"Usage: .importnade <code>");
+                // ReplyToUserCommand(player, $"Usage: .importnade <code>");
+                ReplyToUserCommand(player, Localizer["matchzy.cc.usage", $".importnade <code>"]);
             }
         }
 
@@ -610,7 +614,8 @@ namespace MatchZy
             }
             else
             {
-                ReplyToUserCommand(player, $"Nade not found! Usage: .loadnade <name>");
+                // ReplyToUserCommand(player, $"Nade not found! Usage: .loadnade <name>");
+                ReplyToUserCommand(player, Localizer["matchzy.pm.loadnadenotfound"]);
             }
         }
 
@@ -705,7 +710,8 @@ namespace MatchZy
             }
             else
             {
-                ReplyToUserCommand(player, $"Usage: !spawn <round>");
+                // ReplyToUserCommand(player, $"Usage: !spawn <round>");
+                ReplyToUserCommand(player, Localizer["matchzy.cc.usage", $"!spawn <round>"]);
             }
         }
 
@@ -724,7 +730,8 @@ namespace MatchZy
             }
             else
             {
-                ReplyToUserCommand(player, $"Usage: !ctspawn <round>");
+                // ReplyToUserCommand(player, $"Usage: !ctspawn <round>");
+                ReplyToUserCommand(player, Localizer["matchzy.cc.usage", $"!ctspawn <round>"]);
             }
         }
 
@@ -743,7 +750,8 @@ namespace MatchZy
             }
             else
             {
-                ReplyToUserCommand(player, $"Usage: !ctspawn <round>");
+                // ReplyToUserCommand(player, $"Usage: !ctspawn <round>");
+                ReplyToUserCommand(player, Localizer["matchzy.cc.usage", $"!ctspawn <round>"]);
             }
         }
 
@@ -1226,7 +1234,8 @@ namespace MatchZy
             else
             {
                 int thrownCount = lastGrenadesData.ContainsKey(userId) ? lastGrenadesData[userId].Count : 0;
-                ReplyToUserCommand(player, $"Usage: !back <number> (You've thrown {thrownCount} grenades till now)");
+                // ReplyToUserCommand(player, $"Usage: !back <number> (You've thrown {thrownCount} grenades till now)");
+                ReplyToUserCommand(player, Localizer["matchzy.pm.backtonumber", thrownCount]);
             }
         }
 
@@ -1238,7 +1247,8 @@ namespace MatchZy
             if (string.IsNullOrEmpty(argString))
             {
                 int thrownCount = lastGrenadesData.ContainsKey(userId) ? lastGrenadesData[userId].Count : 0;
-                ReplyToUserCommand(player, $"Usage: !throwindex <number> (You've thrown {thrownCount} grenades till now)");
+                // ReplyToUserCommand(player, $"Usage: !throwindex <number> (You've thrown {thrownCount} grenades till now)");
+                ReplyToUserCommand(player, Localizer["matchzy.pm.throwindextonumber", thrownCount]);
                 return;
             }
 
@@ -1273,7 +1283,8 @@ namespace MatchZy
             int userId = player.UserId.Value;
             if (string.IsNullOrWhiteSpace(delay))
             {
-                ReplyToUserCommand(player, $"Usage: !delay <delay_in_seconds>");
+                // ReplyToUserCommand(player, $"Usage: !delay <delay_in_seconds>");
+                ReplyToUserCommand(player, Localizer["matchzy.cc.usage", $"!delay <delay_in_seconds>"]);
                 return;
             }
             
@@ -1387,7 +1398,8 @@ namespace MatchZy
             {
                 int userId = player!.UserId!.Value;
                 int thrownCount = lastGrenadesData.ContainsKey(userId) ? lastGrenadesData[userId].Count : 0;
-                ReplyToUserCommand(player, $"Usage: !back <number> (You've thrown {thrownCount} grenades till now)");
+                // ReplyToUserCommand(player, $"Usage: !back <number> (You've thrown {thrownCount} grenades till now)");
+                ReplyToUserCommand(player, Localizer["matchzy.pm.backtonumber", thrownCount]);
             }      
         }
 
@@ -1404,7 +1416,8 @@ namespace MatchZy
             {
                 int userId = player!.UserId!.Value;
                 int thrownCount = lastGrenadesData.ContainsKey(userId) ? lastGrenadesData[userId].Count : 0;
-                ReplyToUserCommand(player, $"Usage: !throwindex <number> (You've thrown {thrownCount} grenades till now)");
+                // ReplyToUserCommand(player, $"Usage: !throwindex <number> (You've thrown {thrownCount} grenades till now)");
+                ReplyToUserCommand(player, Localizer["matchzy.pm.throwindextonumber", thrownCount]);
             }      
         }
 
@@ -1429,7 +1442,8 @@ namespace MatchZy
             }
             else 
             {
-                ReplyToUserCommand(player, $"Usage: !delay <delay_in_seconds>");
+                // ReplyToUserCommand(player, $"Usage: !delay <delay_in_seconds>");
+                ReplyToUserCommand(player, Localizer["matchzy.cc.usage", $"!delay <delay_in_seconds>"]);
             }      
         }
 

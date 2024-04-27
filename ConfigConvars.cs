@@ -211,7 +211,8 @@ namespace MatchZy
                     }
                     else
                     {
-                        ReplyToUserCommand(player, $"Invalid value for matchzy_chat_messages_timer_delay. Please specify a valid non-negative number.");
+                        // ReplyToUserCommand(player, $"Invalid value for matchzy_chat_messages_timer_delay. Please specify a valid non-negative number.");
+                        ReplyToUserCommand(player, Localizer["matchzy.cvars.invalidvalue"]);
                     }
                 }
             } else if (command.ArgCount == 1) {
@@ -254,7 +255,8 @@ namespace MatchZy
             }
             else
             {
-                command.ReplyToCommand("Usage: matchzy_max_saved_last_grenades <number>");
+                // command.ReplyToCommand("Usage: matchzy_max_saved_last_grenades <number>");
+                ReplyToUserCommand(player, Localizer["matchzy.cc.usage", $"matchzy_max_saved_last_grenades <number>"]);
             }
         }
     }

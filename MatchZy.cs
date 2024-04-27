@@ -396,7 +396,8 @@ namespace MatchZy
                         if (commandArg != "") {
                             Server.PrintToChatAll($"{adminChatPrefix} {commandArg}");
                         } else {
-                            ReplyToUserCommand(player, "Usage: .asay <message>");
+                            // ReplyToUserCommand(player, "Usage: .asay <message>");
+                            ReplyToUserCommand(player, Localizer["matchzy.cc.usage, $".asay <message>"]);
                         }
                     } else {
                         SendPlayerNotAdminMessage(player);

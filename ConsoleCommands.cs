@@ -376,7 +376,8 @@ namespace MatchZy
                 Server.ExecuteCommand($"bot_kick");
                 Server.ExecuteCommand($"changelevel \"{currentMapName}\"");
             } else {
-                ReplyToUserCommand(player, "Invalid map name!");
+                // ReplyToUserCommand(player, "Invalid map name!");
+                ReplyToUserCommand(player, Localizer["matchzy.cc.invalidmap"]);
             }
         }
 

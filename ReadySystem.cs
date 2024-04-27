@@ -103,7 +103,8 @@ public partial class MatchZy
 
         if (playerCount < minReady) 
         {
-            ReplyToUserCommand(player, $"You must have at least {minReady} player(s) on the server to ready up.");
+            // ReplyToUserCommand(player, $"You must have at least {minReady} player(s) on the server to ready up.");
+            ReplyToUserCommand(player, Localizer["matchzy.rs.minreadyplayers", minReady]);
             return;
         }
 
@@ -112,7 +113,8 @@ public partial class MatchZy
             if (!playerData[key].IsValid) continue;
             if (playerData[key].TeamNum == player.TeamNum) {
                 playerReadyStatus[key] = true;
-                ReplyToUserCommand(playerData[key], $"Your team was force-readied by {player.PlayerName}");
+                // ReplyToUserCommand(playerData[key], $"Your team was force-readied by {player.PlayerName}");
+                ReplyToUserCommand(playerData[key], Localizer["matchzy.rs.forcereadiedby", player.PlayerName]);
             }
         }
 

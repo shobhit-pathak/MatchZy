@@ -51,7 +51,8 @@ namespace MatchZy
                 if (player != null) return;
                 if (isMatchSetup)
                 {
-                    command.ReplyToCommand($"[LoadMatch] A match is already setup with id: {liveMatchId}, cannot load a new match!");
+                    // command.ReplyToCommand($"[LoadMatch] A match is already setup with id: {liveMatchId}, cannot load a new match!");
+                    ReplyToUserCommand(player, Localizer["matchzy.mm.matchisalreadysetup", liveMatchId]);
                     Log($"[LoadMatch] A match is already setup with id: {liveMatchId}, cannot load a new match!");
                     return;
                 }
@@ -59,7 +60,8 @@ namespace MatchZy
                 string filePath = Path.Join(Server.GameDirectory + "/csgo", fileName);
                 if (!File.Exists(filePath)) 
                 {
-                    command.ReplyToCommand($"[LoadMatch] Provided file does not exist! Usage: matchzy_loadmatch <filename>");
+                    // command.ReplyToCommand($"[LoadMatch] Provided file does not exist! Usage: matchzy_loadmatch <filename>");
+                    ReplyToUserCommand(player, Localizer["matchzy.mm.filedoesntexist"]);
                     Log($"[LoadMatch] Provided file does not exist! Usage: matchzy_loadmatch <filename>");
                     return;
                 }
@@ -67,7 +69,8 @@ namespace MatchZy
                 bool success = LoadMatchFromJSON(jsonData);
                 if (!success)
                 {
-                    command.ReplyToCommand("Match load failed! Resetting current match");
+                    // command.ReplyToCommand("Match load failed! Resetting current match");
+                    ReplyToUserCommand(player, Localizer["matchzy.mm.matchloadfailed"]);
                     ResetMatch();
                 }
                 loadedConfigFile = fileName;
@@ -86,7 +89,8 @@ namespace MatchZy
             if (player != null) return;
             if (isMatchSetup)
             {
-                command.ReplyToCommand($"[LoadMatchDataCommand] A match is already setup with id: {liveMatchId}, cannot load a new match!");
+                // command.ReplyToCommand($"[LoadMatchDataCommand] A match is already setup with id: {liveMatchId}, cannot load a new match!");
+                ReplyToUserCommand(player, Localizer["matchzy.mm.get5matchisalreadysetup", liveMatchId]);
                 Log($"[LoadMatchDataCommand] A match is already setup with id: {liveMatchId}, cannot load a new match!");
                 return;
             }
@@ -99,7 +103,8 @@ namespace MatchZy
 
             if (!IsValidUrl(url))
             {
-                command.ReplyToCommand($"[LoadMatchDataCommand] Invalid URL: {url}. Please provide a valid URL to load the match!");
+                // command.ReplyToCommand($"[LoadMatchDataCommand] Invalid URL: {url}. Please provide a valid URL to load the match!");
+                ReplyToUserCommand(player, Localizer["matchzy.mm.invalidurl", url]);
                 Log($"[LoadMatchDataCommand] Invalid URL: {url}. Please provide a valid URL to load the match!");
                 return;
             }
@@ -120,14 +125,16 @@ namespace MatchZy
                     bool success = LoadMatchFromJSON(jsonData);
                     if (!success)
                     {
-                        command.ReplyToCommand("Match load failed! Resetting current match");
+                        // command.ReplyToCommand("Match load failed! Resetting current match");
+                        ReplyToUserCommand(player, Localizer["matchzy.mm.matchloadfailed"]);
                         ResetMatch();
                     }
                     loadedConfigFile = url;
                 }
                 else
                 {
-                    command.ReplyToCommand($"[LoadMatchFromURL] HTTP request failed with status code: {response.StatusCode}");
+                    // command.ReplyToCommand($"[LoadMatchFromURL] HTTP request failed with status code: {response.StatusCode}");
+                    ReplyToUserCommand(player, Localizer["matchzy.mm.httprequestfailed", response.StatusCode]);
                     Log($"[LoadMatchFromURL] HTTP request failed with status code: {response.StatusCode}");
                 }
             }
@@ -487,12 +494,14 @@ namespace MatchZy
                 return;
             }
             if (matchStarted) {
-                ReplyToUserCommand(player, "Team names cannot be changed once the match is started!");
+                // ReplyToUserCommand(player, "Team names cannot be changed once the match is started!");
+                ReplyToUserCommand(player, Localizer["matchzy.mm.teamcannotbechanged"]);
                 return;
             }
             teamName = RemoveSpecialCharacters(teamName.Trim());
             if (teamName == "") {
-                ReplyToUserCommand(player, $"Usage: !team{teamNum} <name>");
+                // ReplyToUserCommand(player, $"Usage: !team{teamNum} <name>");
+                ReplyToUserCommand(player, Localizer["matchzy.cc.usage", $"!team{teamNum} <name>"]);
             }
 
             if (teamNum == 1) {
