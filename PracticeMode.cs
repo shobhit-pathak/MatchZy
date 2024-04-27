@@ -629,13 +629,15 @@ namespace MatchZy
 			if(currentHP > 100)
 			{
 				player.PlayerPawn.Value.Health = 100;
-				ReplyToUserCommand(player, $"God mode disabled!");
+				// ReplyToUserCommand(player, $"God mode disabled!");
+                		ReplyToUserCommand(player, "God is " + Localizer["matchzy.cc.disabled"]);
 				return;
 			}
 			else
 			{
 				player.PlayerPawn.Value.Health = 2147483647; // max 32bit int
-				ReplyToUserCommand(player, $"God mode enabled!");
+				// ReplyToUserCommand(player, $"God mode enabled!");
+                		ReplyToUserCommand(player, "God is " + Localizer["matchzy.cc.enabled"]);
 				return;
 			}
         }
