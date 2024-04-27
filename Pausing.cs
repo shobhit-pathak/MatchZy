@@ -12,6 +12,8 @@ public partial class MatchZy
     public void TechPause(CCSPlayerController? player, CommandInfo? command)
     {
         // Tech Pause is WIP
+        return;
+
         if (!isMatchLive) return;
 
         // Treating .tech command as .forcepause if it is used via server console.

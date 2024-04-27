@@ -1093,7 +1093,7 @@ namespace MatchZy
 
         private void ForceUnpauseMatch(CCSPlayerController? player, CommandInfo? command)
         {
-            if (isMatchLive && isPaused) {
+            if (matchStarted && isPaused) {
                 if (!IsPlayerAdmin(player, "css_forceunpause", "@css/config")) {
                     SendPlayerNotAdminMessage(player);
                     return;

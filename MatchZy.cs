@@ -13,7 +13,7 @@ namespace MatchZy
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.7.5";
+        public override string ModuleVersion => "0.7.6";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -321,8 +321,8 @@ namespace MatchZy
                 {
                     if (victim.IsBot) {
                         int damage = @event.DmgHealth;
-                        /* int postDamageHealth = @event.Health; */
-                        PrintToPlayerChat(@event.Attacker, Localizer["matchzy.pracc.damage", victim.PlayerName, damage]);
+                        int postDamageHealth = @event.Health;
+                        PrintToPlayerChat(@event.Attacker, Localizer["matchzy.pracc.damage", damage, victim.PlayerName, postDamageHealth]);
                     }
                     return HookResult.Continue;
                 }
@@ -399,7 +399,7 @@ namespace MatchZy
                             Server.PrintToChatAll($"{adminChatPrefix} {commandArg}");
                         } else {
                             // ReplyToUserCommand(player, "Usage: .asay <message>");
-                            ReplyToUserCommand(player, Localizer["matchzy.cc.usage, $".asay <message>"]);
+                            ReplyToUserCommand(player, Localizer["matchzy.cc.usage", ".asay <message>"]);
                         }
                     } else {
                         SendPlayerNotAdminMessage(player);

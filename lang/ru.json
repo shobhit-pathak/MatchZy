@@ -129,6 +129,6 @@
     "matchzy.pracc.grenade": "Grenade thrown by {red}{0}{default} took {green}{1}{default}s to detonate",
     "matchzy.pracc.molotov": "Molotov thrown by {red}{0}{default} took {green}{1}{default}s to detonate",
     "matchzy.pracc.decoy": "Decoy thrown by {red}{0}{default} took {green}{1}{default}s to detonate",
-    "matchzy.pracc.damage": "{lightblue}{0}{default} has been damaged for {green}{1}{default}hp",
+    "matchzy.pracc.damage": "{red}{0}{default} damage to {lightblue}{1}{default}({green}{2}{default} health)",
     "matchzy.pracc.blind": "{lightblue}{0}{default} has been blinded for {green}{1}{default}s"
   }
