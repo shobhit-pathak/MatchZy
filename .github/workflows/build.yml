@@ -59,6 +59,7 @@ jobs:
           rm -r package/*
 
           echo "Creating package with CounterStrikeSharp (CSSharp) v$CSSHARP_VERSION for Windows"
+          cp -r cfg package
           cd package/
           echo "Installing CounterStrikeSharp (CSSharp) v$CSSHARP_VERSION"
           [ -e addons/counterstrikesharp ] && rm -rf addons/counterstrikesharp && echo "CounterStrikeSharp removed" || echo "old CounterStrikeSharp not found"

@@ -1,5 +1,13 @@
 # MatchZy Changelog
 
+# 0.7.6
+
+#### April 28, 2024
+
+- Added remaining strings available for translation.
+- Fixed force-unpause command not working in knife round.
+- Fixed `cfg` folder not available in Windows build of MatchZy with CSSharp.
+
 # 0.7.5
 
 #### April 27, 2024

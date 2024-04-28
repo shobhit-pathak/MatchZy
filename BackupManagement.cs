@@ -34,17 +34,20 @@ namespace MatchZy
             if (isStopCommandAvailable && isMatchLive) {
                 if (IsHalfTimePhase())
                 {
-                    ReplyToUserCommand(player, "You cannot use this command during halftime.");
+                    // ReplyToUserCommand(player, "You cannot use this command during halftime.");
+                    ReplyToUserCommand(player, Localizer["matchzy.backup.stopduringhalftime"]);
                     return;
                 }
                 if (IsPostGamePhase())
                 {
-                    ReplyToUserCommand(player, "You cannot use this command after the game has ended.");
+                    // ReplyToUserCommand(player, "You cannot use this command after the game has ended.");
+                    ReplyToUserCommand(player, Localizer["matchzy.backup.stopmatchended"]);
                     return;
                 }
                 if (IsTacticalTimeoutActive())
                 {
-                    ReplyToUserCommand(player, "You cannot use this command when tactical timeout is active.");
+                    // ReplyToUserCommand(player, "You cannot use this command when tactical timeout is active.");
+                    ReplyToUserCommand(player, Localizer["matchzy.backup.stoptacticaltimeout"]);
                     return;
                 }
                 string stopTeamName = "";
@@ -88,7 +91,8 @@ namespace MatchZy
                     HandleRestoreCommand(player, commandArg);
                 }
                 else {
-                    ReplyToUserCommand(player, $"Usage: !restore <round>");
+                    // ReplyToUserCommand(player, $"Usage: !restore <round>");
+                    ReplyToUserCommand(player, Localizer["matchzy.cc.usage", "!restore <round>"]);
                 }                
             } else {
                 SendPlayerNotAdminMessage(player);
@@ -109,32 +113,38 @@ namespace MatchZy
                     RestoreRoundBackup(player, requiredBackupFileName, round);
                 }
                 else {
-                    ReplyToUserCommand(player, $"Invalid value for restore command. Please specify a valid non-negative number. Usage: !restore <round>");
+                    // ReplyToUserCommand(player, $"Invalid value for restore command. Please specify a valid non-negative number. Usage: !restore <round>");
+                    ReplyToUserCommand(player, Localizer["matchzy.backup.restoreinvalidvalue"]);
                 }
             }
             else {
-                ReplyToUserCommand(player, $"Usage: !restore <round>");
+                // ReplyToUserCommand(player, $"Usage: !restore <round>");
+                ReplyToUserCommand(player, Localizer["matchzy.cc.usage", "!restore <round>"]);
             }
         }
 
         private void RestoreRoundBackup(CCSPlayerController? player, string fileName, string round="") {
             if (IsHalfTimePhase())
             {
-                ReplyToUserCommand(player, "You cannot load a backup during halftime.");
+                // ReplyToUserCommand(player, "You cannot load a backup during halftime.");
+                ReplyToUserCommand(player, Localizer["matchzy.backup.restoreduringhalftime"]);
                 return;
             }
             if (IsPostGamePhase())
             {
-                ReplyToUserCommand(player, "You cannot use this command after the game has ended.");
+                // ReplyToUserCommand(player, "You cannot use this command after the game has ended.");
+                ReplyToUserCommand(player, Localizer["matchzy.backup.restorematchended"]);
                 return;
             }
             if (IsTacticalTimeoutActive())
             {
-                ReplyToUserCommand(player, "You cannot use this command when tactical timeout is active.");
+                // ReplyToUserCommand(player, "You cannot use this command when tactical timeout is active.");
+                ReplyToUserCommand(player, Localizer["matchzy.backup.restoretacticaltimeout"]);
                 return;
             }
             if (!File.Exists(Path.Join(Server.GameDirectory + "/csgo/", fileName))) {
-                ReplyToUserCommand(player, $"Backup file {fileName} does not exist, please make sure you are restoring a valid backup.");
+                // ReplyToUserCommand(player, $"Backup file {fileName} does not exist, please make sure you are restoring a valid backup.");
+                ReplyToUserCommand(player, Localizer["matchzy.backup.restoredoesntexist", fileName]);
                 return;
             }
             var gameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;

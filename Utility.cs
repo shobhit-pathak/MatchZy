@@ -107,29 +107,31 @@ namespace MatchZy
         }
 
         private void SendUnreadyPlayersMessage() {
-            if (isWarmup && !matchStarted) {
-                List<string> unreadyPlayers = new List<string>();
+            if (!isWarmup || matchStarted) return;
+            List<string> unreadyPlayers = new();
 
-                foreach (var key in playerReadyStatus.Keys) {
-                    if (playerReadyStatus[key] == false) {
-                        unreadyPlayers.Add(playerData[key].PlayerName);
-                    }
+            foreach (var key in playerReadyStatus.Keys) {
+                if (playerReadyStatus[key] == false) {
+                    unreadyPlayers.Add(playerData[key].PlayerName);
                 }
-                if (unreadyPlayers.Count > 0) {
-                    string unreadyPlayerList = string.Join(", ", unreadyPlayers);
-                    string minimumReadyRequiredMessage = isMatchSetup ? "" : $"[Minimum ready players required: {ChatColors.Green}{minimumReadyRequired}{ChatColors.Default}]";
+            }
+            if (unreadyPlayers.Count > 0) {
+                string unreadyPlayerList = string.Join(", ", unreadyPlayers);
+                string minimumReadyRequiredMessage = isMatchSetup ? "" : $"[Minimum ready players required: {ChatColors.Green}{minimumReadyRequired}{ChatColors.Default}]";
 
-                    Server.PrintToChatAll($"{chatPrefix} Unready players: {unreadyPlayerList}. Please type .ready to ready up! {minimumReadyRequiredMessage}");
-                } else {
-                    int countOfReadyPlayers = playerReadyStatus.Count(kv => kv.Value == true);
-                    if (isMatchSetup)
-                    {
-                        Server.PrintToChatAll($"{chatPrefix} Current ready players: {ChatColors.Green}{countOfReadyPlayers}{ChatColors.Default}");
-                    }
-                    else
-                    {
-                        Server.PrintToChatAll($"{chatPrefix} Minimum ready players required {ChatColors.Green}{minimumReadyRequired}{ChatColors.Default}, current ready players: {ChatColors.Green}{countOfReadyPlayers}{ChatColors.Default}");
-                    }
+                // Server.PrintToChatAll($"{chatPrefix} Unready players: {unreadyPlayerList}. Please type .ready to ready up! {minimumReadyRequiredMessage}");
+                PrintToAllChat(Localizer["matchzy.utility.unreadyplayers", unreadyPlayerList, minimumReadyRequiredMessage]);
+            } else {
+                int countOfReadyPlayers = playerReadyStatus.Count(kv => kv.Value == true);
+                if (isMatchSetup)
+                {
+                    // Server.PrintToChatAll($"{chatPrefix} Current ready players: {ChatColors.Green}{countOfReadyPlayers}{ChatColors.Default}");
+                    PrintToAllChat(Localizer["matchzy.utility.readyplayers", countOfReadyPlayers]);
+                }
+                else
+                {
+                    // Server.PrintToChatAll($"{chatPrefix} Minimum ready players required {ChatColors.Green}{minimumReadyRequired}{ChatColors.Default}, current ready players: {ChatColors.Green}{countOfReadyPlayers}{ChatColors.Default}");
+                    PrintToAllChat(Localizer["matchzy.utility.minimumreadyplayers", minimumReadyRequired, countOfReadyPlayers]);
                 }
             }
         }
@@ -166,9 +168,7 @@ namespace MatchZy
         private void StartWarmup() {
             unreadyPlayerMessageTimer?.Kill();
             unreadyPlayerMessageTimer = null;
-            if (unreadyPlayerMessageTimer == null) {
-                unreadyPlayerMessageTimer = AddTimer(chatTimerDelay, SendUnreadyPlayersMessage, TimerFlags.REPEAT);
-            }
+            unreadyPlayerMessageTimer ??= AddTimer(chatTimerDelay, SendUnreadyPlayersMessage, TimerFlags.REPEAT);
             isWarmup = true;
             ExecWarmupCfg();
         }
@@ -196,17 +196,16 @@ namespace MatchZy
                 Log($"[StartKnifeRound] Starting Knife! Knife CFG not found in {absolutePath}, using default CFG!");
                 Server.ExecuteCommand("mp_ct_default_secondary \"\";mp_free_armor 1;mp_freezetime 10;mp_give_player_c4 0;mp_maxmoney 0;mp_respawn_immunitytime 0;mp_respawn_on_death_ct 0;mp_respawn_on_death_t 0;mp_roundtime 1.92;mp_roundtime_defuse 1.92;mp_roundtime_hostage 1.92;mp_t_default_secondary \"\";mp_round_restart_delay 3;mp_team_intro_time 0;mp_restartgame 1;mp_warmup_end;");
             }
-            
-            Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}KNIFE!");
-            Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}KNIFE!");
-            Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}KNIFE!");
+
+            PrintToAllChat($"{ChatColors.Green}KNIFE!");
+            PrintToAllChat($"{ChatColors.Green}KNIFE!");
+            PrintToAllChat($"{ChatColors.Green}KNIFE!");
         }
 
         private void SendSideSelectionMessage() {
-            if (isSideSelectionPhase) {
-                PrintToAllChat(Localizer["matchzy.knife.sidedecisionpending", knifeWinnerName]);
-                // Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} Won the knife. Waiting for them to type {ChatColors.Green}.stay{ChatColors.Default} or {ChatColors.Green}.switch{ChatColors.Default}");
-            }
+            if (!isSideSelectionPhase) return;
+            PrintToAllChat(Localizer["matchzy.knife.sidedecisionpending", knifeWinnerName]);
+            // Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} Won the knife. Waiting for them to type {ChatColors.Green}.stay{ChatColors.Default} or {ChatColors.Green}.switch{ChatColors.Default}");
         }
 
         private void StartAfterKnifeWarmup() {
@@ -216,9 +215,7 @@ namespace MatchZy
             ShowDamageInfo();
             PrintToAllChat(Localizer["matchzy.knife.sidedecisionpending", knifeWinnerName]);
             // Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} Won the knife. Waiting for them to type {ChatColors.Green}.stay{ChatColors.Default} or {ChatColors.Green}.switch{ChatColors.Default}");
-            if (sideSelectionMessageTimer == null) {
-                sideSelectionMessageTimer = AddTimer(chatTimerDelay, SendSideSelectionMessage, TimerFlags.REPEAT);
-            }
+            sideSelectionMessageTimer ??= AddTimer(chatTimerDelay, SendSideSelectionMessage, TimerFlags.REPEAT);
         }
 
         private void StartLive() {
@@ -240,10 +237,10 @@ namespace MatchZy
             
             // This is to reload the map once it is over so that all flags are reset accordingly
             Server.ExecuteCommand("mp_match_end_restart true");
-            
-            Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}LIVE!");
-            Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}LIVE!");
-            Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}LIVE!");
+
+            PrintToAllChat($"{ChatColors.Green}LIVE!");
+            PrintToAllChat($"{ChatColors.Green}LIVE!");
+            PrintToAllChat($"{ChatColors.Green}LIVE!");
 
             // Adding timer here to make sure that CFG execution is completed till then
             AddTimer(1, () => {
@@ -269,15 +266,9 @@ namespace MatchZy
         }
 
         private void KillPhaseTimers() {
-            if (unreadyPlayerMessageTimer != null) {
-                unreadyPlayerMessageTimer.Kill();
-            }
-            if (sideSelectionMessageTimer != null) {
-                sideSelectionMessageTimer.Kill();
-            }
-            if (pausedStateTimer != null) {
-                pausedStateTimer.Kill();
-            }
+            unreadyPlayerMessageTimer?.Kill();
+            sideSelectionMessageTimer?.Kill();
+            pausedStateTimer?.Kill();
             unreadyPlayerMessageTimer = null;
             sideSelectionMessageTimer = null;
             pausedStateTimer = null;
@@ -288,14 +279,13 @@ namespace MatchZy
             int count = 0;
             int totalHealth = 0;
             foreach (var key in playerData.Keys) {
-                if (team == 2 && reverseTeamSides["TERRORIST"].coach == playerData[key]) continue;
-                if (team == 3 && reverseTeamSides["CT"].coach == playerData[key]) continue;
-                if (!IsPlayerValid(playerData[key])) continue;
-                if (playerData[key].PlayerPawn == null) continue;
-                if (!playerData[key].PlayerPawn.IsValid || playerData[key].PlayerPawn.Value == null) continue;
-                if (playerData[key].TeamNum == team) {
-                    if (playerData[key].PlayerPawn.Value!.Health > 0) count++;
-                    totalHealth += playerData[key].PlayerPawn.Value!.Health;
+                CCSPlayerController player = playerData[key];
+                if (team == 2 && reverseTeamSides["TERRORIST"].coach == player) continue;
+                if (team == 3 && reverseTeamSides["CT"].coach == player) continue;
+                if (!IsPlayerValid(player)) continue;
+                if (player.TeamNum == team) {
+                    if (player.PlayerPawn.Value!.Health > 0) count++;
+                    totalHealth += player.PlayerPawn.Value!.Health;
                 }
             }
             return (count, totalHealth);
@@ -399,9 +389,7 @@ namespace MatchZy
                     // Since we should be already in warmup phase by this point, we are juts setting up the SendUnreadyPlayersMessage timer
                     unreadyPlayerMessageTimer?.Kill();
                     unreadyPlayerMessageTimer = null;
-                    if (unreadyPlayerMessageTimer == null) {
-                        unreadyPlayerMessageTimer = AddTimer(chatTimerDelay, SendUnreadyPlayersMessage, TimerFlags.REPEAT);
-                    }
+                    unreadyPlayerMessageTimer ??= AddTimer(chatTimerDelay, SendUnreadyPlayersMessage, TimerFlags.REPEAT);
                 }
             }
             catch (Exception ex)
@@ -524,7 +512,8 @@ namespace MatchZy
             }
 
             if (matchStarted) {
-                ReplyToUserCommand(player, $"Map cannot be changed once the match is started!");
+                // ReplyToUserCommand(player, $"Map cannot be changed once the match is started!");
+                ReplyToUserCommand(player, Localizer["matchzy.utility.matchstarted"]);             
                 return;
             }
 
@@ -549,16 +538,19 @@ namespace MatchZy
                 if (int.TryParse(commandArg, out int readyRequired) && readyRequired >= 0 && readyRequired <= 32) {
                     minimumReadyRequired = readyRequired;
                     string minimumReadyRequiredFormatted = (player == null) ? $"{minimumReadyRequired}" : $"{ChatColors.Green}{minimumReadyRequired}{ChatColors.Default}";
-                    ReplyToUserCommand(player, $"Minimum ready players required to start the match are now set to: {minimumReadyRequiredFormatted}");
+                    // ReplyToUserCommand(player, $"Minimum ready players required to start the match are now set to: {minimumReadyRequiredFormatted}");
+                    ReplyToUserCommand(player, Localizer["matchzy.utility.minreadyplayers", minimumReadyRequiredFormatted]);
                     CheckLiveRequired();
                 }
                 else {
-                    ReplyToUserCommand(player, $"Invalid value for readyrequired. Please specify a valid non-negative number. Usage: !readyrequired <number_of_ready_players_required>");
+                    // ReplyToUserCommand(player, $"Invalid value for readyrequired. Please specify a valid non-negative number. Usage: !readyrequired <number_of_ready_players_required>");
+                    ReplyToUserCommand(player, Localizer["matchzy.utility.rrinvalidvalue"]);
                 }
             }
             else {
                 string minimumReadyRequiredFormatted = (player == null) ? $"{minimumReadyRequired}" : $"{ChatColors.Green}{minimumReadyRequired}{ChatColors.Default}";
-                ReplyToUserCommand(player, $"Current Ready Required: {minimumReadyRequiredFormatted} .Usage: !readyrequired <number_of_ready_players_required>");
+                // ReplyToUserCommand(player, $"Current Ready Required: {minimumReadyRequiredFormatted} .Usage: !readyrequired <number_of_ready_players_required>");
+                ReplyToUserCommand(player, Localizer["matchzy.utility.currentreadyrequired", minimumReadyRequiredFormatted]);
             }
         }
 
@@ -1002,22 +994,26 @@ namespace MatchZy
 
         private void PauseMatch(CCSPlayerController? player, CommandInfo? command) {
             if (isMatchLive && isPaused) {
-                ReplyToUserCommand(player, "Match is already paused!");
+                // ReplyToUserCommand(player, "Match is already paused!");
+                ReplyToUserCommand(player, Localizer["matchzy.utility.paused"]);
                 return;
             }
             if (IsHalfTimePhase())
             {
-                ReplyToUserCommand(player, "You cannot use this command during halftime.");
+                // ReplyToUserCommand(player, "You cannot use this command during halftime.");
+                ReplyToUserCommand(player, Localizer["matchzy.utility.duringhalftime"]);
                 return;
             }
             if (IsPostGamePhase())
             {
-                ReplyToUserCommand(player, "You cannot use this command after the game has ended.");
+                // ReplyToUserCommand(player, "You cannot use this command after the game has ended.");
+                ReplyToUserCommand(player, Localizer["matchzy.utility.matchended"]);
                 return;
             }
             if (IsTacticalTimeoutActive())
             {
-                ReplyToUserCommand(player, "You cannot use this command when tactical timeout is active.");
+                // ReplyToUserCommand(player, "You cannot use this command when tactical timeout is active.");
+                ReplyToUserCommand(player, Localizer["matchzy.utility.tacticaltimeout"]);
                 return;
             }
             if (isMatchLive && !isPaused) {
@@ -1049,22 +1045,26 @@ namespace MatchZy
                 return;
             }
             if (isMatchLive && isPaused) {
-                ReplyToUserCommand(player, "Match is already paused!");
+                // ReplyToUserCommand(player, "Match is already paused!");
+                ReplyToUserCommand(player, Localizer["matchzy.utility.paused"]);
                 return;
             }
             if (IsHalfTimePhase())
             {
-                ReplyToUserCommand(player, "You cannot use this command during halftime.");
+                // ReplyToUserCommand(player, "You cannot use this command during halftime.");
+                ReplyToUserCommand(player, Localizer["matchzy.utility.duringhalftime"]);
                 return;
             }
             if (IsPostGamePhase())
             {
-                ReplyToUserCommand(player, "You cannot use this command after the game has ended.");
+                // ReplyToUserCommand(player, "You cannot use this command after the game has ended.");
+                ReplyToUserCommand(player, Localizer["matchzy.utility.matchended"]);
                 return;
             }
             if (IsTacticalTimeoutActive())
             {
-                ReplyToUserCommand(player, "You cannot use this command when tactical timeout is active.");
+                // ReplyToUserCommand(player, "You cannot use this command when tactical timeout is active.");
+                ReplyToUserCommand(player, Localizer["matchzy.utility.tacticaltimeout"]);
                 return;
             }
             unpauseData["pauseTeam"] = "Admin";
@@ -1078,7 +1078,7 @@ namespace MatchZy
 
         private void ForceUnpauseMatch(CCSPlayerController? player, CommandInfo? command)
         {
-            if (isMatchLive && isPaused) {
+            if (matchStarted && isPaused) {
                 if (!IsPlayerAdmin(player, "css_forceunpause", "@css/config")) {
                     SendPlayerNotAdminMessage(player);
                     return;
@@ -1109,9 +1109,7 @@ namespace MatchZy
             Server.ExecuteCommand("mp_pause_match;");
             isPaused = true;
 
-            if (pausedStateTimer == null) {
-                pausedStateTimer = AddTimer(chatTimerDelay, SendPausedStateMessage, TimerFlags.REPEAT);
-            }
+            pausedStateTimer ??= AddTimer(chatTimerDelay, SendPausedStateMessage, TimerFlags.REPEAT);
         }
 
         private void StartMatchMode() 
@@ -1139,7 +1137,8 @@ namespace MatchZy
         }
 
         private void SendPlayerNotAdminMessage(CCSPlayerController? player) {
-            ReplyToUserCommand(player, "You do not have permission to use this command!");
+            // ReplyToUserCommand(player, "You do not have permission to use this command!");
+            ReplyToUserCommand(player, Localizer["matchzy.utility.dontpermission"]);
         }
 
         private string GetColorTreatedString(string message)
