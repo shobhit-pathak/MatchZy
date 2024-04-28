@@ -212,16 +212,12 @@ namespace MatchZy
 
                 CsTeam playerTeam = GetPlayerTeam(player);
 
-                if (@event.Team != (int)playerTeam)
+                if (@event.Team != (int)playerTeam && player.IsValid)
                 {
-                    if (player.IsValid)
+                    Server.NextFrame(() =>
                     {
-
-                        Server.NextFrame(() =>
-                        {
-                            player.SwitchTeam(playerTeam);
-                        });
-                    }
+                        player.SwitchTeam(playerTeam);
+                    });
                 }
                 return HookResult.Continue;
             });
@@ -306,9 +302,8 @@ namespace MatchZy
             RegisterEventHandler<EventPlayerDeath>((@event, info) => {
                 // Setting money back to 16000 when a player dies in warmup
                 var player = @event.Userid;
-                if (isWarmup) {
-                    if (player.InGameMoneyServices != null) player.InGameMoneyServices.Account = 16000;
-                }
+                if (!isWarmup) return HookResult.Continue;
+                if (player.InGameMoneyServices != null) player.InGameMoneyServices.Account = 16000;
                 return HookResult.Continue;
             });
 
@@ -317,25 +312,20 @@ namespace MatchZy
 				CCSPlayerController attacker = @event.Attacker;
                 CCSPlayerController victim = @event.Userid;
 
-                if (isPractice)
+                if (isPractice && victim.IsBot)
                 {
-                    if (victim.IsBot) {
-                        int damage = @event.DmgHealth;
-                        int postDamageHealth = @event.Health;
-                        PrintToPlayerChat(@event.Attacker, Localizer["matchzy.pracc.damage", damage, victim.PlayerName, postDamageHealth]);
-                    }
+                    int damage = @event.DmgHealth;
+                    int postDamageHealth = @event.Health;
+                    PrintToPlayerChat(@event.Attacker, Localizer["matchzy.pracc.damage", damage, victim.PlayerName, postDamageHealth]);
                     return HookResult.Continue;
                 }
 
 				if (!attacker.IsValid || attacker.IsBot && !(@event.DmgHealth > 0 || @event.DmgArmor > 0))
 					return HookResult.Continue;
-                if (matchStarted) {
-                    if (@event.Userid.TeamNum != attacker.TeamNum)
-                    {
-                        int targetId = (int)@event.Userid.UserId!;
-
-                        UpdatePlayerDamageInfo(@event, targetId);
-                    }
+                if (matchStarted && @event.Userid.TeamNum != attacker.TeamNum) 
+                {
+                    int targetId = (int)@event.Userid.UserId!;
+                    UpdatePlayerDamageInfo(@event, targetId);
                 }
 
 				return HookResult.Continue;

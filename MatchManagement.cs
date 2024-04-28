@@ -424,21 +424,21 @@ namespace MatchZy
         {
             try
             {
-                if (jsonDataObject["cvars"] != null)
-                {
-                    foreach (JProperty cvarData in jsonDataObject["cvars"]!)
-                    {
-                        string cvarName = cvarData.Name;
-                        string cvarValue = cvarData.Value.ToString();
+                if (jsonDataObject["cvars"] == null) return;
 
-                        var cvar = ConVar.Find(cvarName);
-                        matchConfig.ChangedCvars[cvarName] = cvarValue;
-                        if (cvar != null)
-                        {
-                            matchConfig.OriginalCvars[cvarName] = GetConvarStringValue(cvar);
-                        }
+                foreach (JProperty cvarData in jsonDataObject["cvars"]!)
+                {
+                    string cvarName = cvarData.Name;
+                    string cvarValue = cvarData.Value.ToString();
+
+                    var cvar = ConVar.Find(cvarName);
+                    matchConfig.ChangedCvars[cvarName] = cvarValue;
+                    if (cvar != null)
+                    {
+                        matchConfig.OriginalCvars[cvarName] = GetConvarStringValue(cvar);
                     }
                 }
+
             }
             catch (Exception e)
             {

@@ -505,7 +505,7 @@ namespace MatchZy
 
         private void HandleLoadNadeCommand(CCSPlayerController? player, string loadNadeName)
         {
-            if (!isPractice || player == null) return;
+            if (!isPractice || player == null || !IsPlayerValid(player)) return;
 
             if (!string.IsNullOrWhiteSpace(loadNadeName))
             {
@@ -549,7 +549,7 @@ namespace MatchZy
                                 QAngle loadedPlayerAngle = new QAngle(float.Parse(angArray[0]), float.Parse(angArray[1]), float.Parse(angArray[2]));
 
                                 // Teleport player
-                                player.PlayerPawn.Value.Teleport(loadedPlayerPos, loadedPlayerAngle, new Vector(0, 0, 0));
+                                player!.PlayerPawn!.Value!.Teleport(loadedPlayerPos, loadedPlayerAngle, new Vector(0, 0, 0));
 
                                 // Change player inv slot
                                 switch (lineupInfo["Type"])
@@ -622,9 +622,9 @@ namespace MatchZy
         [ConsoleCommand("css_god", "Sets Infinite health for player")]
         public void OnGodCommand(CCSPlayerController? player, CommandInfo? command)
         {
-            if (!isPractice || player == null) return;
+            if (!isPractice || player == null || !IsPlayerValid(player)) return;
 	    
-			int currentHP = player.PlayerPawn.Value.Health;
+			int currentHP = player!.PlayerPawn!.Value!.Health;
 			
 			if(currentHP > 100)
 			{

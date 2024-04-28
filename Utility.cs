@@ -107,32 +107,31 @@ namespace MatchZy
         }
 
         private void SendUnreadyPlayersMessage() {
-            if (isWarmup && !matchStarted) {
-                List<string> unreadyPlayers = new List<string>();
+            if (!isWarmup || matchStarted) return;
+            List<string> unreadyPlayers = new();
 
-                foreach (var key in playerReadyStatus.Keys) {
-                    if (playerReadyStatus[key] == false) {
-                        unreadyPlayers.Add(playerData[key].PlayerName);
-                    }
+            foreach (var key in playerReadyStatus.Keys) {
+                if (playerReadyStatus[key] == false) {
+                    unreadyPlayers.Add(playerData[key].PlayerName);
                 }
-                if (unreadyPlayers.Count > 0) {
-                    string unreadyPlayerList = string.Join(", ", unreadyPlayers);
-                    string minimumReadyRequiredMessage = isMatchSetup ? "" : $"[Minimum ready players required: {ChatColors.Green}{minimumReadyRequired}{ChatColors.Default}]";
+            }
+            if (unreadyPlayers.Count > 0) {
+                string unreadyPlayerList = string.Join(", ", unreadyPlayers);
+                string minimumReadyRequiredMessage = isMatchSetup ? "" : $"[Minimum ready players required: {ChatColors.Green}{minimumReadyRequired}{ChatColors.Default}]";
 
-                    // Server.PrintToChatAll($"{chatPrefix} Unready players: {unreadyPlayerList}. Please type .ready to ready up! {minimumReadyRequiredMessage}");
-                    PrintToAllChat(Localizer["matchzy.utility.unreadyplayers", unreadyPlayerList, minimumReadyRequiredMessage]);
-                } else {
-                    int countOfReadyPlayers = playerReadyStatus.Count(kv => kv.Value == true);
-                    if (isMatchSetup)
-                    {
-                        // Server.PrintToChatAll($"{chatPrefix} Current ready players: {ChatColors.Green}{countOfReadyPlayers}{ChatColors.Default}");
-                        PrintToAllChat(Localizer["matchzy.utility.readyplayers", countOfReadyPlayers]);
-                    }
-                    else
-                    {
-                        // Server.PrintToChatAll($"{chatPrefix} Minimum ready players required {ChatColors.Green}{minimumReadyRequired}{ChatColors.Default}, current ready players: {ChatColors.Green}{countOfReadyPlayers}{ChatColors.Default}");
-                        PrintToAllChat(Localizer["matchzy.utility.minimumreadyplayers", minimumReadyRequired, countOfReadyPlayers]);
-                    }
+                // Server.PrintToChatAll($"{chatPrefix} Unready players: {unreadyPlayerList}. Please type .ready to ready up! {minimumReadyRequiredMessage}");
+                PrintToAllChat(Localizer["matchzy.utility.unreadyplayers", unreadyPlayerList, minimumReadyRequiredMessage]);
+            } else {
+                int countOfReadyPlayers = playerReadyStatus.Count(kv => kv.Value == true);
+                if (isMatchSetup)
+                {
+                    // Server.PrintToChatAll($"{chatPrefix} Current ready players: {ChatColors.Green}{countOfReadyPlayers}{ChatColors.Default}");
+                    PrintToAllChat(Localizer["matchzy.utility.readyplayers", countOfReadyPlayers]);
+                }
+                else
+                {
+                    // Server.PrintToChatAll($"{chatPrefix} Minimum ready players required {ChatColors.Green}{minimumReadyRequired}{ChatColors.Default}, current ready players: {ChatColors.Green}{countOfReadyPlayers}{ChatColors.Default}");
+                    PrintToAllChat(Localizer["matchzy.utility.minimumreadyplayers", minimumReadyRequired, countOfReadyPlayers]);
                 }
             }
         }
@@ -169,9 +168,7 @@ namespace MatchZy
         private void StartWarmup() {
             unreadyPlayerMessageTimer?.Kill();
             unreadyPlayerMessageTimer = null;
-            if (unreadyPlayerMessageTimer == null) {
-                unreadyPlayerMessageTimer = AddTimer(chatTimerDelay, SendUnreadyPlayersMessage, TimerFlags.REPEAT);
-            }
+            unreadyPlayerMessageTimer ??= AddTimer(chatTimerDelay, SendUnreadyPlayersMessage, TimerFlags.REPEAT);
             isWarmup = true;
             ExecWarmupCfg();
         }
@@ -206,10 +203,9 @@ namespace MatchZy
         }
 
         private void SendSideSelectionMessage() {
-            if (isSideSelectionPhase) {
-                PrintToAllChat(Localizer["matchzy.knife.sidedecisionpending", knifeWinnerName]);
-                // Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} Won the knife. Waiting for them to type {ChatColors.Green}.stay{ChatColors.Default} or {ChatColors.Green}.switch{ChatColors.Default}");
-            }
+            if (!isSideSelectionPhase) return;
+            PrintToAllChat(Localizer["matchzy.knife.sidedecisionpending", knifeWinnerName]);
+            // Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} Won the knife. Waiting for them to type {ChatColors.Green}.stay{ChatColors.Default} or {ChatColors.Green}.switch{ChatColors.Default}");
         }
 
         private void StartAfterKnifeWarmup() {
@@ -219,9 +215,7 @@ namespace MatchZy
             ShowDamageInfo();
             PrintToAllChat(Localizer["matchzy.knife.sidedecisionpending", knifeWinnerName]);
             // Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} Won the knife. Waiting for them to type {ChatColors.Green}.stay{ChatColors.Default} or {ChatColors.Green}.switch{ChatColors.Default}");
-            if (sideSelectionMessageTimer == null) {
-                sideSelectionMessageTimer = AddTimer(chatTimerDelay, SendSideSelectionMessage, TimerFlags.REPEAT);
-            }
+            sideSelectionMessageTimer ??= AddTimer(chatTimerDelay, SendSideSelectionMessage, TimerFlags.REPEAT);
         }
 
         private void StartLive() {
@@ -272,15 +266,9 @@ namespace MatchZy
         }
 
         private void KillPhaseTimers() {
-            if (unreadyPlayerMessageTimer != null) {
-                unreadyPlayerMessageTimer.Kill();
-            }
-            if (sideSelectionMessageTimer != null) {
-                sideSelectionMessageTimer.Kill();
-            }
-            if (pausedStateTimer != null) {
-                pausedStateTimer.Kill();
-            }
+            unreadyPlayerMessageTimer?.Kill();
+            sideSelectionMessageTimer?.Kill();
+            pausedStateTimer?.Kill();
             unreadyPlayerMessageTimer = null;
             sideSelectionMessageTimer = null;
             pausedStateTimer = null;
@@ -291,14 +279,13 @@ namespace MatchZy
             int count = 0;
             int totalHealth = 0;
             foreach (var key in playerData.Keys) {
-                if (team == 2 && reverseTeamSides["TERRORIST"].coach == playerData[key]) continue;
-                if (team == 3 && reverseTeamSides["CT"].coach == playerData[key]) continue;
-                if (!IsPlayerValid(playerData[key])) continue;
-                if (playerData[key].PlayerPawn == null) continue;
-                if (!playerData[key].PlayerPawn.IsValid || playerData[key].PlayerPawn.Value == null) continue;
-                if (playerData[key].TeamNum == team) {
-                    if (playerData[key].PlayerPawn.Value!.Health > 0) count++;
-                    totalHealth += playerData[key].PlayerPawn.Value!.Health;
+                CCSPlayerController player = playerData[key];
+                if (team == 2 && reverseTeamSides["TERRORIST"].coach == player) continue;
+                if (team == 3 && reverseTeamSides["CT"].coach == player) continue;
+                if (!IsPlayerValid(player)) continue;
+                if (player.TeamNum == team) {
+                    if (player.PlayerPawn.Value!.Health > 0) count++;
+                    totalHealth += player.PlayerPawn.Value!.Health;
                 }
             }
             return (count, totalHealth);
@@ -402,9 +389,7 @@ namespace MatchZy
                     // Since we should be already in warmup phase by this point, we are juts setting up the SendUnreadyPlayersMessage timer
                     unreadyPlayerMessageTimer?.Kill();
                     unreadyPlayerMessageTimer = null;
-                    if (unreadyPlayerMessageTimer == null) {
-                        unreadyPlayerMessageTimer = AddTimer(chatTimerDelay, SendUnreadyPlayersMessage, TimerFlags.REPEAT);
-                    }
+                    unreadyPlayerMessageTimer ??= AddTimer(chatTimerDelay, SendUnreadyPlayersMessage, TimerFlags.REPEAT);
                 }
             }
             catch (Exception ex)
@@ -1124,9 +1109,7 @@ namespace MatchZy
             Server.ExecuteCommand("mp_pause_match;");
             isPaused = true;
 
-            if (pausedStateTimer == null) {
-                pausedStateTimer = AddTimer(chatTimerDelay, SendPausedStateMessage, TimerFlags.REPEAT);
-            }
+            pausedStateTimer ??= AddTimer(chatTimerDelay, SendPausedStateMessage, TimerFlags.REPEAT);
         }
 
         private void StartMatchMode() 
