@@ -329,7 +329,7 @@ namespace MatchZy
             } 
         }
 
-        public void SetMatchEndData(long matchId, string winnerName, int t1score, int t2score)
+        public async Task SetMatchEndData(long matchId, string winnerName, int t1score, int t2score)
         {
             try
             {
@@ -340,7 +340,7 @@ namespace MatchZy
                     SET winner = @winnerName, end_time = {dateTimeExpression}, team1_score = @t1score, team2_score = @t2score
                     WHERE matchid = @matchId";
 
-                connection.Execute(sqlQuery, new { matchId, winnerName, t1score, t2score });
+                await connection.ExecuteAsync(sqlQuery, new { matchId, winnerName, t1score, t2score });
 
                 Log($"[SetMatchEndData] Data updated for matchId: {matchId} winnerName: {winnerName}");
             }

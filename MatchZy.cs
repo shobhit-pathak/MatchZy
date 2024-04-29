@@ -13,7 +13,7 @@ namespace MatchZy
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.7.6";
+        public override string ModuleVersion => "0.7.7";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -187,7 +187,8 @@ namespace MatchZy
             RegisterEventHandler<EventRoundFreezeEnd>(EventRoundFreezeEndHandler);
             RegisterListener<Listeners.OnClientDisconnectPost>(playerSlot => { 
                // May not be required, but just to be on safe side so that player data is properly updated in dictionaries
-                UpdatePlayersMap();
+               // Update: Commenting the below function as it was being called multiple times on map change.
+                // UpdatePlayersMap();
             });
             RegisterListener<Listeners.OnEntitySpawned>(OnEntitySpawnedHandler);
 

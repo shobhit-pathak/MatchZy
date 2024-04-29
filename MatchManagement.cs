@@ -239,6 +239,7 @@ namespace MatchZy
 
                     case "skip_veto":
                     case "clinch_series":
+                    case "wingman":
                         if (!bool.TryParse(jsonData[field]!.ToString(), out bool result))
                         {
                             return $"{field} should be a boolean!";
@@ -338,18 +339,13 @@ namespace MatchZy
                         }
                     }
                 }
+                string currentMapName = Server.MapName;
                 string mapName = matchConfig.Maplist[0].ToString();
 
-                if (long.TryParse(mapName, out _)) {
-                    Server.ExecuteCommand($"bot_kick");
-                    Server.ExecuteCommand($"host_workshop_map \"{mapName}\"");
-                } else if (Server.IsMapValid(mapName)) {
-                    Server.ExecuteCommand($"bot_kick");
-                    Server.ExecuteCommand($"changelevel \"{mapName}\"");
-                } else {
-                    Log($"[LoadMatchFromJSON] Invalid map name: {mapName}, cannot setup match!");
-                    ResetMatch(false);
-                    return false;
+                if (IsMapReloadRequiredForGameMode(matchConfig.Wingman) || mapReloadRequired || currentMapName != mapName) 
+                {
+                    SetCorrectGameMode();
+                    ChangeMap(mapName, 0);
                 }
             }
             else
@@ -481,6 +477,10 @@ namespace MatchZy
             {
                 matchConfig.SkipVeto = bool.Parse(jsonDataObject["skip_veto"]!.ToString());
             }
+            if (jsonDataObject["wingman"] != null)
+            {
+                matchConfig.Wingman = bool.Parse(jsonDataObject["wingman"]!.ToString());
+            }
             if (jsonDataObject["veto_mode"] != null)
             {
                 matchConfig.MapBanOrder = jsonDataObject["veto_mode"]!.ToObject<List<string>>()!;
@@ -569,8 +569,10 @@ namespace MatchZy
             return playerTeam;
         }
 
-        public void EndSeries(string? winnerName, int restartDelay)
+        public void EndSeries(string? winnerName, int restartDelay, int t1score, int t2score)
         {
+            long matchId = liveMatchId;
+            (int team1Score, int team2Score) = (matchzyTeam1.seriesScore, matchzyTeam2.seriesScore);
             if (winnerName == null)
             {
                 PrintToAllChat($"{ChatColors.Green}{matchzyTeam1.teamName}{ChatColors.Default} and {ChatColors.Green}{matchzyTeam2.teamName}{ChatColors.Default} have tied the match");
@@ -582,21 +584,22 @@ namespace MatchZy
 
             string winnerTeam = (winnerName == null) ? "none" : matchzyTeam1.seriesScore > matchzyTeam2.seriesScore ? "team1" : "team2";
 
-            (int t1score, int t2score) = GetTeamsScore();
             var seriesResultEvent = new MatchZySeriesResultEvent()
             {
-                MatchId = liveMatchId.ToString(),
+                MatchId = matchId.ToString(),
                 Winner = new Winner(t1score > t2score && reverseTeamSides["CT"] == matchzyTeam1 ? "3" : "2", winnerTeam),
-                Team1SeriesScore = matchzyTeam1.seriesScore,
-                Team2SeriesScore = matchzyTeam2.seriesScore,
+                Team1SeriesScore = team1Score,
+                Team2SeriesScore = team2Score,
                 TimeUntilRestore = 10,
             };
+
             Task.Run(async () => {
+                await database.SetMatchEndData(matchId, winnerName ?? "Draw", team1Score, team2Score);
                 // Making sure that map end event is fired first
                 await Task.Delay(2000);
                 await SendEventAsync(seriesResultEvent);
             });
-            database.SetMatchEndData(liveMatchId, winnerName ?? "Draw", matchzyTeam1.seriesScore, matchzyTeam2.seriesScore);
+
             if (resetCvarsOnSeriesEnd) ResetChangedConvars();
             isMatchLive = false;
             AddTimer(restartDelay, () => {
