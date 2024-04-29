@@ -1124,8 +1124,6 @@ namespace MatchZy
         {
             int gameMode = GetGameMode();
 
-            Log($"gameMode: {gameMode}");
-
             var cfgPath = liveCfgPath;
             var absolutePath = Path.Join(Server.GameDirectory + "/csgo/cfg", liveCfgPath);
 
