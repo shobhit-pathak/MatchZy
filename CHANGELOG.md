@@ -1,5 +1,15 @@
 # MatchZy Changelog
 
+# 0.7.7
+
+#### April 29, 2024
+
+- Added wingman support. Now, if `game_mode` is 2, plugin will automatically execute `live_wingman.cfg`. If `game_mode` is 1, `live.cfg` will be executed.
+- Setting `wingman` as `true` in match config json will now automatically set `game_mode 2` and reload the map. Wingman toggle from G5V will now also work.
+- Removed `UpdatePlayersMap` from player connect and disconnect methods to avoid it getting called multiple times on map change.
+- Made `SetMatchEndData` to be an async operation.
+- Added updated pt-PT translations.
+
 # 0.7.6
 
 #### April 28, 2024

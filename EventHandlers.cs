@@ -68,7 +68,8 @@ public partial class MatchZy
                 }
             }
             // May not be required, but just to be on safe side so that player data is properly updated in dictionaries
-            UpdatePlayersMap();
+            // Update: Commenting the below function as it was being called multiple times on map change.
+            // UpdatePlayersMap();
 
             if (readyAvailable && !matchStarted)
             {
