@@ -19,7 +19,7 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.ctspawn <number>` Spawns to the provided competitive spawn number of CT
 - `.tspawn <number>` Spawns to the provided competitive spawn number of T
 - `.bot` Adds a bot on user's current position
-- `.crouchbot` Adds a crouched bot on user's current position
+- `.crouchbot` Adds a crouched bot on user's current position (Alias: `.cbot`)
 - `.boost` Adds a bot on current position and boosts player on it
 - `.crouchboost` Adds a crouched bot on current position and boosts player on it
 - `.ct`, `.t`, `.spec` Changes player team to the requested team
@@ -48,6 +48,9 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.rethrowflash` Throws your last thrown flash.
 - `.rethrowmolotov` Throws your last thrown molotov.
 - `.rethrowdecoy` Throws your last thrown decoy.
+- `.solid` Toggles mp_solid_teammates
+- `.impacts` Toggles sv_showimpacts
+- `.traj` Toggles sv_grenade_trajectory_prac_pipreview 
 
 # Admin Commands
 
@@ -67,6 +70,6 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.reload_admins` Reloads admins from `admins.json`
 - `.team1 <name>` Sets name for Team 1 (CT by default)
 - `.team2 <name>` Sets name for Team 2 (Terrorist by default)
-- `.prac` Starts Practice Mode
+- `.prac` Starts Practice Mode (Alias: `.tactics`)
 - `.exitprac` Exits from practice mode and loads Match mode.
 - `.rcon <command>` Sends command to the server

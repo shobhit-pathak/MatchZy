@@ -8,12 +8,12 @@ using CounterStrikeSharp.API.Modules.Timers;
 
 namespace MatchZy
 {
-    [MinimumApiVersion(215)]
+    [MinimumApiVersion(227)]
     public partial class MatchZy : BasePlugin
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.7.7";
+        public override string ModuleVersion => "0.7.8";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -127,24 +127,33 @@ namespace MatchZy
                 { ".rk", OnKnifeCommand },
                 { ".playout", OnPlayoutCommand },
                 { ".start", OnStartCommand },
+                { ".force", OnStartCommand },
+                { ".forcestart", OnStartCommand },
                 { ".skipveto", OnSkipVetoCommand },
                 { ".sv", OnSkipVetoCommand },
                 { ".restart", OnRestartMatchCommand },
+                { ".endmatch", OnEndMatchCommand },
                 { ".reloadmap", OnMapReloadCommand },
                 { ".settings", OnMatchSettingsCommand },
                 { ".whitelist", OnWLCommand },
                 { ".globalnades", OnSaveNadesAsGlobalCommand },
                 { ".reload_admins", OnReloadAdmins },
+                { ".tactics", OnPracCommand },
                 { ".prac", OnPracCommand },
                 { ".dryrun", OnDryRunCommand },
                 { ".dry", OnDryRunCommand },
                 { ".noflash", OnNoFlashCommand },
+                { ".noblind", OnNoFlashCommand },
                 { ".break", OnBreakCommand },
                 { ".bot", OnBotCommand },
+                { ".cbot", OnCrouchBotCommand },
                 { ".crouchbot", OnCrouchBotCommand },
                 { ".boost", OnBoostBotCommand },
                 { ".crouchboost", OnCrouchBoostBotCommand },
                 { ".nobots", OnNoBotsCommand },
+                { ".solid", OnSolidCommand },
+                { ".impacts", OnImpactsCommand },
+                { ".traj", OnTrajCommand },
                 { ".god", OnGodCommand },
                 { ".ff", OnFastForwardCommand },
                 { ".fastforward", OnFastForwardCommand },
@@ -193,7 +202,8 @@ namespace MatchZy
             RegisterListener<Listeners.OnEntitySpawned>(OnEntitySpawnedHandler);
 
             RegisterEventHandler<EventPlayerTeam>((@event, info) => {
-                CCSPlayerController player = @event.Userid;
+                CCSPlayerController? player = @event.Userid;
+                if (!IsPlayerValid(player)) return HookResult.Continue;
 
                 if (matchzyTeam1.coach == player || matchzyTeam2.coach == player) {
                     @event.Silent = true;
@@ -204,9 +214,11 @@ namespace MatchZy
 
             RegisterEventHandler<EventPlayerTeam>((@event, info) =>
             {
-                CCSPlayerController player = @event.Userid;
+                CCSPlayerController? player = @event.Userid;
 
-                if (player.IsHLTV || player.IsBot || (!isMatchSetup && !isVeto))
+                if (!IsPlayerValid(player)) return HookResult.Continue;
+
+                if (player!.IsHLTV || player.IsBot || (!isMatchSetup && !isVeto))
                 {
                     return HookResult.Continue;
                 }
@@ -304,28 +316,31 @@ namespace MatchZy
                 // Setting money back to 16000 when a player dies in warmup
                 var player = @event.Userid;
                 if (!isWarmup) return HookResult.Continue;
-                if (player.InGameMoneyServices != null) player.InGameMoneyServices.Account = 16000;
+                if (!IsPlayerValid(player)) return HookResult.Continue;
+                if (player!.InGameMoneyServices != null) player.InGameMoneyServices.Account = 16000;
                 return HookResult.Continue;
             });
 
             RegisterEventHandler<EventPlayerHurt>((@event, info) =>
 			{
-				CCSPlayerController attacker = @event.Attacker;
-                CCSPlayerController victim = @event.Userid;
+				CCSPlayerController? attacker = @event.Attacker;
+                CCSPlayerController? victim = @event.Userid;
 
-                if (isPractice && victim.IsBot)
+                if (!IsPlayerValid(attacker) || !IsPlayerValid(victim)) return HookResult.Continue;
+
+                if (isPractice && victim!.IsBot)
                 {
                     int damage = @event.DmgHealth;
                     int postDamageHealth = @event.Health;
-                    PrintToPlayerChat(@event.Attacker, Localizer["matchzy.pracc.damage", damage, victim.PlayerName, postDamageHealth]);
+                    PrintToPlayerChat(attacker!, Localizer["matchzy.pracc.damage", damage, victim.PlayerName, postDamageHealth]);
                     return HookResult.Continue;
                 }
 
-				if (!attacker.IsValid || attacker.IsBot && !(@event.DmgHealth > 0 || @event.DmgArmor > 0))
+				if (!attacker!.IsValid || attacker.IsBot && !(@event.DmgHealth > 0 || @event.DmgArmor > 0))
 					return HookResult.Continue;
-                if (matchStarted && @event.Userid.TeamNum != attacker.TeamNum) 
+                if (matchStarted && victim!.TeamNum != attacker.TeamNum) 
                 {
-                    int targetId = (int)@event.Userid.UserId!;
+                    int targetId = (int)victim.UserId!;
                     UpdatePlayerDamageInfo(@event, targetId);
                 }
 
@@ -520,15 +535,18 @@ namespace MatchZy
 
             RegisterEventHandler<EventPlayerBlind>((@event, info) =>
             {
-                CCSPlayerController player = @event.Userid;
+                CCSPlayerController? player = @event.Userid;
+                CCSPlayerController? attacker = @event.Attacker;
                 if (!isPractice) return HookResult.Continue;
 
-                if (@event.Attacker.IsValid)
+                if (!IsPlayerValid(player) || !IsPlayerValid(attacker)) return HookResult.Continue;
+
+                if (attacker!.IsValid)
                 {
                     double roundedBlindDuration = Math.Round(@event.BlindDuration, 2);
-                    PrintToPlayerChat(@event.Attacker, Localizer["matchzy.pracc.blind", @event.Userid.PlayerName, roundedBlindDuration]);
+                    PrintToPlayerChat(attacker, Localizer["matchzy.pracc.blind", player!.PlayerName, roundedBlindDuration]);
                 }
-                var userId = player.UserId;
+                var userId = player!.UserId;
                 if (userId != null && noFlashList.Contains((int)userId))
                 {
                     Server.NextFrame(() => KillFlashEffect(player));

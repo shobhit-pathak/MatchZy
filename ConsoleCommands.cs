@@ -382,6 +382,8 @@ namespace MatchZy
         }
 
         [ConsoleCommand("css_start", "Force starts the match")]
+        [ConsoleCommand("css_force", "Force starts the match")]
+        [ConsoleCommand("css_forcestart", "Force starts the match")]
         public void OnStartCommand(CCSPlayerController? player, CommandInfo? command) {
             if (IsPlayerAdmin(player, "css_start", "@css/config")) {
                 if (isPractice) {
