@@ -1,5 +1,18 @@
 # MatchZy Changelog
 
+# 0.7.8
+
+#### May 02, 2024
+
+- Added `.solid` command in practice mode to toggle `mp_solid_teammates`.
+- Added `.impacts` command in practice mode to toggle `sv_showimpacts`.
+- Added `.traj` command in practice mode to toggle `sv_grenade_trajectory_prac_pipreview`.
+- Fixed double prefix in damage report.
+- Added commonly used aliases for multiple commands. (`.force` and `.forcestart` for force-start, `.tactics` to enable practice mode, `.noblind` to toggle no-flash in practice, `.cbot` to spawn a crouched-bot in practice.)
+- Added `pt-BR` and `zh-Hans` updated translations.
+- Renamed the `pt-pt` translation file to `pt-PT`
+- Fixed translation in `fr`
+
 # 0.7.7
 
 #### April 29, 2024

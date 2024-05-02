@@ -43,7 +43,10 @@ namespace MatchZy
 		public Dictionary<int, Dictionary<int, DamagePlayerInfo>> playerDamageInfo = new Dictionary<int, Dictionary<int, DamagePlayerInfo>>();
 		private void UpdatePlayerDamageInfo(EventPlayerHurt @event, int targetId)
 		{
-			int attackerId = (int)@event.Attacker.UserId!;
+            CCSPlayerController? attacker = @event.Attacker;
+
+            if (!IsPlayerValid(attacker)) return;
+			int attackerId = (int)attacker!.UserId!;
 			if (!playerDamageInfo.TryGetValue(attackerId, out var attackerInfo))
 				playerDamageInfo[attackerId] = attackerInfo = new Dictionary<int, DamagePlayerInfo>();
 
@@ -99,8 +102,8 @@ namespace MatchZy
                             int targetHP = targetController.PlayerPawn.Value.Health < 0 ? 0 : targetController.PlayerPawn.Value.Health;
                             string targetName = targetController.PlayerName;
 
-                            PrintToPlayerChat(attackerController, $"{chatPrefix} {ChatColors.Green}To: [{damageGiven} / {hitsGiven} hits] From: [{damageTaken} / {hitsTaken} hits] - {targetName} - ({targetHP} hp){ChatColors.Default}");
-                            PrintToPlayerChat(targetController, $"{chatPrefix} {ChatColors.Green}To: [{damageTaken} / {hitsTaken} hits] From: [{damageGiven} / {hitsGiven} hits] - {attackerName} - ({attackerHP} hp){ChatColors.Default}");
+                            PrintToPlayerChat(attackerController, $"{ChatColors.Green}To: [{damageGiven} / {hitsGiven} hits] From: [{damageTaken} / {hitsTaken} hits] - {targetName} - ({targetHP} hp){ChatColors.Default}");
+                            PrintToPlayerChat(targetController, $"{ChatColors.Green}To: [{damageTaken} / {hitsTaken} hits] From: [{damageGiven} / {hitsGiven} hits] - {attackerName} - ({attackerHP} hp){ChatColors.Default}");
                         }
 
                         // Mark this pair as processed to avoid duplicates.

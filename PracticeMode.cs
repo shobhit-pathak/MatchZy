@@ -2,6 +2,7 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
+using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Utils;
@@ -643,6 +644,7 @@ namespace MatchZy
         }
 
         [ConsoleCommand("css_prac", "Starts practice mode")]
+        [ConsoleCommand("css_tactics", "Starts practice mode")]
         public void OnPracCommand(CCSPlayerController? player, CommandInfo? command)
         {
             if (!IsPlayerAdmin(player, "css_prac", "@css/map", "@custom/prac")) {
@@ -763,6 +765,7 @@ namespace MatchZy
             AddBot(player, false);
         }
 
+        [ConsoleCommand("css_cbot", "Spawns a crouched bot at the player's position")]
         [ConsoleCommand("css_crouchbot", "Spawns a crouched bot at the player's position")]
         public void OnCrouchBotCommand(CCSPlayerController? player, CommandInfo? command)
         {
@@ -827,10 +830,12 @@ namespace MatchZy
         {
             try 
             {
+                if (!IsPlayerValid(botOwner)) return;
                 var playerEntities = Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller");
                 bool unusedBotFound = false;
                 foreach (var tempPlayer in playerEntities)
                 {
+                    if (!IsPlayerValid(tempPlayer)) continue;
                     if (!tempPlayer.IsBot || tempPlayer.IsHLTV) continue;
                     if (tempPlayer.UserId.HasValue)
                     {
@@ -847,7 +852,7 @@ namespace MatchZy
                         }
                         pracUsedBots[tempPlayer.UserId.Value] = new Dictionary<string, object>();
 
-                        Position botOwnerPosition = new Position(botOwner.PlayerPawn.Value.CBodyComponent?.SceneNode?.AbsOrigin, botOwner.PlayerPawn.Value.CBodyComponent?.SceneNode?.AbsRotation);
+                        Position botOwnerPosition = new Position(botOwner.PlayerPawn.Value!.CBodyComponent?.SceneNode?.AbsOrigin!, botOwner.PlayerPawn.Value!.CBodyComponent?.SceneNode?.AbsRotation!);
                         // Add key-value pairs to the inner dictionary
                         pracUsedBots[tempPlayer.UserId.Value]["controller"] = tempPlayer;
                         pracUsedBots[tempPlayer.UserId.Value]["position"] = botOwnerPosition;
@@ -856,12 +861,12 @@ namespace MatchZy
 
                         if (crouch)
                         {
-                            CCSPlayer_MovementServices movementService = new(tempPlayer.PlayerPawn.Value.MovementServices!.Handle);
+                            CCSPlayer_MovementServices movementService = new(tempPlayer.PlayerPawn.Value!.MovementServices!.Handle);
                             AddTimer(0.1f, () => movementService.DuckAmount = 1);
-                            AddTimer(0.2f, () => tempPlayer.PlayerPawn.Value.Bot.IsCrouching = true);
+                            AddTimer(0.2f, () => tempPlayer.PlayerPawn.Value!.Bot!.IsCrouching = true);
                         }
 
-                        tempPlayer.PlayerPawn.Value.Teleport(botOwnerPosition.PlayerPosition, botOwnerPosition.PlayerAngle, new Vector(0, 0, 0));
+                        tempPlayer.PlayerPawn.Value!.Teleport(botOwnerPosition.PlayerPosition, botOwnerPosition.PlayerAngle, new Vector(0, 0, 0));
                         TemporarilyDisableCollisions(botOwner, tempPlayer);
                         unusedBotFound = true;
                     }
@@ -943,7 +948,7 @@ namespace MatchZy
 
             if (matchStarted && (matchzyTeam1.coach == player || matchzyTeam2.coach == player))
             {
-                player.InGameMoneyServices!.Account = 0;
+                player!.InGameMoneyServices!.Account = 0;
 
                 Utilities.SetStateChanged(player, "CCSPlayerController", "m_pInGameMoneyServices");
                 player.PlayerPawn.Value!.MoveType = MoveType_t.MOVETYPE_NONE;
@@ -953,7 +958,7 @@ namespace MatchZy
             }
 
             // Respawing a bot where it was actually spawned during practice session
-            if (isPractice && player.IsValid && player.IsBot && player.UserId.HasValue)
+            if (isPractice && player!.IsValid && player.IsBot && player.UserId.HasValue)
             {
                 if (pracUsedBots.ContainsKey(player.UserId.Value))
                 {
@@ -966,7 +971,7 @@ namespace MatchZy
                             player.PlayerPawn.Value!.Flags |= (uint)PlayerFlags.FL_DUCKING;
                             CCSPlayer_MovementServices movementService = new(player.PlayerPawn.Value.MovementServices!.Handle);
                             AddTimer(0.1f, () => movementService.DuckAmount = 1);
-                            AddTimer(0.2f, () => player.PlayerPawn.Value.Bot.IsCrouching = true);
+                            AddTimer(0.2f, () => player.PlayerPawn.Value.Bot!.IsCrouching = true);
                         }
                         CCSPlayerController? botOwner = (CCSPlayerController)pracUsedBots[player.UserId.Value]["owner"];
                         if (botOwner != null && botOwner.IsValid && botOwner.PlayerPawn != null && botOwner.PlayerPawn.IsValid) {
@@ -1080,6 +1085,7 @@ namespace MatchZy
             SideSwitchCommand(player, CsTeam.None);
         }
 
+        [ConsoleCommand("css_noblind", "Disables flash effect for the player")]
         [ConsoleCommand("css_noflash", "Disables flash effect for the player")]
         public void OnNoFlashCommand(CCSPlayerController? player, CommandInfo? command) {
             if (!isPractice || player == null || player.UserId == null) return;
@@ -1487,6 +1493,46 @@ namespace MatchZy
             if (!isPractice || !IsPlayerValid(player)) return;
 
             HandleLoadNadeCommand(player, command.ArgString);
+        }
+
+        [ConsoleCommand("css_solid", "Toggles mp_solid_teammates in practice mode")]
+        public void OnSolidCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+
+            int solidValue = ConVar.Find("mp_solid_teammates")!.GetPrimitiveValue<int>();
+
+            int newSolidValue = (solidValue == 0 || solidValue == 1) ? 2 : 1;
+
+            ConVar.Find("mp_solid_teammates")!.SetValue(newSolidValue);
+
+            PrintToAllChat($"mp_solid_teammates is now set to {newSolidValue}");
+        }
+
+        [ConsoleCommand("css_impacts", "Toggles sv_showimpacts in practice mode")]
+        public void OnImpactsCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+
+            int impactValue = ConVar.Find("sv_showimpacts")!.GetPrimitiveValue<int>();
+
+            int newImpactValue = 1 - impactValue;
+
+            Server.ExecuteCommand($"sv_showimpacts {newImpactValue}");
+
+            PrintToAllChat($"sv_showimpacts is now set to {newImpactValue}");
+        }
+
+        [ConsoleCommand("css_traj", "Toggles sv_grenade_trajectory_prac_pipreview in practice mode")]
+        public void OnTrajCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+
+            bool trajValue = ConVar.Find("sv_grenade_trajectory_prac_pipreview")!.GetPrimitiveValue<bool>();
+
+            Server.ExecuteCommand($"sv_grenade_trajectory_prac_pipreview {!trajValue}");
+
+            PrintToAllChat($"sv_grenade_trajectory_prac_pipreview is now set to {!trajValue}");
         }
 
         // Todo: Implement timer2 when we have OnPlayerRunCmd in CS#. Using OnTick would be its alternative, but it would be very expensive and not worth it.
