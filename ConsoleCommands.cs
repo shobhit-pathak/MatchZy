@@ -69,6 +69,7 @@ namespace MatchZy
         }
 
         [ConsoleCommand("css_unready", "Marks the player unready")]
+        [ConsoleCommand("css_notready", "Marks the player unready")]
         public void OnPlayerUnReady(CCSPlayerController? player, CommandInfo? command) {
             if (player == null) return;
             Log($"[!unready command] {player.UserId}");
@@ -326,6 +327,7 @@ namespace MatchZy
 
         [ConsoleCommand("css_endmatch", "Ends and resets the current match")]
         [ConsoleCommand("get5_endmatch", "Ends and resets the current match")]
+        [ConsoleCommand("css_forceend", "Ends and resets the current match")]
         public void OnEndMatchCommand(CCSPlayerController? player, CommandInfo? command) {
             if (IsPlayerAdmin(player, "css_endmatch", "@css/config")) {
                 if (!isPractice) {
