@@ -1,8 +1,8 @@
 # Usage Commands
 Most of the commands can also be used using ! prefix instead of . (like !ready)
 
-- `.ready` Marks the player ready
-- `.unready` Marks the player unready
+- `.ready` Marks the player ready (Alias: `.r`)
+- `.unready` Marks the player unready (Alias: `.ur`, `.notready`)
 - `.forceready` Force-readies the player's team (Only works when using Match setup using JSON/Get5)
 - `.pause` Pauses the match in freezetime (Tactical or normal pause, depends on `matchzy_use_pause_command_for_tactical_pause`).
 - `.tech` Pauses the match in freezetime.
@@ -26,8 +26,8 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.fas` / `.watchme` Forces all players into spectator except the player who called this command
 - `.nobots` Removes all the bots
 - `.clear` Clears all the active smokes, molotoves and incendiaries
-- `.fastforward` Fastforwards the server time to 20 seconds
-- `.noflash` Toggles immunity for flashbang (it will still blind others with noflash disabled)
+- `.fastforward` Fastforwards the server time to 20 seconds (Alias: `.ff`)
+- `.noflash` Toggles immunity for flashbang (it will still blind others with noflash disabled. Alias: `.noblind`)
 - `.dryrun` Turns on dry-run mode
 - `.god` Turns on god mode
 - `.savenade <name> <optional description>` Saves a lineup
@@ -55,9 +55,9 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 # Admin Commands
 
 - `.start` Force starts a match.
-- `.restart` Force restarts/resets a match.
-- `.forcepause` Pauses the match as an admin (Players cannot unpause the admin-paused match). (`.fp` for shorter command)
-- `.forceunpause` Force unpauses the match. (`.fup` for shorter command)
+- `.restart` Force restarts/resets a match. (Alias: `.endmatch`, `.forceend`)
+- `.forcepause` Pauses the match as an admin (Players cannot unpause the admin-paused match). (Alias: `.fp`)
+- `.forceunpause` Force unpauses the match. (Alias: `.fup`)
 - `.restore <round>` Restores the backup of provided round number.
 - `.skipveto` / `.sv` Skips the current veto phase.
 - `.roundknife` / `.rk` Toggles the knife round. If disabled, match will directly go from Warmup phase to Live phase.
