@@ -1,5 +1,13 @@
 # MatchZy Changelog
 
+# 0.7.9
+
+#### May 06, 2024
+
+- Updated `pt-BR` and `ru` translations.
+- Added `.notready` alias for `.unready`.
+- Added `.forceend` alias for `.restart`/`.endmatch`.
+
 # 0.7.8
 
 #### May 02, 2024

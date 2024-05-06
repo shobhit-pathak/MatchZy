@@ -13,7 +13,7 @@ namespace MatchZy
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.7.8";
+        public override string ModuleVersion => "0.7.9";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -109,6 +109,7 @@ namespace MatchZy
                 { ".r", OnPlayerReady },
                 { ".forceready", OnForceReadyCommandCommand },
                 { ".unready", OnPlayerUnReady },
+		{ ".notready", OnPlayerUnReady },
                 { ".ur", OnPlayerUnReady },
                 { ".stay", OnTeamStay },
                 { ".switch", OnTeamSwitch },
@@ -133,6 +134,7 @@ namespace MatchZy
                 { ".sv", OnSkipVetoCommand },
                 { ".restart", OnRestartMatchCommand },
                 { ".endmatch", OnEndMatchCommand },
+                { ".forceend", OnEndMatchCommand },
                 { ".reloadmap", OnMapReloadCommand },
                 { ".settings", OnMatchSettingsCommand },
                 { ".whitelist", OnWLCommand },
