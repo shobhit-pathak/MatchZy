@@ -134,7 +134,7 @@ namespace MatchZy
                 { ".sv", OnSkipVetoCommand },
                 { ".restart", OnRestartMatchCommand },
                 { ".endmatch", OnEndMatchCommand },
-		        { ".forceend", OnEndMatchCommand },
+                { ".forceend", OnEndMatchCommand },
                 { ".reloadmap", OnMapReloadCommand },
                 { ".settings", OnMatchSettingsCommand },
                 { ".whitelist", OnWLCommand },
