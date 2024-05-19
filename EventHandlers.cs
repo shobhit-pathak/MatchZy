@@ -234,6 +234,12 @@ public partial class MatchZy
                 }
 
                 lastGrenadeThrownTime[(int)projectile.Index] = DateTime.Now;
+                if (smokeColorEnabled.Value && nadeType == "smoke")
+                {
+                    CSmokeGrenadeProjectile smokeProjectile = new(entity.Handle);
+                    smokeProjectile.SmokeColor.X = GetPlayerTeammateColor(player).R;
+                    smokeProjectile.SmokeColor.Y = GetPlayerTeammateColor(player).G;
+                }
             });
         }
         catch (Exception e)

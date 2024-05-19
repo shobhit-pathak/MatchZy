@@ -111,6 +111,9 @@ Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <b
 ####`matchzy_max_saved_last_grenades`
 :   Maximum number of grenade history that may be saved per-map, per-client. Set to 0 to disable the limit and allow unlimited grenades to be stored.<br>**`Default: 512`**
 
+####`matchzy_smoke_color_enabled`
+:   If enabled, the smoke's color will be changed to player's team color (player's color seen in the radar) .<br>**`Default: false`**
+
 ####`matchzy_everyone_is_admin`
 :   If set to true, everyone will be granted admin permissions for MatchZy.<br>**`Default: false`**
 
@@ -164,7 +167,7 @@ There is a scope of improvement here, like having the match score in the CSV fil
 ## Events and HTTP Logging
 
 ####`matchzy_remote_log_url`
-:   The URL to send all [events](../events_and_forwards) to (POST request). Set to empty string to disable.<br>**`Default: ""`**<br>Usage: `matchzy_remote_log_url "url"`<br>Alias: `get5_remote_log_url`
+:   The URL to send all [events](../events_and_forwards) to (POST request). Set to empty string to disable. [OpenAPI Doc for the events](events.html)<br>**`Default: ""`**<br>Usage: `matchzy_remote_log_url "url"`<br>Alias: `get5_remote_log_url`
 
 ####`matchzy_remote_log_header_key`
 :   If this and matchzy_remote_log_header_value are defined, this header name and value will be added in your [HTTP Post requests'](../events_and_forwards) header.<br>**`Default: ""`**<br>Usage: `matchzy_remote_log_header_key "Authorization"`<br>Alias: `get5_remote_log_header_key`

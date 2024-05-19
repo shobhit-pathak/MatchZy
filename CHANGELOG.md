@@ -1,5 +1,18 @@
 # MatchZy Changelog
 
+# 0.7.10
+
+#### May 19, 2024
+
+- Added `matchzy_smoke_color_enabled` config convar for practice mode which changes the smoke's color to player's team color (player's color seen in the radar)
+- Added `.bestspawn` command which teleports you to your team's closest spawn from your current position
+- Added `.worstspawn` command which teleports you to your team's furthest spawn from your current position
+- Added `.bestctspawn` command which teleports you to CT team's closest spawn from your current position
+- Added `.worstctspawn` command which teleports you to CT team's furthest spawn from your current position
+- Added `.besttspawn` command which teleports you to T team's closest spawn from your current position
+- Added `.worsttspawn` command which teleports you to T team's furthest spawn from your current position
+- Practice mode will no longer have `warmup` help text.
+
 # 0.7.9
 
 #### May 06, 2024

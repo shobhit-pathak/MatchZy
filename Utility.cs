@@ -10,6 +10,7 @@ using CounterStrikeSharp.API.Modules.Admin;
 using System.Text.RegularExpressions;
 using System.Text;
 using Newtonsoft.Json.Linq;
+using System.Drawing;
 
 
 namespace MatchZy
@@ -1578,6 +1579,19 @@ namespace MatchZy
                 player.PlayerPawn.IsValid &&
                 player.PlayerPawn.Value != null
             );
+        }
+
+        public static Color GetPlayerTeammateColor(CCSPlayerController playerController)
+        {
+            return playerController.CompTeammateColor switch
+            {
+                1 => Color.FromArgb(50, 255, 0),
+                2 => Color.FromArgb(255, 255, 0),
+                3 => Color.FromArgb(255, 132, 0),
+                4 => Color.FromArgb(255, 0, 255),
+                0 => Color.FromArgb(0, 187, 255),
+                _ => Color.Red,
+            };
         }
     }
 }

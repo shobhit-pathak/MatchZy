@@ -18,6 +18,12 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.spawn <number>` Spawns to the provided competitive spawn number of same team
 - `.ctspawn <number>` Spawns to the provided competitive spawn number of CT
 - `.tspawn <number>` Spawns to the provided competitive spawn number of T
+- `.bestspawn` Teleports you to your team's closest spawn from your current position
+- `.worstspawn` Teleports you to your team's furthest spawn from your current position
+- `.bestctspawn` Teleports you to CT team's closest spawn from your current position
+- `.worstctspawn` Teleports you to CT team's furthest spawn from your current position
+- `.besttspawn` Teleports you to T team's closest spawn from your current position
+- `.worsttspawn` Teleports you to T team's furthest spawn from your current position
 - `.bot` Adds a bot on user's current position
 - `.crouchbot` Adds a crouched bot on user's current position (Alias: `.cbot`)
 - `.boost` Adds a bot on current position and boosts player on it
