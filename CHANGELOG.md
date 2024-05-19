@@ -1,5 +1,14 @@
 # MatchZy Changelog
 
+# 0.7.11
+
+#### May 19, 2024
+
+- Improved `.help` command with better readability and updated commands
+- Fixed overtime getting automatically enabled even if turned off in `live.cfg`
+- Added `matchzy_show_credits_on_match_start` config convar to toggle 'MatchZy Plugin by WD-' message on match start.
+- Added gradient while printing `KNIFE!` and `LIVE!` message.
+
 # 0.7.10
 
 #### May 19, 2024

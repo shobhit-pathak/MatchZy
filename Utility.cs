@@ -199,8 +199,8 @@ namespace MatchZy
                 Server.ExecuteCommand("mp_ct_default_secondary \"\";mp_free_armor 1;mp_freezetime 10;mp_give_player_c4 0;mp_maxmoney 0;mp_respawn_immunitytime 0;mp_respawn_on_death_ct 0;mp_respawn_on_death_t 0;mp_roundtime 1.92;mp_roundtime_defuse 1.92;mp_roundtime_hostage 1.92;mp_t_default_secondary \"\";mp_round_restart_delay 3;mp_team_intro_time 0;mp_restartgame 1;mp_warmup_end;");
             }
 
-            PrintToAllChat($"{ChatColors.Green}KNIFE!");
-            PrintToAllChat($"{ChatColors.Green}KNIFE!");
+            PrintToAllChat($"{ChatColors.Olive}KNIFE!");
+            PrintToAllChat($"{ChatColors.Lime}KNIFE!");
             PrintToAllChat($"{ChatColors.Green}KNIFE!");
         }
 
@@ -240,19 +240,13 @@ namespace MatchZy
             // This is to reload the map once it is over so that all flags are reset accordingly
             Server.ExecuteCommand("mp_match_end_restart true");
 
-            PrintToAllChat($"{ChatColors.Green}LIVE!");
-            PrintToAllChat($"{ChatColors.Green}LIVE!");
+            PrintToAllChat($"{ChatColors.Olive}LIVE!");
+            PrintToAllChat($"{ChatColors.Lime}LIVE!");
             PrintToAllChat($"{ChatColors.Green}LIVE!");
 
             // Adding timer here to make sure that CFG execution is completed till then
             AddTimer(1, () => {
-                if (isPlayOutEnabled) {
-                    Server.ExecuteCommand("mp_overtime_enable 0");
-                    Server.ExecuteCommand("mp_match_can_clinch false");
-                } else {
-                    Server.ExecuteCommand("mp_match_can_clinch true");
-                    Server.ExecuteCommand("mp_overtime_enable 1");
-                }
+                HandlePlayoutConfig();
                 ExecuteChangedConvars();
             });
 
@@ -636,7 +630,10 @@ namespace MatchZy
             {
                 StartLive();
             }
-            Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}MatchZy{ChatColors.Default} Plugin by {ChatColors.Green}WD-{ChatColors.Default}");
+            if (showCreditsOnMatchStart.Value)
+            {
+                Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}MatchZy{ChatColors.Default} Plugin by {ChatColors.Green}WD-{ChatColors.Default}");
+            }
         }
 
         public void HandleClanTags() {
@@ -1180,28 +1177,35 @@ namespace MatchZy
 
         private void SendAvailableCommandsMessage(CCSPlayerController? player)
         {
+            if (!IsPlayerValid(player)) return;
             if (isPractice)
             {
-                ReplyToUserCommand(player, "Available commands: .spawn, .ctspawn, .tspawn, .bot, .nobots, .god, .clear, .fastforward, .dryrun");
-                ReplyToUserCommand(player, ".loadnade <name>, .savenade <name>, .importnade <code> .listnades <optional filter>");
-                ReplyToUserCommand(player, ".ct, .t, .spec, .fas");
-                ReplyToUserCommand(player, ".rethrow, .throwindex <index>, .lastindex, .last, .back <number>, .delay <number>");
+                ReplyToUserCommand(player, $"{ChatColors.Green}Available commands: {ChatColors.Default}");
+                player!.PrintToChat($" {ChatColors.Green}Spawns: {ChatColors.Default}.spawn, .ctspawn, .tspawn, .bestspawn, .worstspawn");
+                player.PrintToChat($" {ChatColors.Green}Bots: {ChatColors.Default}.bot, .nobots, .crouchbot, .boost, .crouchboost");
+                player.PrintToChat($" {ChatColors.Green}Nades: {ChatColors.Default}.loadnade, .savenade, .importnade, .listnades");
+                player.PrintToChat($" {ChatColors.Green}Nade Throw: {ChatColors.Default}.rethrow, .throwindex <index>, .lastindex, .delay <number>");
+                player.PrintToChat($" {ChatColors.Green}Utility & Toggles: {ChatColors.Default}.clear, .fastforward, .last, .back, .solid, .impacts, .traj");
+                player.PrintToChat($" {ChatColors.Green}Sides & Others: {ChatColors.Default}.ct, .t, .spec, .fas, .god, .dryrun, .break, .exitprac");
                 return;
             }
             if (readyAvailable)
             {
-                ReplyToUserCommand(player, "Available commands: !ready, !unready");
+                ReplyToUserCommand(player, $"{ChatColors.Green}Available commands: {ChatColors.Default}");
+                player!.PrintToChat($" {ChatColors.Green}Ready/Unready: {ChatColors.Default}.ready, .unready");
                 return;
             }
             if (isSideSelectionPhase)
             {
-                ReplyToUserCommand(player, "Available commands: !stay, !switch");
+                ReplyToUserCommand(player, $"{ChatColors.Green}Available commands: {ChatColors.Default}");
+                player!.PrintToChat($" {ChatColors.Green}Side Selection: {ChatColors.Default}.stay, .switch");
                 return;
             }
             if (matchStarted)
             {
-                string stopCommandMessage = isStopCommandAvailable ? ", !stop" : "";
-                ReplyToUserCommand(player, $"Available commands: !pause, !unpause, !tac, !tech{stopCommandMessage}");
+                string stopCommandMessage = isStopCommandAvailable ? ", .stop" : "";
+                ReplyToUserCommand(player, $"{ChatColors.Green}Available commands: {ChatColors.Default}");
+                player!.PrintToChat($" {ChatColors.Green}Pause/Restore: {ChatColors.Default}.pause, .unpause, .tac, .tech{stopCommandMessage}");
                 return;
             }
         }
@@ -1592,6 +1596,19 @@ namespace MatchZy
                 0 => Color.FromArgb(0, 187, 255),
                 _ => Color.Red,
             };
+        }
+
+        public static string? GetConvarValueFromCFGFile(string filePath, string convarName)
+        {
+            var fileContent = File.ReadAllText(filePath);
+
+            string pattern = @$"^{convarName}\s+(.+)$";
+
+            Regex regex = new(pattern, RegexOptions.Multiline);
+
+            Match match = regex.Match(fileContent);
+            string? value = match.Success ? match.Groups[1].Value : null;
+            return value;
         }
     }
 }

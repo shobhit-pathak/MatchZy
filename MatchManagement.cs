@@ -607,5 +607,19 @@ namespace MatchZy
             });
         }
 
+        public void HandlePlayoutConfig()
+        {
+            if (isPlayOutEnabled) {
+                Server.ExecuteCommand("mp_overtime_enable 0");
+                Server.ExecuteCommand("mp_match_can_clinch false");
+            } else {
+                var absoluteCfgPath = Path.Join(Server.GameDirectory + "/csgo/cfg", GetGameMode() == 1 ? liveCfgPath : liveWingmanCfgPath);
+                string? matchCanClinch = GetConvarValueFromCFGFile(absoluteCfgPath, "mp_match_can_clinch");
+                string? overtimeEnabled = GetConvarValueFromCFGFile(absoluteCfgPath, "mp_overtime_enable");
+                Server.ExecuteCommand($"mp_match_can_clinch {matchCanClinch ?? "1"}");
+                Server.ExecuteCommand($"mp_overtime_enable {overtimeEnabled ?? "1"}");
+            }
+        }
+
     }
 }

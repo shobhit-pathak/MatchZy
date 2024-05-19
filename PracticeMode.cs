@@ -106,11 +106,12 @@ namespace MatchZy
             }
             GetSpawns();
             PrintToAllChat($"Practice mode loaded!");
-            PrintToAllChat($"Available commands:");
-            PrintToAllChat($".spawn, .ctspawn, .tspawn, .bot, .nobots, .dryrun, .noflash, .break, .exitprac");
-            PrintToAllChat($".loadnade <name>, .savenade <name>, .importnade <code>, .listnades <optional filter>");
-            PrintToAllChat($".listnades <optional filter>, .delnade <name>, .globalnades");
-            PrintToAllChat($".rethrow, .throwindex <index>, .lastindex, .last, .back <number>, .delay <number>");
+            Server.PrintToChatAll($" {ChatColors.Green}Spawns: {ChatColors.Default}.spawn, .ctspawn, .tspawn, .bestspawn, .worstspawn");
+            Server.PrintToChatAll($" {ChatColors.Green}Bots: {ChatColors.Default}.bot, .nobots, .crouchbot, .boost, .crouchboost");
+            Server.PrintToChatAll($" {ChatColors.Green}Nades: {ChatColors.Default}.loadnade, .savenade, .importnade, .listnades");
+            Server.PrintToChatAll($" {ChatColors.Green}Nade Throw: {ChatColors.Default}.rethrow, .throwindex <index>, .lastindex, .delay <number>");
+            Server.PrintToChatAll($" {ChatColors.Green}Utility & Toggles: {ChatColors.Default}.clear, .fastforward, .last, .back, .solid, .impacts, .traj");
+            Server.PrintToChatAll($" {ChatColors.Green}Sides & Others: {ChatColors.Default}.ct, .t, .spec, .fas, .god, .dryrun, .break, .exitprac");
         }
 
         public void GetSpawns()
