@@ -1535,6 +1535,88 @@ namespace MatchZy
             PrintToAllChat($"sv_grenade_trajectory_prac_pipreview is now set to {!trajValue}");
         }
 
+        [ConsoleCommand("css_bestspawn", "Teleports you to your team's closest spawn from your current position")]
+        public void OnBestSpawnCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+            TeleportPlayerToBestSpawn(player!, player!.TeamNum);
+        }
+
+        [ConsoleCommand("css_worstspawn", "Teleports you to your team's furthest spawn from your current position")]
+        public void OnWorstSpawnCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+            TeleportPlayerToWorstSpawn(player!, player!.TeamNum);
+        }
+
+        [ConsoleCommand("css_bestctspawn", "Teleports you to CT team's closest spawn from your current position")]
+        public void OnBestCTSpawnCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+            TeleportPlayerToBestSpawn(player!, (byte)CsTeam.CounterTerrorist);
+        }
+
+        [ConsoleCommand("css_worstctspawn", "Teleports you to CT team's furthest spawn from your current position")]
+        public void OnWorstCTSpawnCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+            TeleportPlayerToWorstSpawn(player!, (byte)CsTeam.CounterTerrorist);
+        }
+
+        [ConsoleCommand("css_besttspawn", "Teleports you to T team's closest spawn from your current position")]
+        public void OnBestTSpawnCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+            TeleportPlayerToBestSpawn(player!, (byte)CsTeam.Terrorist);
+        }
+
+        [ConsoleCommand("css_worsttspawn", "Teleports you to T team's furthest spawn from your current position")]
+        public void OnWorstTSpawnCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+            TeleportPlayerToWorstSpawn(player!, (byte)CsTeam.Terrorist);
+        }
+
+        public void TeleportPlayerToBestSpawn(CCSPlayerController player, byte teamNum)
+        {
+            if (!spawnsData.TryGetValue(teamNum, out List<Position>? teamSpawns)) return;
+            Vector playerPosition = player!.PlayerPawn!.Value!.CBodyComponent!.SceneNode!.AbsOrigin;
+            int closestIndex = -1;
+            double minDistance = double.MaxValue;
+            for (int index = 0; index < teamSpawns.Count; index++)
+            {
+                Vector spawnPosition = teamSpawns[index].PlayerPosition;
+                Vector diff = playerPosition - spawnPosition;
+                float distance = diff.Length();
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    closestIndex = index;
+                }
+            }
+            player!.PlayerPawn.Value!.Teleport(teamSpawns[closestIndex].PlayerPosition, teamSpawns[closestIndex].PlayerAngle, new Vector(0, 0, 0));
+        }
+
+        public void TeleportPlayerToWorstSpawn(CCSPlayerController player, byte teamNum)
+        {
+            if (!spawnsData.TryGetValue(teamNum, out List<Position>? teamSpawns)) return;
+            Vector playerPosition = player!.PlayerPawn!.Value!.CBodyComponent!.SceneNode!.AbsOrigin;
+            int farthestIndex = -1;
+            double maxDistance = double.MinValue;
+            for (int index = 0; index < teamSpawns.Count; index++)
+            {
+                Vector spawnPosition = teamSpawns[index].PlayerPosition;
+                Vector diff = playerPosition - spawnPosition;
+                float distance = diff.Length();
+                if (distance > maxDistance)
+                {
+                    maxDistance = distance;
+                    farthestIndex = index;
+                }
+            }
+            player!.PlayerPawn.Value!.Teleport(teamSpawns[farthestIndex].PlayerPosition, teamSpawns[farthestIndex].PlayerAngle, new Vector(0, 0, 0));
+        }
+
         // Todo: Implement timer2 when we have OnPlayerRunCmd in CS#. Using OnTick would be its alternative, but it would be very expensive and not worth it.
         // [ConsoleCommand("css_timer2", "Starts a timer, use .timer2 again to stop it.")]
         // public void OnTimer2Command(CCSPlayerController? player, CommandInfo command)

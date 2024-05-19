@@ -13,7 +13,7 @@ namespace MatchZy
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.7.9";
+        public override string ModuleVersion => "0.7.10";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -109,7 +109,7 @@ namespace MatchZy
                 { ".r", OnPlayerReady },
                 { ".forceready", OnForceReadyCommandCommand },
                 { ".unready", OnPlayerUnReady },
-		{ ".notready", OnPlayerUnReady },
+                { ".notready", OnPlayerUnReady },
                 { ".ur", OnPlayerUnReady },
                 { ".stay", OnTeamStay },
                 { ".switch", OnTeamSwitch },
@@ -186,7 +186,13 @@ namespace MatchZy
                 { ".throwmolotov", OnRethrowMolotovCommand },
                 { ".rethrowmolotov", OnRethrowMolotovCommand },
                 { ".timer", OnTimerCommand },
-                { ".lastindex", OnLastIndexCommand }
+                { ".lastindex", OnLastIndexCommand },
+                { ".bestspawn", OnBestSpawnCommand },
+                { ".worstspawn", OnWorstSpawnCommand },
+                { ".bestctspawn", OnBestCTSpawnCommand },
+                { ".worstctspawn", OnWorstCTSpawnCommand },
+                { ".besttspawn", OnBestTSpawnCommand },
+                { ".worsttspawn", OnWorstTSpawnCommand }
             };
 
             RegisterEventHandler<EventPlayerConnectFull>(EventPlayerConnectFullHandler);
