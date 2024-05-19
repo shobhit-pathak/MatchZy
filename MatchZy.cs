@@ -156,6 +156,7 @@ namespace MatchZy
                 { ".solid", OnSolidCommand },
                 { ".impacts", OnImpactsCommand },
                 { ".traj", OnTrajCommand },
+                { ".pip", OnTrajCommand },
                 { ".god", OnGodCommand },
                 { ".ff", OnFastForwardCommand },
                 { ".fastforward", OnFastForwardCommand },

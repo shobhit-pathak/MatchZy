@@ -8,6 +8,7 @@
 - Fixed overtime getting automatically enabled even if turned off in `live.cfg`
 - Added `matchzy_show_credits_on_match_start` config convar to toggle 'MatchZy Plugin by WD-' message on match start.
 - Added gradient while printing `KNIFE!` and `LIVE!` message.
+- Added `.pip` alias for `.traj` command to toggle `sv_grenade_trajectory_prac_pipreview` in practice mode.
 
 # 0.7.10
 
