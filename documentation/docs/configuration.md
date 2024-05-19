@@ -117,6 +117,9 @@ Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <b
 ####`matchzy_everyone_is_admin`
 :   If set to true, everyone will be granted admin permissions for MatchZy.<br>**`Default: false`**
 
+####`matchzy_show_credits_on_match_start`
+:   Whether to show 'MatchZy Plugin by WD-' message on match start.<br>**`Default: true`**
+
 ### Configuring Warmup/Knife/Live/Prac CFGs
 Again, inside `csgo/cfg/MatchZy`, files named `warmup.cfg`, `knife.cfg`, `live.cfg` and `prac.cfg` should be present. These configs are executed when Warmup, Knife, Live and Practice Mode is started respectively.
 

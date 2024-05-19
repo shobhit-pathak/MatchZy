@@ -13,7 +13,7 @@ namespace MatchZy
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.7.10";
+        public override string ModuleVersion => "0.7.11";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -156,6 +156,7 @@ namespace MatchZy
                 { ".solid", OnSolidCommand },
                 { ".impacts", OnImpactsCommand },
                 { ".traj", OnTrajCommand },
+                { ".pip", OnTrajCommand },
                 { ".god", OnGodCommand },
                 { ".ff", OnFastForwardCommand },
                 { ".fastforward", OnFastForwardCommand },

@@ -499,14 +499,8 @@ namespace MatchZy
                     // player.PrintToChat($"{chatPrefix} Playout is now {ChatColors.Green}{playoutStatus}{ChatColors.Default}!");
                     PrintToPlayerChat(player, Localizer["matchzy.cc.playout", playoutStatus]);
                 }
-                
-                if (isPlayOutEnabled) {
-                    Server.ExecuteCommand("mp_overtime_enable 0");
-                    Server.ExecuteCommand("mp_match_can_clinch false");
-                } else {
-                    Server.ExecuteCommand("mp_match_can_clinch true");
-                    Server.ExecuteCommand("mp_overtime_enable 1");
-                }
+
+                HandlePlayoutConfig();
                 
             } else {
                 SendPlayerNotAdminMessage(player);
