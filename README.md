@@ -5,7 +5,7 @@ MatchZy is a plugin for CS2 (Counter Strike 2) for running and managing practice
 
 [![Discord](https://discordapp.com/api/guilds/1169549878490304574/widget.png?style=banner2)](https://discord.gg/2zvhy9m7qg)
 
-## Feature Highligts:
+## Feature Highlights:
 
 * Pug mode with simple commands to manage!
 * Support of [Get5 Panel!](https://shobhit-pathak.github.io/MatchZy/get5/)
