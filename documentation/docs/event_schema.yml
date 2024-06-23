@@ -241,9 +241,9 @@ components:
         - type: object
           properties:
             matchid:
-              type: string
+              type: integer
               description: The ID of the match.
-              example: '14272'
+              example: 14272
     MatchZyMatchTeamEvent:
       allOf:
         - "$ref": "#/components/schemas/MatchZyMatchEvent"
