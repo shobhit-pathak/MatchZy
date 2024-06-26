@@ -15,7 +15,7 @@ public class MatchZyEvent
 public class MatchZyMatchEvent : MatchZyEvent
 {
     [JsonPropertyName("matchid")]
-    public required string MatchId { get; init; }
+    public required long MatchId { get; init; }
 
     protected MatchZyMatchEvent(string eventName) : base(eventName)
     {

@@ -252,7 +252,7 @@ namespace MatchZy
 
             var goingLiveEvent = new GoingLiveEvent
             {
-                MatchId = liveMatchId.ToString(),
+                MatchId = liveMatchId,
                 MapNumber = matchConfig.CurrentMapNumber,
             };
 
@@ -693,7 +693,7 @@ namespace MatchZy
 
             var mapResultEvent = new MapResultEvent
             {
-                MatchId = liveMatchId.ToString(),
+                MatchId = liveMatchId,
                 MapNumber = currentMapNumber,
                 Winner = new Winner(t1score > t2score && reverseTeamSides["CT"] == matchzyTeam1 ? "3" : "2", team1SeriesScore > team2SeriesScore ? "team1" : "team2"),
                 StatsTeam1 = new MatchZyStatsTeam(matchzyTeam1.id, matchzyTeam1.teamName, team1SeriesScore, t1score, 0, 0, new List<StatsPlayer>()),
@@ -904,7 +904,7 @@ namespace MatchZy
 
                     var roundEndEvent = new MatchZyRoundEndedEvent
                     {
-                        MatchId = liveMatchId.ToString(),
+                        MatchId = liveMatchId,
                         MapNumber = matchConfig.CurrentMapNumber,
                         RoundNumber = GetRoundNumer(),
                         Reason = @event.Reason,
