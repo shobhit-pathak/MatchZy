@@ -140,7 +140,7 @@ namespace MatchZy
                 
                 var demoUploadedEvent = new MatchZyDemoUploadedEvent
                 {
-                    MatchId = liveMatchId,
+                    MatchId = matchId,
                     MapNumber = mapNumber,
                     FileName = Path.GetFileName(demoPath),
                     Success = response.IsSuccessStatusCode
