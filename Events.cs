@@ -232,7 +232,7 @@ public class MatchZyDemoUploadedEvent : MatchZyMatchEvent
     [JsonPropertyName("success")]
     public bool Success { get; set; }
 
-    public MatchZyDemoUploadedEvent() : base("demo_uploaded")
+    public MatchZyDemoUploadedEvent() : base("demo_upload_ended")
     {
     }
 }
