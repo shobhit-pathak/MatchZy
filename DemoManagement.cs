@@ -137,16 +137,6 @@ namespace MatchZy
                 {
                     Log($"[UploadDemoAsync ERROR] Failed to upload file. Status code: {response.StatusCode} Response: {await response.Content.ReadAsStringAsync()}");
                 }
-                
-                var demoUploadedEvent = new MatchZyDemoUploadedEvent
-                {
-                    MatchId = liveMatchId,
-                    MapNumber = mapNumber,
-                    FileName = Path.GetFileName(demoPath),
-                    Success = response.IsSuccessStatusCode
-                };
-                await SendEventAsync(demoUploadedEvent);
-
             }
             catch (Exception e)
             {
