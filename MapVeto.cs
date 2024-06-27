@@ -252,7 +252,7 @@ namespace MatchZy
 
             var mapPickedEvent = new MatchZyMapPickedEvent
             {
-                MatchId = liveMatchId.ToString(),
+                MatchId = liveMatchId,
                 MapName = mapRemovedName,
                 MapNumber = matchConfig.Maplist.Count,
                 Team = (matchzyTeam == matchzyTeam1) ? "team1" : "team2",
@@ -282,7 +282,7 @@ namespace MatchZy
 
             var mapMapVetoedEvent = new MatchZyMapVetoedEvent
             {
-                MatchId = liveMatchId.ToString(),
+                MatchId = liveMatchId,
                 MapName = mapRemovedName,
                 Team = (matchzyTeam == matchzyTeam1) ? "team1" : "team2",
             };
@@ -533,7 +533,7 @@ namespace MatchZy
 
             var sidePickedEvent = new MatchZySidePickedEvent
             {
-                MatchId = liveMatchId.ToString(),
+                MatchId = liveMatchId,
                 MapName = mapName,
                 MapNumber = matchConfig.Maplist.Count,
                 Team = (matchzyTeam == matchzyTeam1) ? "team1" : "team2",
