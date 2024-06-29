@@ -55,6 +55,42 @@ namespace MatchZy
         }
     }
 
+    public static class StringSimilarity
+    {
+        // Dice coefficient function
+        public static double DiceCoefficient(string s1, string s2)
+        {
+            var bigrams1 = GetBigrams(s1);
+            var bigrams2 = GetBigrams(s2);
+
+            int intersection = bigrams1.Intersect(bigrams2).Count();
+            return (2.0 * intersection) / (bigrams1.Count + bigrams2.Count);
+        }
+
+        // Get bigrams function
+        private static List<string> GetBigrams(string input)
+        {
+            var bigrams = new List<string>();
+            for (int i = 0; i < input.Length - 1; i++)
+            {
+                bigrams.Add(input.Substring(i, 2));
+            }
+            return bigrams;
+        }
+
+        /// <summary>
+        /// Finds the name from a list of names that is nearest to the input name using the Dice coefficient.
+        /// </summary>
+        /// <param name="inputName">The input name to match.</param>
+        /// <param name="names">The list of names to search from.</param>
+        /// <returns>The nearest matching name from the list.</returns>
+        public static string FindNearestName(string inputName, List<string> names)
+        {
+            string nearestName = names.OrderByDescending(name => DiceCoefficient(inputName, name)).FirstOrDefault() ?? inputName;
+            return nearestName;
+        }
+    }
+
     public partial class MatchZy
     {
         int maxLastGrenadesSavedLimit = 512;
@@ -538,7 +574,7 @@ namespace MatchZy
                         {
                             // Find the nearest matching name
                             var nadeNames = savedNadesDict[currentSteamID].Keys.ToList();
-                            string nearestName = FindNearestName(loadNadeName, nadeNames);
+                            string nearestName = StringSimilarity.FindNearestName(loadNadeName, nadeNames);
 
                             if (savedNadesDict[currentSteamID].ContainsKey(nearestName))
                             {
@@ -625,37 +661,6 @@ namespace MatchZy
                 // ReplyToUserCommand(player, $"Nade not found! Usage: .loadnade <name>");
                 ReplyToUserCommand(player, Localizer["matchzy.pm.loadnadenotfound"]);
             }
-        }
-
-        // TODO Refactor this to a separate class
-        // Dice coefficient function
-        private double DiceCoefficient(string s1, string s2)
-        {
-            var bigrams1 = GetBigrams(s1);
-            var bigrams2 = GetBigrams(s2);
-
-            int intersection = bigrams1.Intersect(bigrams2).Count();
-            return (2.0 * intersection) / (bigrams1.Count + bigrams2.Count);
-        }
-
-        // TODO Refactor this to a separate class
-        // Get bigrams function
-        private List<string> GetBigrams(string input)
-        {
-            var bigrams = new List<string>();
-            for (int i = 0; i < input.Length - 1; i++)
-            {
-                bigrams.Add(input.Substring(i, 2));
-            }
-            return bigrams;
-        }
-
-        // TODO Refactor this to a separate class
-        // Find the nearest name function using Dice coefficient
-        private string FindNearestName(string inputName, List<string> names)
-        {
-            string nearestName = names.OrderByDescending(name => DiceCoefficient(inputName, name)).FirstOrDefault() ?? inputName;
-            return nearestName;
         }
 
         [ConsoleCommand("css_god", "Sets Infinite health for player")]
