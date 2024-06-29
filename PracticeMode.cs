@@ -55,6 +55,42 @@ namespace MatchZy
         }
     }
 
+    public static class StringSimilarity
+    {
+        // Dice coefficient function
+        public static double DiceCoefficient(string s1, string s2)
+        {
+            var bigrams1 = GetBigrams(s1);
+            var bigrams2 = GetBigrams(s2);
+
+            int intersection = bigrams1.Intersect(bigrams2).Count();
+            return (2.0 * intersection) / (bigrams1.Count + bigrams2.Count);
+        }
+
+        // Get bigrams function
+        private static List<string> GetBigrams(string input)
+        {
+            var bigrams = new List<string>();
+            for (int i = 0; i < input.Length - 1; i++)
+            {
+                bigrams.Add(input.Substring(i, 2));
+            }
+            return bigrams;
+        }
+
+        /// <summary>
+        /// Finds the name from a list of names that is nearest to the input name using the Dice coefficient.
+        /// </summary>
+        /// <param name="inputName">The input name to match.</param>
+        /// <param name="names">The list of names to search from.</param>
+        /// <returns>The nearest matching name from the list.</returns>
+        public static string FindNearestName(string inputName, List<string> names)
+        {
+            string nearestName = names.OrderByDescending(name => DiceCoefficient(inputName, name)).FirstOrDefault() ?? inputName;
+            return nearestName;
+        }
+    }
+
     public partial class MatchZy
     {
         int maxLastGrenadesSavedLimit = 512;
@@ -504,7 +540,6 @@ namespace MatchZy
             }
         }
 
-
         private void HandleLoadNadeCommand(CCSPlayerController? player, string loadNadeName)
         {
             if (!isPractice || player == null || !IsPlayerValid(player)) return;
@@ -535,69 +570,76 @@ namespace MatchZy
                     // Check for the lineup in the player's steamID and the fixed steamID
                     foreach (string currentSteamID in new[] { playerSteamID, "default" })
                     {
-                        if (savedNadesDict.ContainsKey(currentSteamID) && savedNadesDict[currentSteamID].ContainsKey(loadNadeName))
+                        if (savedNadesDict.ContainsKey(currentSteamID))
                         {
-                            var lineupInfo = savedNadesDict[currentSteamID][loadNadeName];
+                            // Find the nearest matching name
+                            var nadeNames = savedNadesDict[currentSteamID].Keys.ToList();
+                            string nearestName = StringSimilarity.FindNearestName(loadNadeName, nadeNames);
 
-                            // Check if the lineup contains the "Map" key and if it matches the current map
-                            if (lineupInfo.ContainsKey("Map") && lineupInfo["Map"] == Server.MapName)
+                            if (savedNadesDict[currentSteamID].ContainsKey(nearestName))
                             {
-                                // Extract position and angle from the lineup information
-                                string[] posArray = lineupInfo["LineupPos"].Split(' ');
-                                string[] angArray = lineupInfo["LineupAng"].Split(' ');
+                                var lineupInfo = savedNadesDict[currentSteamID][nearestName];
 
-                                // Parse position and angle
-                                Vector loadedPlayerPos = new Vector(float.Parse(posArray[0]), float.Parse(posArray[1]), float.Parse(posArray[2]));
-                                QAngle loadedPlayerAngle = new QAngle(float.Parse(angArray[0]), float.Parse(angArray[1]), float.Parse(angArray[2]));
-
-                                // Teleport player
-                                player!.PlayerPawn!.Value!.Teleport(loadedPlayerPos, loadedPlayerAngle, new Vector(0, 0, 0));
-
-                                // Change player inv slot
-                                switch (lineupInfo["Type"])
+                                // Check if the lineup contains the "Map" key and if it matches the current map
+                                if (lineupInfo.ContainsKey("Map") && lineupInfo["Map"] == Server.MapName)
                                 {
-                                    case "Flash":
-                                        player.ExecuteClientCommand("slot7");
-                                        break;
-                                    case "Smoke":
-                                        player.ExecuteClientCommand("slot8");
-                                        break;
-                                    case "HE":
-                                        player.ExecuteClientCommand("slot6");
-                                        break;
-                                    case "Decoy":
-                                        player.ExecuteClientCommand("slot9");
-                                        break;
-                                    case "Molly":
-                                        player.ExecuteClientCommand("slot10");
-                                        break;
-                                    case "":
-                                        player.ExecuteClientCommand("slot8");
-                                        break;
+                                    // Extract position and angle from the lineup information
+                                    string[] posArray = lineupInfo["LineupPos"].Split(' ');
+                                    string[] angArray = lineupInfo["LineupAng"].Split(' ');
+
+                                    // Parse position and angle
+                                    Vector loadedPlayerPos = new Vector(float.Parse(posArray[0]), float.Parse(posArray[1]), float.Parse(posArray[2]));
+                                    QAngle loadedPlayerAngle = new QAngle(float.Parse(angArray[0]), float.Parse(angArray[1]), float.Parse(angArray[2]));
+
+                                    // Teleport player
+                                    player!.PlayerPawn!.Value!.Teleport(loadedPlayerPos, loadedPlayerAngle, new Vector(0, 0, 0));
+
+                                    // Change player inv slot
+                                    switch (lineupInfo["Type"])
+                                    {
+                                        case "Flash":
+                                            player.ExecuteClientCommand("slot7");
+                                            break;
+                                        case "Smoke":
+                                            player.ExecuteClientCommand("slot8");
+                                            break;
+                                        case "HE":
+                                            player.ExecuteClientCommand("slot6");
+                                            break;
+                                        case "Decoy":
+                                            player.ExecuteClientCommand("slot9");
+                                            break;
+                                        case "Molly":
+                                            player.ExecuteClientCommand("slot10");
+                                            break;
+                                        case "":
+                                            player.ExecuteClientCommand("slot8");
+                                            break;
+                                    }
+
+                                    // Extract description, if available
+                                    string lineupDesc = lineupInfo.ContainsKey("Desc") ? lineupInfo["Desc"] : null;
+
+                                    // Print messages
+                                    // ReplyToUserCommand(player, $"Lineup {ChatColors.Green}{nearestName}{ChatColors.Default} loaded successfully!");
+                                    ReplyToUserCommand(player, Localizer["matchzy.pm.lineuploadedsuccess", nearestName]);
+
+                                    if (!string.IsNullOrWhiteSpace(lineupDesc))
+                                    {
+                                        player.PrintToCenter($"{lineupDesc}");
+                                        // ReplyToUserCommand(player, $"Description: {ChatColors.Green}{lineupDesc}{ChatColors.Default}");
+                                        ReplyToUserCommand(player, Localizer["matchzy.pm.lineupdesc", lineupDesc]);
+                                    }
+
+                                    lineupFound = true;
+                                    break;
                                 }
-
-                                // Extract description, if available
-                                string lineupDesc = lineupInfo.ContainsKey("Desc") ? lineupInfo["Desc"] : null;
-
-                                // Print messages
-                                // ReplyToUserCommand(player, $"Lineup {ChatColors.Green}{loadNadeName}{ChatColors.Default} loaded successfully!");
-                                ReplyToUserCommand(player, Localizer["matchzy.pm.lineuploadedsuccess", loadNadeName]);
-
-                                if (!string.IsNullOrWhiteSpace(lineupDesc))
+                                else
                                 {
-                                    player.PrintToCenter($"{lineupDesc}");
-                                    // ReplyToUserCommand(player, $"Description: {ChatColors.Green}{lineupDesc}{ChatColors.Default}");
-                                    ReplyToUserCommand(player, Localizer["matchzy.pm.lineupdesc", lineupDesc]);
+                                    // ReplyToUserCommand(player, $"Nade {ChatColor.Green}{nearestName}{ChatColor.Default} not found on the current map!");
+                                    ReplyToUserCommand(player, Localizer["matchzy.pm.nadenotfoundonmap", nearestName]);
+                                    lineupOnWrongMap = true;
                                 }
-
-                                lineupFound = true;
-                                break;
-                            }
-                            else
-                            {
-                                // ReplyToUserCommand(player, $"Nade {ChatColor.Green}{loadNadeName}{ChatColor.Default} not found on the current map!");
-                                ReplyToUserCommand(player, Localizer["matchzy.pm.nadenotfoundonmap", loadNadeName]);
-                                lineupOnWrongMap = true;
                             }
                         }
                     }
