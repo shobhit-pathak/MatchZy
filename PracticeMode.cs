@@ -286,10 +286,14 @@ namespace MatchZy
                     // Check if the lineup name already exists for the given SteamID
                     if (savedNadesDict.ContainsKey(playerSteamID) && savedNadesDict[playerSteamID].ContainsKey(lineupName))
                     {
-                        // Lineup already exists, reply to the user and return
-                        // ReplyToUserCommand(player, $"Lineup already exists! Please use a different name or use .delnade <nade>");
-                        ReplyToUserCommand(player, Localizer["matchzy.pm.lineupissaved"]);
-                        return;
+                        // Check if the lineup already exists on the same map
+                        if (savedNadesDict[playerSteamID][lineupName]["Map"] == currentMapName)
+                        {
+                            // Lineup already exists on the same map, reply to the user and return
+                            // ReplyToUserCommand(player, $"Lineup already exists! Please use a different name or use .delnade <nade>");
+                            ReplyToUserCommand(player, Localizer["matchzy.pm.lineupissaved"]);
+                            return;
+                        }
                     }
 
                     // Update or add the new lineup information
@@ -368,17 +372,28 @@ namespace MatchZy
                     // Check if the lineup exists for the given SteamID and name
                     if (savedNadesDict.ContainsKey(playerSteamID) && savedNadesDict[playerSteamID].ContainsKey(saveNadeName))
                     {
-                        // Remove the specified lineup
-                        savedNadesDict[playerSteamID].Remove(saveNadeName);
+                        var lineupInfo = savedNadesDict[playerSteamID][saveNadeName];
 
-                        // Serialize the updated dictionary back to JSON
-                        string updatedJson = JsonSerializer.Serialize(savedNadesDict, new JsonSerializerOptions { WriteIndented = true });
+                        // Check if the lineup is for the current maps
+                        if (lineupInfo.ContainsKey("Map") && lineupInfo["Map"] == Server.MapName)
+                        {
+                            // Remove the specified lineup
+                            savedNadesDict[playerSteamID].Remove(saveNadeName);
 
-                        // Write the updated JSON content back to the file
-                        File.WriteAllText(savednadesPath, updatedJson);
+                            // Serialize the updated dictionary back to JSON
+                            string updatedJson = JsonSerializer.Serialize(savedNadesDict, new JsonSerializerOptions { WriteIndented = true });
 
-                        // ReplyToUserCommand(player, $"Lineup '{saveNadeName}' deleted successfully.");
-                        ReplyToUserCommand(player, Localizer["matchzy.pm.lineupdeletesuccess", saveNadeName]);
+                            // Write the updated JSON content back to the file
+                            File.WriteAllText(savednadesPath, updatedJson);
+
+                            // ReplyToUserCommand(player, $"Lineup '{saveNadeName}' deleted successfully.");
+                            ReplyToUserCommand(player, Localizer["matchzy.pm.lineupdeletesuccess", saveNadeName]);
+                        }
+                        else
+                        {
+                            // ReplyToUserCommand(player, $"Lineup '{saveNadeName}' not found on the current map!");
+                            ReplyToUserCommand(player, Localizer["matchzy.pm.nadenotfoundonmap", saveNadeName]);
+                        }
                     }
                     else
                     {
@@ -433,13 +448,17 @@ namespace MatchZy
                         var savedNadesDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, Dictionary<string, string>>>>(existingJson)
                                             ?? new Dictionary<string, Dictionary<string, Dictionary<string, string>>>();
 
-                        // Check if the lineup name already exists for the given SteamID
+                        // Check if the lineup name already exists for the given SteamID on the same map
                         if (savedNadesDict.ContainsKey(playerSteamID) && savedNadesDict[playerSteamID].ContainsKey(lineupName))
                         {
-                            // Lineup already exists, reply to the user and return
-                            // ReplyToUserCommand(player, $"Lineup '{lineupName}' already exists! Please use a different name or use .delnade <nade>");
-                            ReplyToUserCommand(player, Localizer["matchzy.pm.lineupalreadyexists", lineupName]);
-                            return;
+                            var existingLineup = savedNadesDict[playerSteamID][lineupName];
+                            if (existingLineup.ContainsKey("Map") && existingLineup["Map"] == currentMapName)
+                            {
+                                // Lineup already exists on the same map, reply to the user and return
+                                // ReplyToUserCommand(player, $"Lineup '{lineupName}' already exists! Please use a different name or use .delnade <nade>");
+                                ReplyToUserCommand(player, Localizer["matchzy.pm.lineupalreadyexists", lineupName]);
+                                return;
+                            }
                         }
 
                         // Update or add the new lineup information
@@ -572,9 +591,14 @@ namespace MatchZy
                     {
                         if (savedNadesDict.ContainsKey(currentSteamID))
                         {
+                            // Filter nade names based on the current map
+                            var nadeNamesOnCurrentMap = savedNadesDict[currentSteamID]
+                                .Where(n => n.Value.ContainsKey("Map") && n.Value["Map"] == Server.MapName)
+                                .Select(n => n.Key)
+                                .ToList();
+
                             // Find the nearest matching name
-                            var nadeNames = savedNadesDict[currentSteamID].Keys.ToList();
-                            string nearestName = StringSimilarity.FindNearestName(loadNadeName, nadeNames);
+                            string nearestName = StringSimilarity.FindNearestName(loadNadeName, nadeNamesOnCurrentMap);
 
                             if (savedNadesDict[currentSteamID].ContainsKey(nearestName))
                             {
