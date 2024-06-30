@@ -374,7 +374,7 @@ namespace MatchZy
 
                 var parts = message.Split(' ');
                 var messageCommand = parts.Length > 0 ? parts[0] : string.Empty;
-                var messageCommandArg = parts.Length > 1 ? parts[1] : string.Empty;
+                var messageCommandArg = parts.Length > 1 ? string.Join(' ', parts.Skip(1)) : string.Empty;
 
                 CCSPlayerController? player = null;
                 if (playerData.ContainsKey(playerUserId)) {
