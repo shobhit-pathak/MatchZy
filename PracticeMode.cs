@@ -392,7 +392,7 @@ namespace MatchZy
                         else
                         {
                             // ReplyToUserCommand(player, $"Lineup '{saveNadeName}' not found on the current map!");
-                            ReplyToUserCommand(player, Localizer["matchzy.pm.lineupnotfoundonmap", saveNadeName]);
+                            ReplyToUserCommand(player, Localizer["matchzy.pm.nadenotfoundonmap", saveNadeName]);
                         }
                     }
                     else
