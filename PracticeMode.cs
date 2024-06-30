@@ -448,13 +448,17 @@ namespace MatchZy
                         var savedNadesDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, Dictionary<string, string>>>>(existingJson)
                                             ?? new Dictionary<string, Dictionary<string, Dictionary<string, string>>>();
 
-                        // Check if the lineup name already exists for the given SteamID
+                        // Check if the lineup name already exists for the given SteamID on the same map
                         if (savedNadesDict.ContainsKey(playerSteamID) && savedNadesDict[playerSteamID].ContainsKey(lineupName))
                         {
-                            // Lineup already exists, reply to the user and return
-                            // ReplyToUserCommand(player, $"Lineup '{lineupName}' already exists! Please use a different name or use .delnade <nade>");
-                            ReplyToUserCommand(player, Localizer["matchzy.pm.lineupalreadyexists", lineupName]);
-                            return;
+                            var existingLineup = savedNadesDict[playerSteamID][lineupName];
+                            if (existingLineup.ContainsKey("Map") && existingLineup["Map"] == currentMapName)
+                            {
+                                // Lineup already exists on the same map, reply to the user and return
+                                // ReplyToUserCommand(player, $"Lineup '{lineupName}' already exists! Please use a different name or use .delnade <nade>");
+                                ReplyToUserCommand(player, Localizer["matchzy.pm.lineupalreadyexists", lineupName]);
+                                return;
+                            }
                         }
 
                         // Update or add the new lineup information
