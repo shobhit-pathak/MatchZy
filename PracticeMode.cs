@@ -84,8 +84,18 @@ namespace MatchZy
         /// <param name="inputName">The input name to match.</param>
         /// <param name="names">The list of names to search from.</param>
         /// <returns>The nearest matching name from the list.</returns>
-        public static string FindNearestName(string inputName, List<string> names)
+        public static string FindNearestName(string inputName, List<string> names) { }
         {
+            if (inputName.Length == 1)
+            {
+                // If input name is a single character, find the name that starts with the same character
+                var matchingName = names.FirstOrDefault(name => name.StartsWith(inputName, StringComparison.OrdinalIgnoreCase));
+                if (matchingName != null)
+                {
+                    return matchingName;
+                }
+            }
+            // Otherwise, use the Dice coefficient to find the nearest name
             string nearestName = names.OrderByDescending(name => DiceCoefficient(inputName, name)).FirstOrDefault() ?? inputName;
             return nearestName;
         }
