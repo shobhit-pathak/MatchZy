@@ -174,6 +174,7 @@ namespace MatchZy
                 { ".last", OnLastCommand },
                 { ".throw", OnRethrowCommand },
                 { ".rethrow", OnRethrowCommand },
+                { ".rt", OnRethrowCommand },
                 { ".throwsmoke", OnRethrowSmokeCommand },
                 { ".rethrowsmoke", OnRethrowSmokeCommand },
                 { ".thrownade", OnRethrowGrenadeCommand },
@@ -371,6 +372,10 @@ namespace MatchZy
                 var originalMessage = @event.Text.Trim();
                 var message = @event.Text.Trim().ToLower();
 
+                var parts = message.Split(' ');
+                var messageCommand = parts.Length > 0 ? parts[0] : string.Empty;
+                var messageCommandArg = parts.Length > 1 ? string.Join(' ', parts.Skip(1)) : string.Empty;
+
                 CCSPlayerController? player = null;
                 if (playerData.ContainsKey(playerUserId)) {
                     player = playerData[playerUserId];
@@ -387,156 +392,121 @@ namespace MatchZy
                     commandActions[message](player, null);
                 }
 
-                if (message.StartsWith(".map")) {
-                    string command = ".map";
-                    string mapName = message.Substring(command.Length).Trim();
-                    HandleMapChangeCommand(player, mapName);
+                if (message.StartsWith(".map"))
+                {
+                    HandleMapChangeCommand(player, messageCommandArg);
                 }
-                if (message.StartsWith(".readyrequired")) {
-                    string command = ".readyrequired";
-                    string commandArg = message.Substring(command.Length).Trim();
-
-                    HandleReadyRequiredCommand(player, commandArg);
+                if (message.StartsWith(".readyrequired"))
+                {
+                    HandleReadyRequiredCommand(player, messageCommandArg);
                 }
 
-                if (message.StartsWith(".restore")) {
-                    string command = ".restore";
-                    string commandArg = message.Substring(command.Length).Trim();
-
-                    HandleRestoreCommand(player, commandArg);
+                if (message.StartsWith(".restore"))
+                {
+                    HandleRestoreCommand(player, messageCommandArg);
                 }
-                if (originalMessage.StartsWith(".asay")) {
-                    string command = ".asay";
-                    string commandArg = originalMessage.Substring(command.Length).Trim();
-
-                    if (IsPlayerAdmin(player, "css_asay", "@css/chat")) {
-                        if (commandArg != "") {
-                            Server.PrintToChatAll($"{adminChatPrefix} {commandArg}");
-                        } else {
+                if (message.StartsWith(".asay"))
+                {
+                    if (IsPlayerAdmin(player, "css_asay", "@css/chat"))
+                    {
+                        if (messageCommandArg != "")
+                        {
+                            Server.PrintToChatAll($"{adminChatPrefix} {messageCommandArg}");
+                        }
+                        else
+                        {
                             // ReplyToUserCommand(player, "Usage: .asay <message>");
                             ReplyToUserCommand(player, Localizer["matchzy.cc.usage", ".asay <message>"]);
                         }
-                    } else {
+                    }
+                    else
+                    {
                         SendPlayerNotAdminMessage(player);
                     }
                 }
-                if (message.StartsWith(".savenade"))
+                if (message.StartsWith(".savenade") || message.StartsWith(".sn"))
                 {
-                    string command = ".savenade";
-                    string commandArg = message.Substring(command.Length).Trim();
-                    HandleSaveNadeCommand(player, commandArg);
+                    HandleSaveNadeCommand(player, messageCommandArg);
                 }
-                if (message.StartsWith(".delnade"))
+                if (message.StartsWith(".delnade") || message.StartsWith(".dn"))
                 {
-                    string command = ".delnade";
-                    string commandArg = message.Substring(command.Length).Trim();
-                    HandleDeleteNadeCommand(player, commandArg);
+                    HandleDeleteNadeCommand(player, messageCommandArg);
                 }
                 if (message.StartsWith(".deletenade"))
                 {
-                    string command = ".deletenade";
-                    string commandArg = message.Substring(command.Length).Trim();
-                    HandleDeleteNadeCommand(player, commandArg);
+                    HandleDeleteNadeCommand(player, messageCommandArg);
                 }
-                if (message.StartsWith(".importnade"))
+                if (message.StartsWith(".importnade") || message.StartsWith(".in"))
                 {
-                    string command = ".importnade";
-                    string commandArg = message.Substring(command.Length).Trim();
-                    HandleImportNadeCommand(player, commandArg);
+                    HandleImportNadeCommand(player, messageCommandArg);
                 }
-                if (message.StartsWith(".listnades"))
+                if (message.StartsWith(".listnades") || message.StartsWith(".lin"))
                 {
-                    string command = ".listnades";
-                    string commandArg = message.Substring(command.Length).Trim();
-                    HandleListNadesCommand(player, commandArg);
+                    HandleListNadesCommand(player, messageCommandArg);
                 }
-                if (message.StartsWith(".loadnade"))
+                if (message.StartsWith(".loadnade") || message.StartsWith(".ln"))
                 {
-                    string command = ".loadnade";
-                    string commandArg = message.Substring(command.Length).Trim();
-                    HandleLoadNadeCommand(player, commandArg);
+                    HandleLoadNadeCommand(player, messageCommandArg);
                 }
-                if (message.StartsWith(".spawn")) {
-                    string command = ".spawn";
-                    string commandArg = message.Substring(command.Length).Trim();
-
-                    HandleSpawnCommand(player, commandArg, player.TeamNum, "spawn");
+                if (message.StartsWith(".spawn"))
+                {
+                    HandleSpawnCommand(player, messageCommandArg, player.TeamNum, "spawn");
                 }
-                if (message.StartsWith(".ctspawn")) {
-                    string command = ".ctspawn";
-                    string commandArg = message.Substring(command.Length).Trim();
-
-                    HandleSpawnCommand(player, commandArg, (byte)CsTeam.CounterTerrorist, "ctspawn");
+                if (message.StartsWith(".ctspawn") || message.StartsWith(".cts"))
+                {
+                    HandleSpawnCommand(player, messageCommandArg, (byte)CsTeam.CounterTerrorist, "ctspawn");
                 }
-                if (message.StartsWith(".tspawn")) {
-                    string command = ".tspawn";
-                    string commandArg = message.Substring(command.Length).Trim();
-
-                    HandleSpawnCommand(player, commandArg, (byte)CsTeam.Terrorist, "tspawn");
+                if (message.StartsWith(".tspawn") || message.StartsWith(".ts"))
+                {
+                    HandleSpawnCommand(player, messageCommandArg, (byte)CsTeam.Terrorist, "tspawn");
                 }
-                if (originalMessage.StartsWith(".team1")) {
-                    string command = ".team1";
-                    string commandArg = originalMessage.Substring(command.Length).Trim();
-
-                    HandleTeamNameChangeCommand(player, commandArg, 1);
+                if (originalMessage.StartsWith(".team1"))
+                {
+                    HandleTeamNameChangeCommand(player, messageCommandArg, 1);
                 }
-                if (originalMessage.StartsWith(".team2")) {
-                    string command = ".team2";
-                    string commandArg = originalMessage.Substring(command.Length).Trim();
-
-                    HandleTeamNameChangeCommand(player, commandArg, 2);
+                if (originalMessage.StartsWith(".team2"))
+                {
+                    HandleTeamNameChangeCommand(player, messageCommandArg, 2);
                 }
-                if (originalMessage.StartsWith(".rcon")) {
-                    string command = ".rcon";
-                    string commandArg = originalMessage.Substring(command.Length).Trim();
-                    if (IsPlayerAdmin(player, "css_rcon", "@css/rcon")) {
-                        Server.ExecuteCommand(commandArg);
+                if (originalMessage.StartsWith(".rcon"))
+                {
+                    if (IsPlayerAdmin(player, "css_rcon", "@css/rcon"))
+                    {
+                        Server.ExecuteCommand(messageCommandArg);
                         ReplyToUserCommand(player, "Command sent successfully!");
-                    } else {
+                    }
+                    else
+                    {
                         SendPlayerNotAdminMessage(player);
                     }
                 }
-                if (message.StartsWith(".coach")) {
-                    string command = ".coach";
-                    string coachSide = message.Substring(command.Length).Trim();
-
-                    HandleCoachCommand(player, coachSide);
+                if (message.StartsWith(".coach"))
+                {
+                    HandleCoachCommand(player, messageCommandArg);
                 }
-                if (message.StartsWith(".ban")) {
-                    string command = ".ban";
-                    string mapArg = message.Substring(command.Length).Trim();
-
-                    HandeMapBanCommand(player, mapArg);
+                if (message.StartsWith(".ban"))
+                {
+                    HandeMapBanCommand(player, messageCommandArg);
                 }
-                if (message.StartsWith(".pick")) {
-                    string command = ".pick";
-                    string mapArg = message.Substring(command.Length).Trim();
-
-                    HandeMapPickCommand(player, mapArg);
+                if (message.StartsWith(".pick"))
+                {
+                    HandeMapPickCommand(player, messageCommandArg);
                 }
-                if (message.StartsWith(".back")) {
-                    string command = ".back";
-                    string commandArg = message.Substring(command.Length).Trim();
-
-                    HandleBackCommand(player, commandArg);
+                if (message.StartsWith(".back"))
+                {
+                    HandleBackCommand(player, messageCommandArg);
                 }
-                if (message.StartsWith(".delay")) {
-                    string command = ".delay";
-                    string commandArg = message.Substring(command.Length).Trim();
-
-                    HandleDelayCommand(player, commandArg);
+                if (message.StartsWith(".delay"))
+                {
+                    HandleDelayCommand(player, messageCommandArg);
                 }
-                if (message.StartsWith(".throwindex")) {
-                    string command = ".throwindex";
-                    string commandArg = message.Substring(command.Length).Trim();
-
-                    HandleThrowIndexCommand(player, commandArg);
+                if (message.StartsWith(".throwindex"))
+                {
+                    HandleThrowIndexCommand(player, messageCommandArg);
                 }
-                if (message.StartsWith(".throwidx")) {
-                    string command = ".throwindex";
-                    string commandArg = message.Substring(command.Length).Trim();
-
-                    HandleThrowIndexCommand(player, commandArg);
+                if (message.StartsWith(".throwidx"))
+                {
+                    HandleThrowIndexCommand(player, messageCommandArg);
                 }
 
                 return HookResult.Continue;
