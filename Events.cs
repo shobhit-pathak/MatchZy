@@ -220,3 +220,19 @@ public class MatchZySidePickedEvent : MatchZyMapSelectionEvent
     {
     }
 }
+
+public class MatchZyDemoUploadedEvent : MatchZyMatchEvent
+{
+    [JsonPropertyName("map_number")]
+    public required int MapNumber { get; init; }
+
+    [JsonPropertyName("filename")]
+    public required string FileName { get; init; }
+
+    [JsonPropertyName("success")]
+    public bool Success { get; set; }
+
+    public MatchZyDemoUploadedEvent() : base("demo_upload_ended")
+    {
+    }
+}
