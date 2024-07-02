@@ -123,7 +123,7 @@ Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <b
 ### Configuring Warmup/Knife/Live/Prac CFGs
 Again, inside `csgo/cfg/MatchZy`, files named `warmup.cfg`, `knife.cfg`, `live.cfg` and `prac.cfg` should be present. These configs are executed when Warmup, Knife, Live and Practice Mode is started respectively.
 
-You can modify these files according to your requirements.
+You can modify these files according to your requirements, or add live_override.cfg / live_wingman_override.cfg to make "overriding" config.
 
 If these configs are not found in the expected location, MatchZy executes the default configs which are present in the code.
 
