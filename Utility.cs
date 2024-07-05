@@ -614,7 +614,6 @@ namespace MatchZy
             string seriesType = "BO" + matchConfig.NumMaps.ToString();
             liveMatchId = database.InitMatch(matchzyTeam1.teamName, matchzyTeam2.teamName, "-" , isMatchSetup, liveMatchId, matchConfig.CurrentMapNumber, seriesType);
             SetupRoundBackupFile();
-            StartDemoRecording();
 
             GetSpawns();
 
@@ -624,10 +623,12 @@ namespace MatchZy
             }
             else if (isKnifeRequired) 
             {
+                StartDemoRecording();
                 StartKnifeRound();  
             } 
             else 
             {
+                StartDemoRecording();
                 StartLive();
             }
             if (showCreditsOnMatchStart.Value)

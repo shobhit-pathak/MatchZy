@@ -24,6 +24,11 @@ namespace MatchZy
         public void StartDemoRecording()
         {
 
+            if (isDemoRecording)
+            {
+                Log("[StartDemoRecording] Demo recording is already in progress.");
+                return;
+            }
             string demoFileName = FormatDemoName();
             try
             {
