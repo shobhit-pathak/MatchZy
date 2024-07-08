@@ -1,5 +1,28 @@
 # MatchZy Changelog
 
+# 0.7.13
+
+#### July 07, 2024
+
+- Added alias for .savenade -> .sn, .loadnade -> .ln, .deletenade -> .dn, .importnade -> .in, .listnades -> .lin, .ctspawn -> .cts, .tspawn -> .ts
+- Added smart quering for nadenames, where the closest name is being selected for loading names (.ln mid can be used to load a nade with name midflash)
+- Added to allow the same lineup-name on different maps, so you can pick like b-smoke multiple times, but once per map. Updated logic for savenade, deletenade, importnade for this.
+- Added missing ! commands for listnades, importnade and deletenade.
+- Changed cash_team_planted_bomb_but_defused from 800 to 600 as per the update https://store.steampowered.com/news/app/730/view/4177730135016140040
+- Added "override" config for live.cfg and live_wingman.cfg (Simply create live_override.cfg and live_wingman_override.cfg in the cfg folder if you want to override any of the commands.)
+- Added Uzbek, Japanese, Hungarian and Traditional Chinese translations
+
+
+# 0.7.12
+
+#### June 27, 2024
+
+- Removed unused cvars from cfgs which were causing the server to crash with the new CS# versions.
+- Added MatchZyOnDemoUploadEnded Event ater demo is uploaded
+- Fixed SendEventAsync Post failing when header is not empty with empty value
+- Fixed decoy message localization id
+- Made MatchID as int
+
 # 0.7.11
 
 #### May 19, 2024
