@@ -84,7 +84,7 @@ namespace MatchZy
         /// <param name="inputName">The input name to match.</param>
         /// <param name="names">The list of names to search from.</param>
         /// <returns>The nearest matching name from the list.</returns>
-        public static string FindNearestName(string inputName, List<string> names) { }
+        public static string FindNearestName(string inputName, List<string> names)
         {
             if (inputName.Length == 1)
             {
@@ -183,7 +183,7 @@ namespace MatchZy
             {
                 if (spawn.IsValid && spawn.Enabled && spawn.Priority == minPriority)
                 {
-                    spawnsData[(byte)CsTeam.CounterTerrorist].Add(new Position(spawn.CBodyComponent?.SceneNode?.AbsOrigin, spawn.CBodyComponent?.SceneNode?.AbsRotation));
+                    spawnsData[(byte)CsTeam.CounterTerrorist].Add(new Position(spawn.CBodyComponent?.SceneNode?.AbsOrigin!, spawn.CBodyComponent?.SceneNode?.AbsRotation!));
                 }
             }
 
@@ -192,7 +192,7 @@ namespace MatchZy
             {
                 if (spawn.IsValid && spawn.Enabled && spawn.Priority == minPriority)
                 {
-                    spawnsData[(byte)CsTeam.Terrorist].Add(new Position(spawn.CBodyComponent?.SceneNode?.AbsOrigin, spawn.CBodyComponent?.SceneNode?.AbsRotation));
+                    spawnsData[(byte)CsTeam.Terrorist].Add(new Position(spawn.CBodyComponent?.SceneNode?.AbsOrigin!, spawn.CBodyComponent?.SceneNode?.AbsRotation!));
                 }
             }
         }
@@ -327,12 +327,7 @@ namespace MatchZy
                     // Write the updated JSON content back to the file
                     File.WriteAllText(savednadesPath, updatedJson);
 
-                    //Reply to user
-                    // ReplyToUserCommand(player, $"Lineup {ChatColors.Green}{lineupName}{ChatColors.Default} saved successfully!");
-                    ReplyToUserCommand(player, Localizer["matchzy.pm.lineupsavedsucces", lineupName]);
-                    // player.PrintToCenter($"Lineup {ChatColors.Green}{lineupName}{ChatColors.Default} saved successfully!");
                     PrintToPlayerChat(player, Localizer["matchzy.pm.lineupsavedsucces", lineupName]);
-                    // Server.PrintToChatAll($"{chatPrefix} {ChatColors.LightBlue}{player.PlayerName}{ChatColors.Default} Just saved a Lineup! Lineup Code: {ChatColors.Green}{lineupName} {playerPos} {playerAngle}{ChatColors.Default}");
                     PrintToAllChat(Localizer["matchzy.pm.playersavedlineup", player.PlayerName, $"{lineupName} {playerPos} {playerAngle}"]);
                 }
                 catch (JsonException ex)
@@ -1249,7 +1244,7 @@ namespace MatchZy
                 Server.ExecuteCommand("mp_restartgame 1;mp_warmup_end;");
             } else {
                 Log($"[ExecDryRunCFG] Starting Dryrun! Dryrun CFG not found in {absolutePath}, using default CFG!");
-                Server.ExecuteCommand("ammo_grenade_limit_default 1;ammo_grenade_limit_flashbang 2;ammo_grenade_limit_total 4;bot_quota 0;cash_player_bomb_defused 300;cash_player_bomb_planted 300;cash_player_damage_hostage -30;cash_player_interact_with_hostage 300;cash_player_killed_enemy_default 300;cash_player_killed_enemy_factor 1;cash_player_killed_hostage -1000;cash_player_killed_teammate -300;cash_player_rescued_hostage 1000;cash_team_elimination_bomb_map 3250;cash_team_elimination_hostage_map_ct 3000;cash_team_elimination_hostage_map_t 3000;cash_team_hostage_alive 0;cash_team_hostage_interaction 600;cash_team_loser_bonus 1400;cash_team_loser_bonus_consecutive_rounds 500;cash_team_planted_bomb_but_defused 800;cash_team_rescued_hostage 600;cash_team_terrorist_win_bomb 3500;cash_team_win_by_defusing_bomb 3500;");
+                Server.ExecuteCommand("ammo_grenade_limit_default 1;ammo_grenade_limit_flashbang 2;ammo_grenade_limit_total 4;bot_quota 0;cash_player_bomb_defused 300;cash_player_bomb_planted 300;cash_player_damage_hostage -30;cash_player_interact_with_hostage 300;cash_player_killed_enemy_default 300;cash_player_killed_enemy_factor 1;cash_player_killed_hostage -1000;cash_player_killed_teammate -300;cash_player_rescued_hostage 1000;cash_team_elimination_bomb_map 3250;cash_team_elimination_hostage_map_ct 3000;cash_team_elimination_hostage_map_t 3000;cash_team_hostage_alive 0;cash_team_hostage_interaction 600;cash_team_loser_bonus 1400;cash_team_loser_bonus_consecutive_rounds 500;cash_team_planted_bomb_but_defused 600;cash_team_rescued_hostage 600;cash_team_terrorist_win_bomb 3500;cash_team_win_by_defusing_bomb 3500;");
                 Server.ExecuteCommand("cash_team_win_by_hostage_rescue 2900;cash_team_win_by_time_running_out_bomb 3250;cash_team_win_by_time_running_out_hostage 3250;ff_damage_reduction_bullets 0.33;ff_damage_reduction_grenade 0.85;ff_damage_reduction_grenade_self 1;ff_damage_reduction_other 0.4;mp_afterroundmoney 0;mp_autokick 0;mp_autoteambalance 0;mp_backup_restore_load_autopause 1;mp_backup_round_auto 1;mp_buy_anywhere 0;mp_buy_during_immunity 0;mp_buytime 20;mp_c4timer 40;mp_ct_default_melee weapon_knife;mp_ct_default_primary \"\";mp_ct_default_secondary weapon_hkp2000;mp_death_drop_defuser 1;mp_death_drop_grenade 2;mp_death_drop_gun 1;mp_defuser_allocation 0;mp_display_kill_assists 1;mp_endmatch_votenextmap 0;mp_forcecamera 1;mp_free_armor 0;mp_freezetime 6;mp_friendlyfire 1;mp_give_player_c4 1;mp_halftime 1;mp_halftime_duration 15;mp_halftime_pausetimer 0;mp_ignore_round_win_conditions 0;mp_limitteams 0;mp_match_can_clinch 1;mp_match_end_restart 0;mp_maxmoney 16000;mp_maxrounds 24;mp_overtime_enable 1;mp_overtime_halftime_pausetimer 0;mp_overtime_maxrounds 6;mp_overtime_startmoney 10000;mp_playercashawards 1;mp_randomspawn 0;mp_respawn_immunitytime 0;mp_respawn_on_death_ct 0;mp_respawn_on_death_t 0;mp_round_restart_delay 5;mp_roundtime 1.92;mp_roundtime_defuse 1.92;mp_roundtime_hostage 1.92;mp_solid_teammates 1;mp_starting_losses 1;mp_startmoney 16000;mp_t_default_melee weapon_knife;mp_t_default_primary \"\";mp_t_default_secondary weapon_glock;mp_teamcashawards 1;mp_timelimit 0;mp_weapons_allow_map_placed 1;mp_weapons_allow_zeus 1;mp_win_panel_display_time 3;spec_freeze_deathanim_time 0;spec_freeze_time 2;spec_freeze_time_lock 2;spec_replay_enable 0;sv_allow_votes 1;sv_auto_full_alltalk_during_warmup_half_end 0;sv_damage_print_enable 0;sv_deadtalk 1;sv_hibernate_postgame_delay 300;sv_ignoregrenaderadio 0;sv_infinite_ammo 0;sv_talk_enemy_dead 0;sv_talk_enemy_living 0;sv_voiceenable 1;tv_relayvoice 1;mp_team_timeout_max 4;mp_team_timeout_time 30;sv_vote_command_delay 0;cash_team_bonus_shorthanded 0;mp_spectators_max 20;mp_team_intro_time 0;mp_restartgame 3;mp_warmup_end;");
             }
         }
@@ -1556,6 +1551,7 @@ namespace MatchZy
             }
         }
 
+        [ConsoleCommand("css_sn", "Saves current nade position")]
         [ConsoleCommand("css_savenade", "Saves current nade position")]
         public void OnSaveNadeCommand(CCSPlayerController? player, CommandInfo command)
         {
@@ -1564,12 +1560,41 @@ namespace MatchZy
             HandleSaveNadeCommand(player, command.ArgString);
         }
 
-        [ConsoleCommand("css_loadnade", "Saves current nade position")]
+        [ConsoleCommand("css_ln", "Loades the nade with provided filter")]
+        [ConsoleCommand("css_loadnade", "Loades the nade with provided filter")]
         public void OnLoadNadeCommand(CCSPlayerController? player, CommandInfo command)
         {
             if (!isPractice || !IsPlayerValid(player)) return;
 
             HandleLoadNadeCommand(player, command.ArgString);
+        }
+
+        [ConsoleCommand("css_lin", "Lists the nade with provided filter")]
+        [ConsoleCommand("css_listnades", "Lists the nade with provided filter")]
+        public void OnListNadesCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+
+            HandleListNadesCommand(player, command.ArgString);
+        }
+
+        [ConsoleCommand("css_importnade", "Imports the nade with the given code")]
+        [ConsoleCommand("css_in", "Imports the nade with the given code")]
+        public void OnImportNadeCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+
+            HandleImportNadeCommand(player, command.ArgString);
+        }
+
+        [ConsoleCommand("css_deletenade", "Deletes the nade by name")]
+        [ConsoleCommand("css_delnade", "Deletes the nade by name")]
+        [ConsoleCommand("css_dn", "Deletes the nade by name")]
+        public void OnDeleteNadeCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+
+            HandleDeleteNadeCommand(player, command.ArgString);
         }
 
         [ConsoleCommand("css_solid", "Toggles mp_solid_teammates in practice mode")]
