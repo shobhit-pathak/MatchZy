@@ -55,6 +55,52 @@ namespace MatchZy
         }
     }
 
+    public static class StringSimilarity
+    {
+        // Dice coefficient function
+        public static double DiceCoefficient(string s1, string s2)
+        {
+            var bigrams1 = GetBigrams(s1);
+            var bigrams2 = GetBigrams(s2);
+
+            int intersection = bigrams1.Intersect(bigrams2).Count();
+            return (2.0 * intersection) / (bigrams1.Count + bigrams2.Count);
+        }
+
+        // Get bigrams function
+        private static List<string> GetBigrams(string input)
+        {
+            var bigrams = new List<string>();
+            for (int i = 0; i < input.Length - 1; i++)
+            {
+                bigrams.Add(input.Substring(i, 2));
+            }
+            return bigrams;
+        }
+
+        /// <summary>
+        /// Finds the name from a list of names that is nearest to the input name using the Dice coefficient.
+        /// </summary>
+        /// <param name="inputName">The input name to match.</param>
+        /// <param name="names">The list of names to search from.</param>
+        /// <returns>The nearest matching name from the list.</returns>
+        public static string FindNearestName(string inputName, List<string> names)
+        {
+            if (inputName.Length == 1)
+            {
+                // If input name is a single character, find the name that starts with the same character
+                var matchingName = names.FirstOrDefault(name => name.StartsWith(inputName, StringComparison.OrdinalIgnoreCase));
+                if (matchingName != null)
+                {
+                    return matchingName;
+                }
+            }
+            // Otherwise, use the Dice coefficient to find the nearest name
+            string nearestName = names.OrderByDescending(name => DiceCoefficient(inputName, name)).FirstOrDefault() ?? inputName;
+            return nearestName;
+        }
+    }
+
     public partial class MatchZy
     {
         int maxLastGrenadesSavedLimit = 512;
@@ -137,7 +183,7 @@ namespace MatchZy
             {
                 if (spawn.IsValid && spawn.Enabled && spawn.Priority == minPriority)
                 {
-                    spawnsData[(byte)CsTeam.CounterTerrorist].Add(new Position(spawn.CBodyComponent?.SceneNode?.AbsOrigin, spawn.CBodyComponent?.SceneNode?.AbsRotation));
+                    spawnsData[(byte)CsTeam.CounterTerrorist].Add(new Position(spawn.CBodyComponent?.SceneNode?.AbsOrigin!, spawn.CBodyComponent?.SceneNode?.AbsRotation!));
                 }
             }
 
@@ -146,7 +192,7 @@ namespace MatchZy
             {
                 if (spawn.IsValid && spawn.Enabled && spawn.Priority == minPriority)
                 {
-                    spawnsData[(byte)CsTeam.Terrorist].Add(new Position(spawn.CBodyComponent?.SceneNode?.AbsOrigin, spawn.CBodyComponent?.SceneNode?.AbsRotation));
+                    spawnsData[(byte)CsTeam.Terrorist].Add(new Position(spawn.CBodyComponent?.SceneNode?.AbsOrigin!, spawn.CBodyComponent?.SceneNode?.AbsRotation!));
                 }
             }
         }
@@ -250,10 +296,14 @@ namespace MatchZy
                     // Check if the lineup name already exists for the given SteamID
                     if (savedNadesDict.ContainsKey(playerSteamID) && savedNadesDict[playerSteamID].ContainsKey(lineupName))
                     {
-                        // Lineup already exists, reply to the user and return
-                        // ReplyToUserCommand(player, $"Lineup already exists! Please use a different name or use .delnade <nade>");
-                        ReplyToUserCommand(player, Localizer["matchzy.pm.lineupissaved"]);
-                        return;
+                        // Check if the lineup already exists on the same map
+                        if (savedNadesDict[playerSteamID][lineupName]["Map"] == currentMapName)
+                        {
+                            // Lineup already exists on the same map, reply to the user and return
+                            // ReplyToUserCommand(player, $"Lineup already exists! Please use a different name or use .delnade <nade>");
+                            ReplyToUserCommand(player, Localizer["matchzy.pm.lineupissaved"]);
+                            return;
+                        }
                     }
 
                     // Update or add the new lineup information
@@ -277,12 +327,7 @@ namespace MatchZy
                     // Write the updated JSON content back to the file
                     File.WriteAllText(savednadesPath, updatedJson);
 
-                    //Reply to user
-                    // ReplyToUserCommand(player, $"Lineup {ChatColors.Green}{lineupName}{ChatColors.Default} saved successfully!");
-                    ReplyToUserCommand(player, Localizer["matchzy.pm.lineupsavedsucces", lineupName]);
-                    // player.PrintToCenter($"Lineup {ChatColors.Green}{lineupName}{ChatColors.Default} saved successfully!");
                     PrintToPlayerChat(player, Localizer["matchzy.pm.lineupsavedsucces", lineupName]);
-                    // Server.PrintToChatAll($"{chatPrefix} {ChatColors.LightBlue}{player.PlayerName}{ChatColors.Default} Just saved a Lineup! Lineup Code: {ChatColors.Green}{lineupName} {playerPos} {playerAngle}{ChatColors.Default}");
                     PrintToAllChat(Localizer["matchzy.pm.playersavedlineup", player.PlayerName, $"{lineupName} {playerPos} {playerAngle}"]);
                 }
                 catch (JsonException ex)
@@ -332,17 +377,28 @@ namespace MatchZy
                     // Check if the lineup exists for the given SteamID and name
                     if (savedNadesDict.ContainsKey(playerSteamID) && savedNadesDict[playerSteamID].ContainsKey(saveNadeName))
                     {
-                        // Remove the specified lineup
-                        savedNadesDict[playerSteamID].Remove(saveNadeName);
+                        var lineupInfo = savedNadesDict[playerSteamID][saveNadeName];
 
-                        // Serialize the updated dictionary back to JSON
-                        string updatedJson = JsonSerializer.Serialize(savedNadesDict, new JsonSerializerOptions { WriteIndented = true });
+                        // Check if the lineup is for the current maps
+                        if (lineupInfo.ContainsKey("Map") && lineupInfo["Map"] == Server.MapName)
+                        {
+                            // Remove the specified lineup
+                            savedNadesDict[playerSteamID].Remove(saveNadeName);
 
-                        // Write the updated JSON content back to the file
-                        File.WriteAllText(savednadesPath, updatedJson);
+                            // Serialize the updated dictionary back to JSON
+                            string updatedJson = JsonSerializer.Serialize(savedNadesDict, new JsonSerializerOptions { WriteIndented = true });
 
-                        // ReplyToUserCommand(player, $"Lineup '{saveNadeName}' deleted successfully.");
-                        ReplyToUserCommand(player, Localizer["matchzy.pm.lineupdeletesuccess", saveNadeName]);
+                            // Write the updated JSON content back to the file
+                            File.WriteAllText(savednadesPath, updatedJson);
+
+                            // ReplyToUserCommand(player, $"Lineup '{saveNadeName}' deleted successfully.");
+                            ReplyToUserCommand(player, Localizer["matchzy.pm.lineupdeletesuccess", saveNadeName]);
+                        }
+                        else
+                        {
+                            // ReplyToUserCommand(player, $"Lineup '{saveNadeName}' not found on the current map!");
+                            ReplyToUserCommand(player, Localizer["matchzy.pm.nadenotfoundonmap", saveNadeName]);
+                        }
                     }
                     else
                     {
@@ -397,13 +453,17 @@ namespace MatchZy
                         var savedNadesDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, Dictionary<string, string>>>>(existingJson)
                                             ?? new Dictionary<string, Dictionary<string, Dictionary<string, string>>>();
 
-                        // Check if the lineup name already exists for the given SteamID
+                        // Check if the lineup name already exists for the given SteamID on the same map
                         if (savedNadesDict.ContainsKey(playerSteamID) && savedNadesDict[playerSteamID].ContainsKey(lineupName))
                         {
-                            // Lineup already exists, reply to the user and return
-                            // ReplyToUserCommand(player, $"Lineup '{lineupName}' already exists! Please use a different name or use .delnade <nade>");
-                            ReplyToUserCommand(player, Localizer["matchzy.pm.lineupalreadyexists", lineupName]);
-                            return;
+                            var existingLineup = savedNadesDict[playerSteamID][lineupName];
+                            if (existingLineup.ContainsKey("Map") && existingLineup["Map"] == currentMapName)
+                            {
+                                // Lineup already exists on the same map, reply to the user and return
+                                // ReplyToUserCommand(player, $"Lineup '{lineupName}' already exists! Please use a different name or use .delnade <nade>");
+                                ReplyToUserCommand(player, Localizer["matchzy.pm.lineupalreadyexists", lineupName]);
+                                return;
+                            }
                         }
 
                         // Update or add the new lineup information
@@ -504,7 +564,6 @@ namespace MatchZy
             }
         }
 
-
         private void HandleLoadNadeCommand(CCSPlayerController? player, string loadNadeName)
         {
             if (!isPractice || player == null || !IsPlayerValid(player)) return;
@@ -535,69 +594,81 @@ namespace MatchZy
                     // Check for the lineup in the player's steamID and the fixed steamID
                     foreach (string currentSteamID in new[] { playerSteamID, "default" })
                     {
-                        if (savedNadesDict.ContainsKey(currentSteamID) && savedNadesDict[currentSteamID].ContainsKey(loadNadeName))
+                        if (savedNadesDict.ContainsKey(currentSteamID))
                         {
-                            var lineupInfo = savedNadesDict[currentSteamID][loadNadeName];
+                            // Filter nade names based on the current map
+                            var nadeNamesOnCurrentMap = savedNadesDict[currentSteamID]
+                                .Where(n => n.Value.ContainsKey("Map") && n.Value["Map"] == Server.MapName)
+                                .Select(n => n.Key)
+                                .ToList();
 
-                            // Check if the lineup contains the "Map" key and if it matches the current map
-                            if (lineupInfo.ContainsKey("Map") && lineupInfo["Map"] == Server.MapName)
+                            // Find the nearest matching name
+                            string nearestName = StringSimilarity.FindNearestName(loadNadeName, nadeNamesOnCurrentMap);
+
+                            if (savedNadesDict[currentSteamID].ContainsKey(nearestName))
                             {
-                                // Extract position and angle from the lineup information
-                                string[] posArray = lineupInfo["LineupPos"].Split(' ');
-                                string[] angArray = lineupInfo["LineupAng"].Split(' ');
+                                var lineupInfo = savedNadesDict[currentSteamID][nearestName];
 
-                                // Parse position and angle
-                                Vector loadedPlayerPos = new Vector(float.Parse(posArray[0]), float.Parse(posArray[1]), float.Parse(posArray[2]));
-                                QAngle loadedPlayerAngle = new QAngle(float.Parse(angArray[0]), float.Parse(angArray[1]), float.Parse(angArray[2]));
-
-                                // Teleport player
-                                player!.PlayerPawn!.Value!.Teleport(loadedPlayerPos, loadedPlayerAngle, new Vector(0, 0, 0));
-
-                                // Change player inv slot
-                                switch (lineupInfo["Type"])
+                                // Check if the lineup contains the "Map" key and if it matches the current map
+                                if (lineupInfo.ContainsKey("Map") && lineupInfo["Map"] == Server.MapName)
                                 {
-                                    case "Flash":
-                                        player.ExecuteClientCommand("slot7");
-                                        break;
-                                    case "Smoke":
-                                        player.ExecuteClientCommand("slot8");
-                                        break;
-                                    case "HE":
-                                        player.ExecuteClientCommand("slot6");
-                                        break;
-                                    case "Decoy":
-                                        player.ExecuteClientCommand("slot9");
-                                        break;
-                                    case "Molly":
-                                        player.ExecuteClientCommand("slot10");
-                                        break;
-                                    case "":
-                                        player.ExecuteClientCommand("slot8");
-                                        break;
+                                    // Extract position and angle from the lineup information
+                                    string[] posArray = lineupInfo["LineupPos"].Split(' ');
+                                    string[] angArray = lineupInfo["LineupAng"].Split(' ');
+
+                                    // Parse position and angle
+                                    Vector loadedPlayerPos = new Vector(float.Parse(posArray[0]), float.Parse(posArray[1]), float.Parse(posArray[2]));
+                                    QAngle loadedPlayerAngle = new QAngle(float.Parse(angArray[0]), float.Parse(angArray[1]), float.Parse(angArray[2]));
+
+                                    // Teleport player
+                                    player!.PlayerPawn!.Value!.Teleport(loadedPlayerPos, loadedPlayerAngle, new Vector(0, 0, 0));
+
+                                    // Change player inv slot
+                                    switch (lineupInfo["Type"])
+                                    {
+                                        case "Flash":
+                                            player.ExecuteClientCommand("slot7");
+                                            break;
+                                        case "Smoke":
+                                            player.ExecuteClientCommand("slot8");
+                                            break;
+                                        case "HE":
+                                            player.ExecuteClientCommand("slot6");
+                                            break;
+                                        case "Decoy":
+                                            player.ExecuteClientCommand("slot9");
+                                            break;
+                                        case "Molly":
+                                            player.ExecuteClientCommand("slot10");
+                                            break;
+                                        case "":
+                                            player.ExecuteClientCommand("slot8");
+                                            break;
+                                    }
+
+                                    // Extract description, if available
+                                    string lineupDesc = lineupInfo.ContainsKey("Desc") ? lineupInfo["Desc"] : null;
+
+                                    // Print messages
+                                    // ReplyToUserCommand(player, $"Lineup {ChatColors.Green}{nearestName}{ChatColors.Default} loaded successfully!");
+                                    ReplyToUserCommand(player, Localizer["matchzy.pm.lineuploadedsuccess", nearestName]);
+
+                                    if (!string.IsNullOrWhiteSpace(lineupDesc))
+                                    {
+                                        player.PrintToCenter($"{lineupDesc}");
+                                        // ReplyToUserCommand(player, $"Description: {ChatColors.Green}{lineupDesc}{ChatColors.Default}");
+                                        ReplyToUserCommand(player, Localizer["matchzy.pm.lineupdesc", lineupDesc]);
+                                    }
+
+                                    lineupFound = true;
+                                    break;
                                 }
-
-                                // Extract description, if available
-                                string lineupDesc = lineupInfo.ContainsKey("Desc") ? lineupInfo["Desc"] : null;
-
-                                // Print messages
-                                // ReplyToUserCommand(player, $"Lineup {ChatColors.Green}{loadNadeName}{ChatColors.Default} loaded successfully!");
-                                ReplyToUserCommand(player, Localizer["matchzy.pm.lineuploadedsuccess", loadNadeName]);
-
-                                if (!string.IsNullOrWhiteSpace(lineupDesc))
+                                else
                                 {
-                                    player.PrintToCenter($"{lineupDesc}");
-                                    // ReplyToUserCommand(player, $"Description: {ChatColors.Green}{lineupDesc}{ChatColors.Default}");
-                                    ReplyToUserCommand(player, Localizer["matchzy.pm.lineupdesc", lineupDesc]);
+                                    // ReplyToUserCommand(player, $"Nade {ChatColor.Green}{nearestName}{ChatColor.Default} not found on the current map!");
+                                    ReplyToUserCommand(player, Localizer["matchzy.pm.nadenotfoundonmap", nearestName]);
+                                    lineupOnWrongMap = true;
                                 }
-
-                                lineupFound = true;
-                                break;
-                            }
-                            else
-                            {
-                                // ReplyToUserCommand(player, $"Nade {ChatColor.Green}{loadNadeName}{ChatColor.Default} not found on the current map!");
-                                ReplyToUserCommand(player, Localizer["matchzy.pm.nadenotfoundonmap", loadNadeName]);
-                                lineupOnWrongMap = true;
                             }
                         }
                     }
@@ -1173,7 +1244,7 @@ namespace MatchZy
                 Server.ExecuteCommand("mp_restartgame 1;mp_warmup_end;");
             } else {
                 Log($"[ExecDryRunCFG] Starting Dryrun! Dryrun CFG not found in {absolutePath}, using default CFG!");
-                Server.ExecuteCommand("ammo_grenade_limit_default 1;ammo_grenade_limit_flashbang 2;ammo_grenade_limit_total 4;bot_quota 0;cash_player_bomb_defused 300;cash_player_bomb_planted 300;cash_player_damage_hostage -30;cash_player_interact_with_hostage 300;cash_player_killed_enemy_default 300;cash_player_killed_enemy_factor 1;cash_player_killed_hostage -1000;cash_player_killed_teammate -300;cash_player_rescued_hostage 1000;cash_team_elimination_bomb_map 3250;cash_team_elimination_hostage_map_ct 3000;cash_team_elimination_hostage_map_t 3000;cash_team_hostage_alive 0;cash_team_hostage_interaction 600;cash_team_loser_bonus 1400;cash_team_loser_bonus_consecutive_rounds 500;cash_team_planted_bomb_but_defused 800;cash_team_rescued_hostage 600;cash_team_terrorist_win_bomb 3500;cash_team_win_by_defusing_bomb 3500;");
+                Server.ExecuteCommand("ammo_grenade_limit_default 1;ammo_grenade_limit_flashbang 2;ammo_grenade_limit_total 4;bot_quota 0;cash_player_bomb_defused 300;cash_player_bomb_planted 300;cash_player_damage_hostage -30;cash_player_interact_with_hostage 300;cash_player_killed_enemy_default 300;cash_player_killed_enemy_factor 1;cash_player_killed_hostage -1000;cash_player_killed_teammate -300;cash_player_rescued_hostage 1000;cash_team_elimination_bomb_map 3250;cash_team_elimination_hostage_map_ct 3000;cash_team_elimination_hostage_map_t 3000;cash_team_hostage_alive 0;cash_team_hostage_interaction 600;cash_team_loser_bonus 1400;cash_team_loser_bonus_consecutive_rounds 500;cash_team_planted_bomb_but_defused 600;cash_team_rescued_hostage 600;cash_team_terrorist_win_bomb 3500;cash_team_win_by_defusing_bomb 3500;");
                 Server.ExecuteCommand("cash_team_win_by_hostage_rescue 2900;cash_team_win_by_time_running_out_bomb 3250;cash_team_win_by_time_running_out_hostage 3250;ff_damage_reduction_bullets 0.33;ff_damage_reduction_grenade 0.85;ff_damage_reduction_grenade_self 1;ff_damage_reduction_other 0.4;mp_afterroundmoney 0;mp_autokick 0;mp_autoteambalance 0;mp_backup_restore_load_autopause 1;mp_backup_round_auto 1;mp_buy_anywhere 0;mp_buy_during_immunity 0;mp_buytime 20;mp_c4timer 40;mp_ct_default_melee weapon_knife;mp_ct_default_primary \"\";mp_ct_default_secondary weapon_hkp2000;mp_death_drop_defuser 1;mp_death_drop_grenade 2;mp_death_drop_gun 1;mp_defuser_allocation 0;mp_display_kill_assists 1;mp_endmatch_votenextmap 0;mp_forcecamera 1;mp_free_armor 0;mp_freezetime 6;mp_friendlyfire 1;mp_give_player_c4 1;mp_halftime 1;mp_halftime_duration 15;mp_halftime_pausetimer 0;mp_ignore_round_win_conditions 0;mp_limitteams 0;mp_match_can_clinch 1;mp_match_end_restart 0;mp_maxmoney 16000;mp_maxrounds 24;mp_overtime_enable 1;mp_overtime_halftime_pausetimer 0;mp_overtime_maxrounds 6;mp_overtime_startmoney 10000;mp_playercashawards 1;mp_randomspawn 0;mp_respawn_immunitytime 0;mp_respawn_on_death_ct 0;mp_respawn_on_death_t 0;mp_round_restart_delay 5;mp_roundtime 1.92;mp_roundtime_defuse 1.92;mp_roundtime_hostage 1.92;mp_solid_teammates 1;mp_starting_losses 1;mp_startmoney 16000;mp_t_default_melee weapon_knife;mp_t_default_primary \"\";mp_t_default_secondary weapon_glock;mp_teamcashawards 1;mp_timelimit 0;mp_weapons_allow_map_placed 1;mp_weapons_allow_zeus 1;mp_win_panel_display_time 3;spec_freeze_deathanim_time 0;spec_freeze_time 2;spec_freeze_time_lock 2;spec_replay_enable 0;sv_allow_votes 1;sv_auto_full_alltalk_during_warmup_half_end 0;sv_damage_print_enable 0;sv_deadtalk 1;sv_hibernate_postgame_delay 300;sv_ignoregrenaderadio 0;sv_infinite_ammo 0;sv_talk_enemy_dead 0;sv_talk_enemy_living 0;sv_voiceenable 1;tv_relayvoice 1;mp_team_timeout_max 4;mp_team_timeout_time 30;sv_vote_command_delay 0;cash_team_bonus_shorthanded 0;mp_spectators_max 20;mp_team_intro_time 0;mp_restartgame 3;mp_warmup_end;");
             }
         }
@@ -1480,6 +1551,7 @@ namespace MatchZy
             }
         }
 
+        [ConsoleCommand("css_sn", "Saves current nade position")]
         [ConsoleCommand("css_savenade", "Saves current nade position")]
         public void OnSaveNadeCommand(CCSPlayerController? player, CommandInfo command)
         {
@@ -1488,12 +1560,41 @@ namespace MatchZy
             HandleSaveNadeCommand(player, command.ArgString);
         }
 
-        [ConsoleCommand("css_loadnade", "Saves current nade position")]
+        [ConsoleCommand("css_ln", "Loades the nade with provided filter")]
+        [ConsoleCommand("css_loadnade", "Loades the nade with provided filter")]
         public void OnLoadNadeCommand(CCSPlayerController? player, CommandInfo command)
         {
             if (!isPractice || !IsPlayerValid(player)) return;
 
             HandleLoadNadeCommand(player, command.ArgString);
+        }
+
+        [ConsoleCommand("css_lin", "Lists the nade with provided filter")]
+        [ConsoleCommand("css_listnades", "Lists the nade with provided filter")]
+        public void OnListNadesCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+
+            HandleListNadesCommand(player, command.ArgString);
+        }
+
+        [ConsoleCommand("css_importnade", "Imports the nade with the given code")]
+        [ConsoleCommand("css_in", "Imports the nade with the given code")]
+        public void OnImportNadeCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+
+            HandleImportNadeCommand(player, command.ArgString);
+        }
+
+        [ConsoleCommand("css_deletenade", "Deletes the nade by name")]
+        [ConsoleCommand("css_delnade", "Deletes the nade by name")]
+        [ConsoleCommand("css_dn", "Deletes the nade by name")]
+        public void OnDeleteNadeCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+
+            HandleDeleteNadeCommand(player, command.ArgString);
         }
 
         [ConsoleCommand("css_solid", "Toggles mp_solid_teammates in practice mode")]
