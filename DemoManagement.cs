@@ -24,7 +24,7 @@ namespace MatchZy
         public void StartDemoRecording()
         {
 
-            string demoFileName = FormatDemoName();
+            string demoFileName = FormatCvarValue(demoNameFormat.Replace(" ", "_")) + ".dem";
             try
             {
                 string? directoryPath = Path.GetDirectoryName(Path.Join(Server.GameDirectory + "/csgo/", demoPath));
@@ -144,21 +144,6 @@ namespace MatchZy
             }
         }
 
-
-        private string FormatDemoName()
-        {
-            string formattedTime = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss");
-
-            var demoName = demoNameFormat
-                .Replace("{TIME}", formattedTime)
-                .Replace("{MATCH_ID}", $"{liveMatchId}")
-                .Replace("{MAP}", Server.MapName)
-                .Replace("{MAPNUMBER}", matchConfig.CurrentMapNumber.ToString())
-                .Replace("{TEAM1}", matchzyTeam1.teamName)
-                .Replace("{TEAM2}", matchzyTeam2.teamName)
-                .Replace(" ", "_");
-            return $"{demoName}.dem";
-        }
 
         [ConsoleCommand("get5_demo_upload_header_key", "If defined, a custom HTTP header with this name is added to the HTTP requests for demos")]
         [ConsoleCommand("matchzy_demo_upload_header_key", "If defined, a custom HTTP header with this name is added to the HTTP requests for demos")]

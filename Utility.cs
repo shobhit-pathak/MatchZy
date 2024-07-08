@@ -122,7 +122,14 @@ namespace MatchZy
                 string minimumReadyRequiredMessage = isMatchSetup ? "" : $"[Minimum ready players required: {ChatColors.Green}{minimumReadyRequired}{ChatColors.Default}]";
 
                 // Server.PrintToChatAll($"{chatPrefix} Unready players: {unreadyPlayerList}. Please type .ready to ready up! {minimumReadyRequiredMessage}");
-                PrintToAllChat(Localizer["matchzy.utility.unreadyplayers", unreadyPlayerList, minimumReadyRequiredMessage]);
+                if (isRoundRestorePending)
+                {
+                    PrintToAllChat(Localizer["matchzy.ready.readytotestorebackupinfomessage", unreadyPlayerList, minimumReadyRequiredMessage]);
+                }
+                else
+                {
+                    PrintToAllChat(Localizer["matchzy.utility.unreadyplayers", unreadyPlayerList, minimumReadyRequiredMessage]);
+                }
             } else {
                 int countOfReadyPlayers = playerReadyStatus.Count(kv => kv.Value == true);
                 if (isMatchSetup)
@@ -219,23 +226,35 @@ namespace MatchZy
             // Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} Won the knife. Waiting for them to type {ChatColors.Green}.stay{ChatColors.Default} or {ChatColors.Green}.switch{ChatColors.Default}");
             sideSelectionMessageTimer ??= AddTimer(chatTimerDelay, SendSideSelectionMessage, TimerFlags.REPEAT);
         }
-
-        private void StartLive() {
-
-            // Setting match phases bools
+        
+        private void SetLiveFlags()
+        {
             isWarmup = false;
             isSideSelectionPhase = false;
             matchStarted = true;
             isMatchLive = true;
             readyAvailable = false;
             isKnifeRound = false;
+        }
+
+        private void SetupLiveFlagsAndCfg()
+        {
+            SetLiveFlags();
+            KillPhaseTimers();
+            ExecLiveCFG();
+            // Adding timer here to make sure that CFG execution is completed till then
+            AddTimer(1, () => {
+                HandlePlayoutConfig();
+                ExecuteChangedConvars();
+            }); 
+        }
+
+        private void StartLive() {
+            SetupLiveFlagsAndCfg();
 
             // Storing 0-0 score backup file as lastBackupFileName, so that .stop functions properly in first round.
             lastBackupFileName = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}_round00.txt";
-
-            KillPhaseTimers();
-
-            ExecLiveCFG();
+            lastMatchZyBackupFileName = $"matchzy_data_backup_{liveMatchId}_{matchConfig.CurrentMapNumber}_round_00.json";
             
             // This is to reload the map once it is over so that all flags are reset accordingly
             Server.ExecuteCommand("mp_match_end_restart true");
@@ -243,12 +262,6 @@ namespace MatchZy
             PrintToAllChat($"{ChatColors.Olive}LIVE!");
             PrintToAllChat($"{ChatColors.Lime}LIVE!");
             PrintToAllChat($"{ChatColors.Green}LIVE!");
-
-            // Adding timer here to make sure that CFG execution is completed till then
-            AddTimer(1, () => {
-                HandlePlayoutConfig();
-                ExecuteChangedConvars();
-            });
 
             var goingLiveEvent = new GoingLiveEvent
             {
@@ -312,6 +325,9 @@ namespace MatchZy
                 isPreVeto = false;
 
                 lastBackupFileName = "";
+                lastMatchZyBackupFileName = "";
+
+                isRoundRestorePending = false;
 
                 // Unready all players
                 foreach (var key in playerReadyStatus.Keys) {
@@ -576,7 +592,13 @@ namespace MatchZy
         private void HandleMatchStart() {
             isPractice = false;
             isDryRun = false;
-
+            if (isRoundRestorePending)
+            {
+                RestoreRoundBackup(null, pendingRestoreFileName);
+                isRoundRestorePending = false;
+                pendingRestoreFileName = "";
+                return;
+            }
             // If default names, we pick a player and use their name as their team name
             if (matchzyTeam1.teamName == "COUNTER-TERRORISTS") {
                 // matchzyTeam1.teamName = teamName;
@@ -829,6 +851,7 @@ namespace MatchZy
             HandleCoaches();
             CreateMatchZyRoundDataBackup();
             InitPlayerDamageInfo();
+            UpdateHostname();
         }
 
         public void HandlePostRoundFreezeEndEvent(EventRoundFreezeEnd @event)
@@ -922,7 +945,8 @@ namespace MatchZy
 
                     string round = GetRoundNumer().ToString("D2");
                     lastBackupFileName = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}_round{round}.txt";
-                    Log($"[HandlePostRoundEndEvent] Setting lastBackupFileName to {lastBackupFileName}");
+                    lastMatchZyBackupFileName = $"matchzy_data_backup_{liveMatchId}_{matchConfig.CurrentMapNumber}_round_{round}.json";
+                    Log($"[HandlePostRoundEndEvent] Setting lastBackupFileName to {lastBackupFileName} and lastMatchZyBackupFileName to {lastMatchZyBackupFileName}");
 
                     // One of the team did not use .stop command hence display the proper message after the round has ended.
                     if (stopData["ct"] && !stopData["t"]) {
@@ -1081,11 +1105,11 @@ namespace MatchZy
                     SendPlayerNotAdminMessage(player);
                     return;
                 }
-                Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}Admin{ChatColors.Default} has unpaused the match, resuming the match!");
+                PrintToAllChat(Localizer["matchzy.pause.adminunpausedthematch"]);
                 UnpauseMatch();
 
                 if (player == null) {
-                    Server.PrintToConsole("[MatchZy] Admin has unpaused the match, resuming the match!");
+                    Server.PrintToConsole("[MatchZy] Admin has unpaused, resuming the match!");
                 }
             }
         }
@@ -1165,7 +1189,9 @@ namespace MatchZy
             foreach (var field in typeof(ChatColors).GetFields())
             {
                 string pattern = $"{{{field.Name}}}";
-                string replacement = field.GetValue(null).ToString();
+                string? replacement = field.GetValue(null)?.ToString();
+
+                if (replacement is null) return message;
 
                 // Create a case-insensitive regular expression pattern for the color name
                 string patternIgnoreCase = Regex.Escape(pattern);
@@ -1337,9 +1363,40 @@ namespace MatchZy
             }
         }
 
+        public string FormatCvarValue(string value)
+        {
+            string formattedTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            (int team1Score, int team2Score) = GetTeamsScore();
+
+            var formattedValue = value
+                .Replace("{TIME}", formattedTime.Replace(" ", "_"))
+                .Replace("{MATCH_ID}", $"{liveMatchId}")
+                .Replace("{MAP}", Server.MapName)
+                .Replace("{MAPNUMBER}", matchConfig.CurrentMapNumber.ToString())
+                .Replace("{TEAM1}", matchzyTeam1.teamName.Replace(" ", "_"))
+                .Replace("{TEAM2}", matchzyTeam2.teamName.Replace(" ", "_"))
+                .Replace("{TEAM1_SCORE}", team1Score.ToString())
+                .Replace("{TEAM2_SCORE}", team2Score.ToString());
+            return formattedValue;
+        }
+
+        public void UpdateHostname()
+        {
+            if (hostnameFormat.Value.Trim() == "") return;
+            string formattedHostname = FormatCvarValue(hostnameFormat.Value);
+            Log($"UPDATING HOSTNAME TO: {formattedHostname}");
+            Server.ExecuteCommand($"hostname {formattedHostname}");
+            // ConVar.Find("hostname")!.SetValue(formattedHostname);
+        }
+
+        public CCSGameRules GetGameRules()
+        {
+            return Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
+        }
+
         public int GetGamePhase()
         {
-            return Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!.GamePhase;
+            return GetGameRules().GamePhase;
         }
 
         public bool IsHalfTimePhase()

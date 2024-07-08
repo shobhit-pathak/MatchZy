@@ -39,6 +39,7 @@ public partial class MatchZy
                     if (!whiteList.Contains(steamId.ToString()))
                     {
                         Log($"[EventPlayerConnectFull] KICKING PLAYER STEAMID: {steamId}, Name: {player.PlayerName} (Not whitelisted!)");
+                        PrintToAllChat($"Kicking player {player.PlayerName} - Not whitelisted.");
                         KickPlayer(player);
 
                         return HookResult.Continue;
@@ -50,6 +51,7 @@ public partial class MatchZy
                     if (team == CsTeam.None)
                     {
                         Log($"[EventPlayerConnectFull] KICKING PLAYER STEAMID: {steamId}, Name: {player.PlayerName} (NOT ALLOWED!)");
+                        PrintToAllChat($"Kicking player {player.PlayerName} - Not a player in this game.");
                         KickPlayer(player);
                         return HookResult.Continue;
                     }

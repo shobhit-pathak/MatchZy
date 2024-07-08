@@ -4,20 +4,31 @@ using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Utils;
 using Newtonsoft.Json.Linq;
+using System.Text.Json.Serialization;
 
 namespace MatchZy
 {
 
     public class Team 
     {
+        [JsonPropertyName("id")]
         public string id = "";
+
+        [JsonPropertyName("teamname")]
         public required string teamName;
+
+        [JsonPropertyName("teamname")]
         public string teamFlag = "";
+
+        [JsonPropertyName("teamflag")]
         public string teamTag = "";
 
+        [JsonPropertyName("teamplayers")]
         public JToken? teamPlayers;
 
         public CCSPlayerController? coach;
+
+        [JsonPropertyName("seriesscore")]
         public int seriesScore = 0;
     }
 
