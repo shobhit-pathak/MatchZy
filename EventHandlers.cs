@@ -220,7 +220,7 @@ public partial class MatchZy
                     angle, 
                     velocity, 
                     player.PlayerPawn.Value.CBodyComponent!.SceneNode!.AbsOrigin, 
-                    player.PlayerPawn.Value.CBodyComponent!.SceneNode!.AbsRotation, 
+                    player.PlayerPawn.Value.EyeAngles,
                     nadeType,
                     DateTime.Now
                 );
