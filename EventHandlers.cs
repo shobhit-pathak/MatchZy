@@ -239,6 +239,7 @@ public partial class MatchZy
                     CSmokeGrenadeProjectile smokeProjectile = new(entity.Handle);
                     smokeProjectile.SmokeColor.X = GetPlayerTeammateColor(player).R;
                     smokeProjectile.SmokeColor.Y = GetPlayerTeammateColor(player).G;
+                    smokeProjectile.SmokeColor.Z = GetPlayerTeammateColor(player).B;
                 }
             });
         }
