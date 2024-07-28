@@ -16,8 +16,8 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 # Practice Mode Commands
 
 - `.spawn <number>` Spawns to the provided competitive spawn number of same team
-- `.ctspawn <number>` Spawns to the provided competitive spawn number of CT
-- `.tspawn <number>` Spawns to the provided competitive spawn number of T
+- `.ctspawn <number>` Spawns to the provided competitive spawn number of CT (Alias: `.cts`)
+- `.tspawn <number>` Spawns to the provided competitive spawn number of T (Alias: `.ts`)
 - `.bestspawn` Teleports you to your team's closest spawn from your current position
 - `.worstspawn` Teleports you to your team's furthest spawn from your current position
 - `.bestctspawn` Teleports you to CT team's closest spawn from your current position
@@ -34,15 +34,15 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.clear` Clears all the active smokes, molotoves and incendiaries
 - `.fastforward` Fastforwards the server time to 20 seconds (Alias: `.ff`)
 - `.noflash` Toggles immunity for flashbang (it will still blind others with noflash disabled. Alias: `.noblind`)
-- `.dryrun` Turns on dry-run mode
+- `.dryrun` Turns on dry-run mode (Alias: `.dry`)
 - `.god` Turns on god mode
-- `.savenade <name> <optional description>` Saves a lineup
-- `.loadnade <name>` Loads a lineup
-- `.deletenade <name>` Deletes a lineup from file
-- `.importnade <code>` Upon saving a lineup a code will be printed to chat, alternatively those can be retrieved from the savednades.cfg
-- `.listnades <optional filter>` Lists either all saved lineups ever or if given a filter only those that match the filter
+- `.savenade <name> <optional description>` Saves a lineup (Alias: `.sn`)
+- `.loadnade <name>` Loads a lineup (Alias: `.sn`)
+- `.deletenade <name>` Deletes a lineup from file (Alias: `.dn`)
+- `.importnade <code>` Upon saving a lineup a code will be printed to chat, alternatively those can be retrieved from the savednades.cfg (Alias: `.in`)
+- `.listnades <optional filter>` Lists either all saved lineups ever or if given a filter only those that match the filter (Alias: `.lin`)
 - `.break` Breaks all the breakable entities (glass windows, wooden doors, vents, etc)
-- `.rethrow` Rethrows your last thrown grenade
+- `.rethrow` Rethrows your last thrown grenade (Alias: `.rt`)
 - `.timer` Starts a timer immediately and stops it when you type .timer again, telling you the duration of time
 - `.last` Teleports you back to where you threw your last grenade from
 - `.back <number>` Teleports you back to the provided position in your grenade history
