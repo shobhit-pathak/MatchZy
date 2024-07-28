@@ -66,6 +66,7 @@ namespace MatchZy
                 {
                     Server.ExecuteCommand($"tv_stoprecord");
                 }
+                isDemoRecording = false;
                 AddTimer(15, () =>
                 {
                     Task.Run(async () =>
