@@ -24,6 +24,11 @@ namespace MatchZy
         public void StartDemoRecording()
         {
 
+            if (isDemoRecording)
+            {
+                Log("[StartDemoRecording] Demo recording is already in progress.");
+                return;
+            }
             string demoFileName = FormatDemoName();
             try
             {
@@ -61,6 +66,7 @@ namespace MatchZy
                 {
                     Server.ExecuteCommand($"tv_stoprecord");
                 }
+                isDemoRecording = false;
                 AddTimer(15, () =>
                 {
                     Task.Run(async () =>
