@@ -63,9 +63,10 @@ namespace MatchZy
             int roundNumber = t1score + t2score;
             AddTimer(delay, () =>
             {
-                if (isDemoRecording) 
+                if (isDemoRecording)
                 {
                     Server.ExecuteCommand($"tv_stoprecord");
+                    isDemoRecording = false;
                 }
                 isDemoRecording = false;
                 AddTimer(15, () =>
