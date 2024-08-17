@@ -25,6 +25,11 @@ namespace MatchZy
             { "t", false }
         };
 
+        public string backupUploadURL = "";
+        public string backupUploadHeaderKey = "";
+        public string backupUploadHeaderValue = "";
+
+
         public void SetupRoundBackupFile() {
             string backupFilePrefix  = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}";
             Server.ExecuteCommand($"mp_backup_round_file {backupFilePrefix}");
@@ -203,18 +208,6 @@ namespace MatchZy
                         liveSetupRequired = true;
                     }
                 }
-                
-                if (backupData.TryGetValue("team1_side", out var team1Side))
-                {
-                    if (team1Side == "CT" && teamSides[matchzyTeam1] != "CT")
-                    {
-                        SwapSidesInTeamData(false);
-                    }
-                    else if (team1Side == "TERRORIST" && teamSides[matchzyTeam1] != "TERRORIST")
-                    {
-                        SwapSidesInTeamData(false);
-                    }
-                }
 
                 if (backupData.TryGetValue("team1", out var team1config))
                 {
@@ -223,6 +216,27 @@ namespace MatchZy
                 if (backupData.TryGetValue("team2", out var team2config))
                 {
                     matchzyTeam2 = Newtonsoft.Json.JsonConvert.DeserializeObject<Team>(team2config)!;
+                }
+
+                if (backupData.TryGetValue("team1_side", out var team1Side))
+                {
+
+                    if (team1Side == "CT")
+                    {
+                        teamSides[matchzyTeam1] = "CT";
+                        reverseTeamSides["CT"] = matchzyTeam1;
+                        teamSides[matchzyTeam2] = "TERRORIST";
+                        reverseTeamSides["TERRORIST"] = matchzyTeam2;
+                        // SwapSidesInTeamData(false);
+                    }
+                    else if (team1Side == "TERRORIST")
+                    {
+                        teamSides[matchzyTeam1] = "TERRORIST";
+                        reverseTeamSides["TERRORIST"] = matchzyTeam1;
+                        teamSides[matchzyTeam2] = "CT";
+                        reverseTeamSides["CT"] = matchzyTeam2;
+                        // SwapSidesInTeamData(false);
+                    }
                 }
 
                 if (backupData.TryGetValue("TerroristTimeOuts", out var terroristTimeouts))
@@ -286,7 +300,8 @@ namespace MatchZy
             try
             {
                 (int t1score, int t2score) = GetTeamsScore();
-                string round = (t1score + t2score).ToString("D2");
+                int roundNumber = t1score + t2score;
+                string round = roundNumber.ToString("D2");
                 string matchZyBackupFileName = $"matchzy_data_backup_{liveMatchId}_{matchConfig.CurrentMapNumber}_round_{round}.json";
                 string filePath = Server.GameDirectory + "/csgo/MatchZyDataBackup/" + matchZyBackupFileName;
                 string? directoryPath = Path.GetDirectoryName(filePath);
@@ -335,6 +350,10 @@ namespace MatchZy
                 string defaultJson = JsonSerializer.Serialize(roundData, options);
 
                 File.WriteAllText(filePath, defaultJson);
+                
+                Task.Run(async () => {
+                    await UploadFileAsync(filePath, backupUploadURL, backupUploadHeaderKey, backupUploadHeaderValue, liveMatchId, matchConfig.CurrentMapNumber, roundNumber);
+                });
 
             }
             catch (Exception e)
@@ -429,6 +448,64 @@ namespace MatchZy
             }
             var fileName = command.GetArg(1);
             RestoreRoundBackup(player, fileName);
+        }
+
+        [ConsoleCommand("get5_loadbackup_url", "Loads a backup from the given URL")]
+        [ConsoleCommand("matchzy_loadbackup_url", "Loads a backup from the given URL")]
+        public void LoadBackupFromURL(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+
+            string url = command.ArgByIndex(1);
+
+            string headerName = command.ArgCount > 3 ? command.ArgByIndex(2) : "";
+            string headerValue = command.ArgCount > 3 ? command.ArgByIndex(3) : "";
+
+            Log($"[LoadBackupFromURL] Backup Restore request received with URL: {url} headerName: {headerName} and headerValue: {headerValue}");
+
+            if (!IsValidUrl(url))
+            {
+                ReplyToUserCommand(player, Localizer["matchzy.mm.invalidurl", url]);
+                Log($"[LoadBackupFromURL] Invalid URL: {url}. Please provide a valid URL to load the backup!");
+                return;
+            }
+            try
+            {
+                HttpClient httpClient = new();
+                if (headerName != "")
+                {
+                    httpClient.DefaultRequestHeaders.Add(headerName, headerValue);
+                }
+                HttpResponseMessage response = httpClient.GetAsync(url).Result;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string jsonData = response.Content.ReadAsStringAsync().Result;
+                    Log($"[LoadBackupFromURL] Received following data: {jsonData}");
+                    string fileName = Guid.NewGuid().ToString() + ".json";
+                    string filePath = Path.Combine(Server.GameDirectory, "csgo", "MatchZyDataBackup", fileName);
+
+                    string? directoryPath = Path.GetDirectoryName(filePath);
+                    if (directoryPath != null && !Directory.Exists(directoryPath))
+                    {
+                        Directory.CreateDirectory(directoryPath);
+                    }
+                    File.WriteAllText(filePath, jsonData);
+                    Log($"[LoadBackupFromURL] Data saved to: {filePath}");
+
+                    RestoreRoundBackup(player, fileName);
+                }
+                else
+                {
+                    ReplyToUserCommand(player, Localizer["matchzy.mm.httprequestfailed", response.StatusCode]);
+                    Log($"[LoadBackupFromURL] HTTP request failed with status code: {response.StatusCode}");
+                }
+            }
+            catch (Exception e)
+            {
+                Log($"[LoadBackupFromURL - FATAL] An error occured: {e.Message}");
+                return;
+            }
         }
 
         [ConsoleCommand("get5_listbackups", "List all the backups for the provided matchid")]

@@ -848,6 +848,7 @@ namespace MatchZy
         }
 
         public void HandlePostRoundStartEvent(EventRoundStart @event) {
+            if (!matchStarted) return;
             HandleCoaches();
             CreateMatchZyRoundDataBackup();
             InitPlayerDamageInfo();
@@ -1386,7 +1387,6 @@ namespace MatchZy
             string formattedHostname = FormatCvarValue(hostnameFormat.Value);
             Log($"UPDATING HOSTNAME TO: {formattedHostname}");
             Server.ExecuteCommand($"hostname {formattedHostname}");
-            // ConVar.Find("hostname")!.SetValue(formattedHostname);
         }
 
         public CCSGameRules GetGameRules()
@@ -1666,6 +1666,67 @@ namespace MatchZy
             Match match = regex.Match(fileContent);
             string? value = match.Success ? match.Groups[1].Value : null;
             return value;
+        }
+
+        public async Task UploadFileAsync(string? filePath, string fileUploadURL, string headerKey, string headerValue, long matchId, int mapNumber, int roundNumber)
+        {
+            if (filePath == null || fileUploadURL == "")
+            {
+                Log($"[UploadFileAsync] Not able to upload the file, either filePath or fileUploadURL is not set. filePath: {filePath} fileUploadURL: {fileUploadURL}");
+                return;
+            }
+
+            try
+            {
+                using var httpClient = new HttpClient();
+                Log($"[UploadFileAsync] Going to upload the file on {fileUploadURL}. Complete path: {filePath}");
+
+                if (!File.Exists(filePath))
+                {
+                    Log($"[UploadFileAsync ERROR] File not found: {filePath}");
+                    return;
+                }
+
+                using FileStream fileStream = File.OpenRead(filePath);
+
+                byte[] fileContent = new byte[fileStream.Length];
+                await fileStream.ReadAsync(fileContent, 0, (int)fileStream.Length);
+
+                using ByteArrayContent content = new(fileContent);
+                content.Headers.Add("Content-Type", "application/octet-stream");
+
+                content.Headers.Add("MatchZy-FileName", Path.GetFileName(filePath));
+                content.Headers.Add("MatchZy-MatchId", matchId.ToString());
+                content.Headers.Add("MatchZy-MapNumber", mapNumber.ToString());
+                content.Headers.Add("MatchZy-RoundNumber", roundNumber.ToString());
+
+                // For Get5 Panel
+                content.Headers.Add("Get5-FileName", Path.GetFileName(filePath));
+                content.Headers.Add("Get5-MatchId", matchId.ToString());
+                content.Headers.Add("Get5-MapNumber", mapNumber.ToString());
+                content.Headers.Add("Get5-RoundNumber", roundNumber.ToString());
+    
+
+                if (!string.IsNullOrEmpty(headerKey) && !string.IsNullOrEmpty(headerValue))
+                {
+                    httpClient.DefaultRequestHeaders.Add(headerKey, headerValue);
+                }
+
+                HttpResponseMessage response = await httpClient.PostAsync(fileUploadURL, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Log($"[UploadFileAsync] File upload successful for matchId: {matchId} mapNumber: {mapNumber} fileName: {Path.GetFileName(filePath)}.");
+                }
+                else
+                {
+                    Log($"[UploadFileAsync ERROR] Failed to upload file. Status code: {response.StatusCode} Response: {await response.Content.ReadAsStringAsync()}");
+                }
+            }
+            catch (Exception e)
+            {
+                Log($"[UploadFileAsync FATAL] An error occurred: {e.Message}");
+            }
         }
     }
 }

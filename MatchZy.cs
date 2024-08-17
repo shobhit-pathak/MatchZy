@@ -223,11 +223,13 @@ namespace MatchZy
 
             RegisterEventHandler<EventPlayerTeam>((@event, info) =>
             {
+                if (!isMatchSetup && !isVeto) return HookResult.Continue;
+
                 CCSPlayerController? player = @event.Userid;
 
                 if (!IsPlayerValid(player)) return HookResult.Continue;
 
-                if (player!.IsHLTV || player.IsBot || (!isMatchSetup && !isVeto))
+                if (player!.IsHLTV || player.IsBot)
                 {
                     return HookResult.Continue;
                 }

@@ -55,6 +55,8 @@ namespace MatchZy
         {
             Log($"[StopDemoRecording] Going to stop demorecording in {delay}s");
             string demoPath = Path.Join(Server.GameDirectory + "/csgo/", activeDemoFile);
+            (int t1score, int t2score) = GetTeamsScore();
+            int roundNumber = t1score + t2score;
             AddTimer(delay, () =>
             {
                 if (isDemoRecording) 
@@ -65,7 +67,7 @@ namespace MatchZy
                 {
                     Task.Run(async () =>
                     {
-                        await UploadDemoAsync(demoPath, liveMatchId, currentMapNumber);
+                        await UploadFileAsync(demoPath, demoUploadURL, demoUploadHeaderKey, demoUploadHeaderValue, liveMatchId, currentMapNumber, roundNumber);
                     });
                 });
             });
@@ -85,65 +87,6 @@ namespace MatchZy
             if (tvDelay < tvDelay1) return tvDelay1;
             return tvDelay;
         }
-
-        public async Task UploadDemoAsync(string? demoPath, long matchId, int mapNumber)
-        {
-            if (demoPath == null || demoUploadURL == "")
-            {
-                Log($"[UploadDemoAsync] Not able to upload demo, either demoPath or demoUploadURL is not set. demoPath: {demoPath} demoUploadURL: {demoUploadURL}");
-                return;
-            }
-
-            try
-            {
-                using var httpClient = new HttpClient();
-                Log($"[UploadDemoAsync] Going to upload demo on {demoUploadURL}. Complete path: {demoPath}");
-
-                if (!File.Exists(demoPath))
-                {
-                    Log($"[UploadDemoAsync ERROR] File not found: {demoPath}");
-                    return;
-                }
-
-                using FileStream fileStream = File.OpenRead(demoPath);
-
-                byte[] fileContent = new byte[fileStream.Length];
-                await fileStream.ReadAsync(fileContent, 0, (int)fileStream.Length);
-
-                using ByteArrayContent content = new ByteArrayContent(fileContent);
-                content.Headers.Add("Content-Type", "application/octet-stream");
-
-                content.Headers.Add("MatchZy-FileName", Path.GetFileName(demoPath));
-                content.Headers.Add("MatchZy-MatchId", matchId.ToString());
-                content.Headers.Add("MatchZy-MapNumber", mapNumber.ToString());
-
-                // For Get5 Panel
-                content.Headers.Add("Get5-FileName", Path.GetFileName(demoPath));
-                content.Headers.Add("Get5-MatchId", matchId.ToString());
-                content.Headers.Add("Get5-MapNumber", mapNumber.ToString());
-
-                if (!string.IsNullOrEmpty(demoUploadHeaderKey))
-                {
-                    httpClient.DefaultRequestHeaders.Add(demoUploadHeaderKey, demoUploadHeaderValue);
-                }
-
-                HttpResponseMessage response = await httpClient.PostAsync(demoUploadURL, content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    Log($"[UploadDemoAsync] File upload successful for matchId: {matchId} mapNumber: {mapNumber} fileName: {Path.GetFileName(demoPath)}.");
-                }
-                else
-                {
-                    Log($"[UploadDemoAsync ERROR] Failed to upload file. Status code: {response.StatusCode} Response: {await response.Content.ReadAsStringAsync()}");
-                }
-            }
-            catch (Exception e)
-            {
-                Log($"[UploadDemoAsync FATAL] An error occurred: {e.Message}");
-            }
-        }
-
 
         [ConsoleCommand("get5_demo_upload_header_key", "If defined, a custom HTTP header with this name is added to the HTTP requests for demos")]
         [ConsoleCommand("matchzy_demo_upload_header_key", "If defined, a custom HTTP header with this name is added to the HTTP requests for demos")]

@@ -264,5 +264,44 @@ namespace MatchZy
                 ReplyToUserCommand(player, Localizer["matchzy.cc.usage", $"matchzy_max_saved_last_grenades <number>"]);
             }
         }
+
+        [ConsoleCommand("get5_remote_backup_url", "A URL to send backup files to over HTTP. Leave empty to disable.")]
+        [ConsoleCommand("matchzy_remote_backup_url", "A URL to send backup files to over HTTP. Leave empty to disable.")]
+        [CommandHelper(minArgs: 1, usage: "<remote_backup_upload_url>")]
+        public void MatchZyBackupUploadURL(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+            string url = command.ArgByIndex(1);
+            if (url.Trim() == "") return;
+            if (!IsValidUrl(url))
+            {
+                Log($"[MatchZyBackupUploadURL] Invalid URL: {url}. Please provide a valid URL for uploading the demo!");
+                return;
+            }
+            backupUploadURL = url;
+        }
+
+        [ConsoleCommand("get5_remote_backup_header_key", "If defined, a custom HTTP header with this name is added to the backup HTTP request.")]
+        [ConsoleCommand("matchzy_remote_backup_header_key", "If defined, a custom HTTP header with this name is added to the backup HTTP request.")]
+        [CommandHelper(minArgs: 1, usage: "<remote_backup_header_key>")]
+        public void BackupUploadHeaderKeyCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+            string header = command.ArgByIndex(1).Trim();
+
+            if (header != "") backupUploadHeaderKey = header;
+        }
+
+        [ConsoleCommand("get5_remote_backup_header_value", "If defined, the value of the custom header added to the backup HTTP request.")]
+        [ConsoleCommand("matchzy_remote_backup_header_value", "If defined, the value of the custom header added to the backup HTTP request.")]
+        [CommandHelper(minArgs: 1, usage: "<remote_backup_header_value>")]
+        public void BackupUploadHeaderValueCommand(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+            string headerValue = command.ArgByIndex(1).Trim();
+
+            if (headerValue != "") backupUploadHeaderValue = headerValue;
+        }
+
     }
 }
