@@ -13,7 +13,7 @@ namespace MatchZy
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.7.13";
+        public override string ModuleVersion => "0.8.0";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -224,11 +224,13 @@ namespace MatchZy
 
             RegisterEventHandler<EventPlayerTeam>((@event, info) =>
             {
+                if (!isMatchSetup && !isVeto) return HookResult.Continue;
+
                 CCSPlayerController? player = @event.Userid;
 
                 if (!IsPlayerValid(player)) return HookResult.Continue;
 
-                if (player!.IsHLTV || player.IsBot || (!isMatchSetup && !isVeto))
+                if (player!.IsHLTV || player.IsBot)
                 {
                     return HookResult.Continue;
                 }
