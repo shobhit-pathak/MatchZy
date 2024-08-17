@@ -1567,7 +1567,7 @@ namespace MatchZy
 
         public string FormatCvarValue(string value)
         {
-            string formattedTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            string formattedTime = DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss");
             (int team1Score, int team2Score) = GetTeamsScore();
 
             var formattedValue = value

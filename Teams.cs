@@ -17,10 +17,10 @@ namespace MatchZy
         [JsonPropertyName("teamname")]
         public required string teamName;
 
-        [JsonPropertyName("teamname")]
+        [JsonPropertyName("teamflag")]
         public string teamFlag = "";
 
-        [JsonPropertyName("teamflag")]
+        [JsonPropertyName("teamtag")]
         public string teamTag = "";
 
         [JsonPropertyName("teamplayers")]

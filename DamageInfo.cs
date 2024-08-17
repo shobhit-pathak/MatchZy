@@ -59,6 +59,7 @@ namespace MatchZy
 
         private void ShowDamageInfo()
         {
+            if (!enableDamageReport.Value) return;
             try
             {
                 HashSet<(int, int)> processedPairs = new HashSet<(int, int)>();
