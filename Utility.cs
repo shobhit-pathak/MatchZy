@@ -530,6 +530,10 @@ namespace MatchZy
                 return;
             }
 
+            if (!mapName.Contains("_")) {
+                mapName = "de_" + mapName;
+            }
+
             if (long.TryParse(mapName, out _)) { // Check if mapName is a long for workshop map ids
                 Server.ExecuteCommand($"bot_kick");
                 Server.ExecuteCommand($"host_workshop_map \"{mapName}\"");
