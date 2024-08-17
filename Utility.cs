@@ -268,9 +268,8 @@ namespace MatchZy
             sideSelectionMessageTimer ??= AddTimer(chatTimerDelay, SendSideSelectionMessage, TimerFlags.REPEAT);
         }
 
-        private void StartLive()
+        private void SetLiveFlags()
         {
-
             // Setting match phases bools
             isWarmup = false;
             isSideSelectionPhase = false;
