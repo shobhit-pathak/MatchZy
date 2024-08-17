@@ -1,5 +1,17 @@
 # MatchZy Changelog
 
+# 0.8.0
+
+#### August 17, 2024
+
+- Improved backup and restore system. (Added matchzy_loadbackup and matchzy_loadbackup_url commands, now round backups will be stored in .json file in csgo/MatchZyDataBackup/ directory which will have valve backup and other match config data.)
+- Added matchzy_listbackups which lists all the backups for the provided matchid. By default lists backups of the current match.
+- Added matchzy_hostname_format for hostname formatting.
+- Improved player color smokes in practice mode
+- Fixed .last grenade's player rotation
+- Added switching of maps without adding de_ prefix (using .map command)
+- Marked the requestBody as required: true in event_schema.yml
+
 # 0.7.13
 
 #### July 07, 2024
