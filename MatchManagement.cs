@@ -370,7 +370,7 @@ namespace MatchZy
 
             var seriesStartedEvent = new MatchZySeriesStartedEvent
             {
-                MatchId = liveMatchId.ToString(),
+                MatchId = liveMatchId,
                 NumberOfMaps = matchConfig.NumMaps,
                 Team1 = new(matchzyTeam1.id, matchzyTeam1.teamName),
                 Team2 = new(matchzyTeam2.id, matchzyTeam2.teamName),
@@ -586,7 +586,7 @@ namespace MatchZy
 
             var seriesResultEvent = new MatchZySeriesResultEvent()
             {
-                MatchId = matchId.ToString(),
+                MatchId = matchId,
                 Winner = new Winner(t1score > t2score && reverseTeamSides["CT"] == matchzyTeam1 ? "3" : "2", winnerTeam),
                 Team1SeriesScore = team1Score,
                 Team2SeriesScore = team2Score,

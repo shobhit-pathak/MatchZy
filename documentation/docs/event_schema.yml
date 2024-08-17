@@ -226,6 +226,23 @@ webhooks:
                       description: The stats for team 2.
                       allOf:
                         - $ref: "#/components/schemas/MatchZyStatsTeam"
+  "MatchZyOnDemoUploadEnded":
+    post:
+      requestBody:
+        content: 
+          application/json:
+            schema:
+              title: MatchZyDemoUploadEndedEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyDemoFileEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - demo_upload_ended
+                    success:
+                      type: boolean
+                      description: Whether the upload was successful.
 
 components:
   schemas:
@@ -241,9 +258,9 @@ components:
         - type: object
           properties:
             matchid:
-              type: string
+              type: integer
               description: The ID of the match.
-              example: '14272'
+              example: 14272
     MatchZyMatchTeamEvent:
       allOf:
         - "$ref": "#/components/schemas/MatchZyMatchEvent"
@@ -560,6 +577,17 @@ components:
           minimum: 0
           description: 'The number of times the player was elected the round MVP.'
           example: 4
+    MatchZyDemoFileEvent:
+      allOf:
+        - "$ref": "#/components/schemas/MatchZyMapEvent"
+        - type: object
+          properties:
+            filename:
+              type: string
+              example: "1324_map_0_de_nuke.dem"
+              description: |
+                The name of the file containing the CSTV recording of the map. The format is determined by the
+                `matchzy_demo_name_format` parameter.
 tags:
   - name: All Events
     description: Forward fired for all events.

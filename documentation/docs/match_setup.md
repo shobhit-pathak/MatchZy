@@ -19,7 +19,7 @@ There are 2 commands available which can be used to load a match:
 
 ```json title="csgo/astralis_vs_navi_27.json"
 {
-  "matchid": "27",
+  "matchid": 27,
   "team1": {
     "name": "Astralis",
     "players": {

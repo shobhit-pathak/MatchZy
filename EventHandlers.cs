@@ -347,7 +347,7 @@ public partial class MatchZy
         if (!IsPlayerValid(player)) return HookResult.Continue;
         if(lastGrenadeThrownTime.TryGetValue(@event.Entityid, out var thrownTime)) 
         {
-            PrintToPlayerChat(player!, Localizer["matchzy.pracc.decop", player!.PlayerName, $"{(DateTime.Now - thrownTime).TotalSeconds:0.00}"]);
+            PrintToPlayerChat(player!, Localizer["matchzy.pracc.decoy", player!.PlayerName, $"{(DateTime.Now - thrownTime).TotalSeconds:0.00}"]);
             lastGrenadeThrownTime.Remove(@event.Entityid);
         }
         return HookResult.Continue;
