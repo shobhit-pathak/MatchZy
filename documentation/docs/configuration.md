@@ -120,6 +120,24 @@ Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <b
 ####`matchzy_show_credits_on_match_start`
 :   Whether to show 'MatchZy Plugin by WD-' message on match start.<br>**`Default: true`**
 
+####`matchzy_hostname_format`
+:   The server hostname to use. Set to "" to disable/use existing. Available variables: {TIME}, {MATCH_ID}, {MAP}, {MAPNUMBER}, {TEAM1}, {TEAM2}, {TEAM1_SCORE}, {TEAM2_SCORE}<br>**`Default: MatchZy | {TEAM1} vs {TEAM2}`**
+
+####`matchzy_loadbackup`
+:   Loads a match backup from the given file. Relative to `csgo/MatchZyDataBackup/`.
+
+####`matchzy_loadbackup_url`
+:   Loads a match backup from a remote host by sending an HTTP(S) GET to the given URL. You may optionally provide an HTTP header and value pair using the header name and header value arguments. You should put all arguments inside quotation marks ("").
+
+####`matchzy_remote_backup_url`
+:   If defined, MatchZy will automatically send backups to this URL in an HTTP POST request. If no protocol is provided, http:// will be prepended to this value. Requires the SteamWorks extension. 
+
+####`matchzy_remote_backup_header_key`
+:   If this and matchzy_remote_backup_header_value are defined, this header name and value will be used for your backup upload HTTP request. **`Default: "Authorization"`**
+
+####`matchzy_remote_backup_header_value`
+:   If this and matchzy_remote_backup_header_key are defined, this header name and value will be used for your backup upload HTTP request. **`Default: ""`**
+
 ### Configuring Warmup/Knife/Live/Prac CFGs
 Again, inside `csgo/cfg/MatchZy`, files named `warmup.cfg`, `knife.cfg`, `live.cfg` and `prac.cfg` should be present. These configs are executed when Warmup, Knife, Live and Practice Mode is started respectively.
 

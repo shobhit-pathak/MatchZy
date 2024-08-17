@@ -39,6 +39,7 @@ public partial class MatchZy
                     if (!whiteList.Contains(steamId.ToString()))
                     {
                         Log($"[EventPlayerConnectFull] KICKING PLAYER STEAMID: {steamId}, Name: {player.PlayerName} (Not whitelisted!)");
+                        PrintToAllChat($"Kicking player {player.PlayerName} - Not whitelisted.");
                         KickPlayer(player);
 
                         return HookResult.Continue;
@@ -50,6 +51,7 @@ public partial class MatchZy
                     if (team == CsTeam.None)
                     {
                         Log($"[EventPlayerConnectFull] KICKING PLAYER STEAMID: {steamId}, Name: {player.PlayerName} (NOT ALLOWED!)");
+                        PrintToAllChat($"Kicking player {player.PlayerName} - Not a player in this game.");
                         KickPlayer(player);
                         return HookResult.Continue;
                     }
@@ -184,7 +186,7 @@ public partial class MatchZy
     {
         try
         {
-            if (entity == null || entity.Entity == null || !isPractice) return;
+            if (!isPractice || entity == null || entity.Entity == null) return;
             if (!Constants.ProjectileTypeMap.ContainsKey(entity.Entity.DesignerName)) return;
 
             Server.NextFrame(() => {
@@ -220,7 +222,7 @@ public partial class MatchZy
                     angle, 
                     velocity, 
                     player.PlayerPawn.Value.CBodyComponent!.SceneNode!.AbsOrigin, 
-                    player.PlayerPawn.Value.CBodyComponent!.SceneNode!.AbsRotation, 
+                    player.PlayerPawn.Value.EyeAngles,
                     nadeType,
                     DateTime.Now
                 );
@@ -239,6 +241,7 @@ public partial class MatchZy
                     CSmokeGrenadeProjectile smokeProjectile = new(entity.Handle);
                     smokeProjectile.SmokeColor.X = GetPlayerTeammateColor(player).R;
                     smokeProjectile.SmokeColor.Y = GetPlayerTeammateColor(player).G;
+                    smokeProjectile.SmokeColor.Z = GetPlayerTeammateColor(player).B;
                 }
             });
         }
@@ -288,9 +291,8 @@ public partial class MatchZy
 
     public HookResult EventSmokegrenadeDetonateHandler(EventSmokegrenadeDetonate @event, GameEventInfo info)
     {
-        CCSPlayerController? player = @event.Userid;
-
         if (!isPractice || isDryRun) return HookResult.Continue;
+        CCSPlayerController? player = @event.Userid;
         if (!IsPlayerValid(player)) return HookResult.Continue;
         if(lastGrenadeThrownTime.TryGetValue(@event.Entityid, out var thrownTime)) 
         {

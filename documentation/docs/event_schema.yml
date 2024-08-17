@@ -9,7 +9,7 @@ info:
     [`matchzy_remote_log_url`](configuration#matchzy_remote_log_url) in your MatchZy configuration. You should inspect the value
     of the `event` property to determine the type of event. You cannot select which events to receive, but you can
     instead discard the ones you don't need.
-    
+
     You are expected to return a 200-range HTTP code to all request, or MatchZy will consider them failed. The HTTP timeout
     is 15 seconds and there are no automatic retries.
     Note: This documentation is heavily inspired by Get5. Currently only those events are supported which are required for proper functioning of G5V/G5API. Though these events should be enough for now to get
@@ -23,6 +23,7 @@ webhooks:
       description: |
         Fired when a series is started after loading a match config.
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -50,6 +51,7 @@ webhooks:
       description: |
         Fired when the map ends.
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -75,6 +77,7 @@ webhooks:
       description: |
         Fired when a series ends.
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -112,6 +115,7 @@ webhooks:
       description: |
         Fired when a side is picked by a team.
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -137,6 +141,7 @@ webhooks:
       description: |
         Fired when a team picks a map.
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -160,6 +165,7 @@ webhooks:
       description: |
         Fired when a team vetos a map.
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -180,6 +186,7 @@ webhooks:
       description: |
         Fired when a map is going live.
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -199,6 +206,7 @@ webhooks:
       description: |
         Fired when a round ends - when the result is in; not when the round stops. Game activity can occur after this.
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -229,7 +237,8 @@ webhooks:
   "MatchZyOnDemoUploadEnded":
     post:
       requestBody:
-        content: 
+        required: true
+        content:
           application/json:
             schema:
               title: MatchZyDemoUploadEndedEvent
@@ -286,7 +295,8 @@ components:
             map_name:
               type: string
               example: de_nuke
-              description: The name of the map related to the event (map picked/banned
+              description:
+                The name of the map related to the event (map picked/banned
                 etc.).
     MatchZyMapTeamEvent:
       allOf:
@@ -398,7 +408,7 @@ components:
           properties:
             steamid:
               type: string
-              example: '76561198279375306'
+              example: "76561198279375306"
               description: |
                 The SteamID64 of the player.
             name:
@@ -415,157 +425,157 @@ components:
         kills:
           type: integer
           minimum: 0
-          description: 'The number of kills the player had.'
+          description: "The number of kills the player had."
           example: 34
         deaths:
           type: integer
           minimum: 0
-          description: 'The number of deaths the player had.'
+          description: "The number of deaths the player had."
           example: 8
         assists:
           type: integer
           minimum: 0
-          description: 'The number of assists the player had.'
+          description: "The number of assists the player had."
           example: 5
         flash_assists:
           type: integer
           minimum: 0
-          description: 'The number of flashbang assists the player had.'
+          description: "The number of flashbang assists the player had."
           example: 3
         team_kills:
           type: integer
           minimum: 0
-          description: 'The number of team-kills the player had.'
+          description: "The number of team-kills the player had."
           example: 0
         suicides:
           type: integer
           minimum: 0
-          description: 'The number of suicides the player had.'
+          description: "The number of suicides the player had."
           example: 0
         damage:
           type: integer
           minimum: 0
-          description: 'The total amount of damage the player dealt.'
+          description: "The total amount of damage the player dealt."
           example: 2948
         utility_damage:
           type: integer
           minimum: 0
-          description: 'The total amount of damage the player dealt via utility.'
+          description: "The total amount of damage the player dealt via utility."
           example: 173
         enemies_flashed:
           type: integer
           minimum: 0
-          description: 'The number of enemies flashed by the player.'
+          description: "The number of enemies flashed by the player."
           example: 6
         friendlies_flashed:
           type: integer
           minimum: 0
-          description: 'The number of teammates flashed by the player.'
+          description: "The number of teammates flashed by the player."
           example: 2
         knife_kills:
           type: integer
           minimum: 0
-          description: 'The number kills the player had with a knife.'
+          description: "The number kills the player had with a knife."
           example: 1
         headshot_kills:
           type: integer
           minimum: 0
-          description: 'The number kills the player had that were headshots.'
+          description: "The number kills the player had that were headshots."
           example: 19
         rounds_played:
           type: integer
           minimum: 0
-          description: 'The number of rounds the player started.'
+          description: "The number of rounds the player started."
           example: 27
         bomb_defuses:
           type: integer
           minimum: 0
-          description: 'The number of times the player defused the bomb.'
+          description: "The number of times the player defused the bomb."
           example: 4
         bomb_plants:
           type: integer
           minimum: 0
-          description: 'The number of times the player planted the bomb.'
+          description: "The number of times the player planted the bomb."
           example: 3
         1k:
           type: integer
           minimum: 0
-          description: 'The number of rounds where the player killed 1 opponent.'
+          description: "The number of rounds where the player killed 1 opponent."
           example: 3
         2k:
           type: integer
           minimum: 0
-          description: 'The number of rounds where the player killed 2 opponents.'
+          description: "The number of rounds where the player killed 2 opponents."
           example: 2
         3k:
           type: integer
           minimum: 0
-          description: 'The number of rounds where the player killed 3 opponents.'
+          description: "The number of rounds where the player killed 3 opponents."
           example: 3
         4k:
           type: integer
           minimum: 0
-          description: 'The number of rounds where the player killed 4 opponents.'
+          description: "The number of rounds where the player killed 4 opponents."
           example: 0
         5k:
           type: integer
           minimum: 0
-          description: 'The number of rounds where the player killed 5 opponents.'
+          description: "The number of rounds where the player killed 5 opponents."
           example: 1
         1v1:
           type: integer
           minimum: 0
-          description: 'The number of 1v1s the player won.'
+          description: "The number of 1v1s the player won."
           example: 1
         1v2:
           type: integer
           minimum: 0
-          description: 'The number of 1v2s the player won.'
+          description: "The number of 1v2s the player won."
           example: 3
         1v3:
           type: integer
           minimum: 0
-          description: 'The number of 1v3s the player won.'
+          description: "The number of 1v3s the player won."
           example: 2
         1v4:
           type: integer
           minimum: 0
-          description: 'The number of 1v4s the player won.'
+          description: "The number of 1v4s the player won."
           example: 0
         1v5:
           type: integer
           minimum: 0
-          description: 'The number of 1v5s the player won.'
+          description: "The number of 1v5s the player won."
           example: 1
         first_kills_t:
           type: integer
           minimum: 0
-          description: 'The number of rounds where the player had the first kill in the round while playing the T side.'
+          description: "The number of rounds where the player had the first kill in the round while playing the T side."
           example: 6
         first_kills_ct:
           type: integer
           minimum: 0
-          description: 'The number of rounds where the player had the first kill in the round while playing the CT side.'
+          description: "The number of rounds where the player had the first kill in the round while playing the CT side."
           example: 5
         first_deaths_t:
           type: integer
           minimum: 0
-          description: 'The number of rounds where the player was the first to die in the round while playing the T side.'
+          description: "The number of rounds where the player was the first to die in the round while playing the T side."
           example: 1
         first_deaths_ct:
           type: integer
           minimum: 0
-          description: 'The number of rounds where the player was the first to die in the round while playing the CT side.'
+          description: "The number of rounds where the player was the first to die in the round while playing the CT side."
           example: 1
         trade_kills:
           type: integer
           minimum: 0
-          description: 'The number of times the player got a kill in a trade.'
+          description: "The number of times the player got a kill in a trade."
           example: 3
         kast:
           type: integer
           minimum: 0
-          description: 'The number of rounds where the player (k)illed a player, had an (a)ssist, (s)urvived or was (t)raded.'
+          description: "The number of rounds where the player (k)illed a player, had an (a)ssist, (s)urvived or was (t)raded."
           example: 23
         score:
           type: integer
@@ -575,7 +585,7 @@ components:
         mvp:
           type: integer
           minimum: 0
-          description: 'The number of times the player was elected the round MVP.'
+          description: "The number of times the player was elected the round MVP."
           example: 4
     MatchZyDemoFileEvent:
       allOf:

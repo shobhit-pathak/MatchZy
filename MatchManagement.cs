@@ -365,8 +365,8 @@ namespace MatchZy
             if(matchConfig.SkipVeto) SetMapSides();
 
             SetTeamNames();
-
             UpdatePlayersMap();
+            UpdateHostname();
 
             var seriesStartedEvent = new MatchZySeriesStartedEvent
             {
@@ -462,7 +462,7 @@ namespace MatchZy
             }
             if (jsonDataObject["spectators"] != null && jsonDataObject["spectators"]!["players"] != null)
             {
-                matchConfig.Spectators = jsonDataObject["spectators"]!["players"];
+                matchConfig.Spectators = jsonDataObject["spectators"]!["players"]!;
                 if (matchConfig.Spectators is JArray spectatorsArray && spectatorsArray.Count == 0)
                 {
                     // Convert the empty JArray to an empty JObject
