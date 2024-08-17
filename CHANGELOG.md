@@ -1,5 +1,13 @@
 # MatchZy Changelog
 
+# 0.8.1
+
+#### August 17, 2024
+
+- Added matchzy_enable_damage_report convar to toggle damage report after every round.
+- Fixed bad demo name formatting.
+- Updated Uzbek translations.
+
 # 0.8.0
 
 #### August 17, 2024

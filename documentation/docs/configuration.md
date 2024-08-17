@@ -138,6 +138,9 @@ Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <b
 ####`matchzy_remote_backup_header_value`
 :   If this and matchzy_remote_backup_header_key are defined, this header name and value will be used for your backup upload HTTP request. **`Default: ""`**
 
+####`matchzy_enable_damage_report`
+:   Whether to show damage report after each round or not. **`Default: "true"`**
+
 ### Configuring Warmup/Knife/Live/Prac CFGs
 Again, inside `csgo/cfg/MatchZy`, files named `warmup.cfg`, `knife.cfg`, `live.cfg` and `prac.cfg` should be present. These configs are executed when Warmup, Knife, Live and Practice Mode is started respectively.
 
