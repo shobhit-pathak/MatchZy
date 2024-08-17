@@ -307,6 +307,7 @@ namespace MatchZy
                 // We stop demo recording if a live match was restarted
                 if (matchStarted && isDemoRecording) {
                     Server.ExecuteCommand($"tv_stoprecord");
+                    isDemoRecording = false;
                 }
                 // Reset match data
                 matchStarted = false;
@@ -636,7 +637,6 @@ namespace MatchZy
             string seriesType = "BO" + matchConfig.NumMaps.ToString();
             liveMatchId = database.InitMatch(matchzyTeam1.teamName, matchzyTeam2.teamName, "-" , isMatchSetup, liveMatchId, matchConfig.CurrentMapNumber, seriesType);
             SetupRoundBackupFile();
-            StartDemoRecording();
 
             GetSpawns();
 
@@ -646,10 +646,12 @@ namespace MatchZy
             }
             else if (isKnifeRequired) 
             {
-                StartKnifeRound();  
+                StartDemoRecording();
+                StartKnifeRound();
             } 
             else 
             {
+                StartDemoRecording();
                 StartLive();
             }
             if (showCreditsOnMatchStart.Value)
