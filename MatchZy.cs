@@ -13,7 +13,7 @@ namespace MatchZy
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.8.1";
+        public override string ModuleVersion => "0.8.2";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -74,6 +74,8 @@ namespace MatchZy
         public bool isSaveNadesAsGlobalEnabled = false;
 
         public bool isPlayOutEnabled = false;
+
+        public bool playerHasTakenDamage = false;
 
         // User command - action map
         public Dictionary<string, Action<CCSPlayerController?, CommandInfo?>>? commandActions;
@@ -203,7 +205,6 @@ namespace MatchZy
             RegisterEventHandler<EventCsWinPanelMatch>(EventCsWinPanelMatchHandler);
             RegisterEventHandler<EventRoundStart>(EventRoundStartHandler);
             RegisterEventHandler<EventPlayerDeath>(EventPlayerDeathPreHandler, hookMode: HookMode.Pre);
-            RegisterEventHandler<EventRoundFreezeEnd>(EventRoundFreezeEndHandler);
             RegisterListener<Listeners.OnClientDisconnectPost>(playerSlot => { 
                // May not be required, but just to be on safe side so that player data is properly updated in dictionaries
                // Update: Commenting the below function as it was being called multiple times on map change.
@@ -215,7 +216,7 @@ namespace MatchZy
                 CCSPlayerController? player = @event.Userid;
                 if (!IsPlayerValid(player)) return HookResult.Continue;
 
-                if (matchzyTeam1.coach == player || matchzyTeam2.coach == player) {
+                if (matchzyTeam1.coach.Contains(player!) || matchzyTeam2.coach.Contains(player!)) {
                     @event.Silent = true;
                     return HookResult.Changed;
                 }
@@ -237,13 +238,8 @@ namespace MatchZy
 
                 CsTeam playerTeam = GetPlayerTeam(player);
 
-                if (@event.Team != (int)playerTeam && player.IsValid)
-                {
-                    Server.NextFrame(() =>
-                    {
-                        player.SwitchTeam(playerTeam);
-                    });
-                }
+                SwitchPlayerTeam(player, playerTeam);
+
                 return HookResult.Continue;
             });
 
@@ -354,6 +350,7 @@ namespace MatchZy
                 {
                     int targetId = (int)victim.UserId!;
                     UpdatePlayerDamageInfo(@event, targetId);
+                    if (attacker != victim) playerHasTakenDamage = true;
                 }
 
 				return HookResult.Continue;
@@ -362,13 +359,7 @@ namespace MatchZy
             RegisterEventHandler<EventPlayerChat>((@event, info) => {
 
                 int currentVersion = Api.GetVersion();
-                int index = @event.Userid;
-                // From APIVersion 50 and above, EventPlayerChat userid property will be a "slot", rather than an entity index 
-                // Player index is slot + 1
-                if (currentVersion >= 50)
-                {
-                    index += 1;
-                }
+                int index = @event.Userid + 1;
                 var playerUserId = NativeAPI.GetUseridFromIndex(index);
 
                 var originalMessage = @event.Text.Trim();

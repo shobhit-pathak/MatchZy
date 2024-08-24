@@ -1,5 +1,16 @@
 # MatchZy Changelog
 
+# 0.8.2
+
+#### August 25, 2024
+
+- Added capability to have multiple coaches in a team.
+- Coaches will now be invisible, they will drop the bomb on the spawn if they get it and will die 1 second before freezetime ends.
+- If a match is loaded, player will directly join their respective team, skipping the join team menu.
+- Fixed a bug where loading a saved nade would make the player stuck.
+- Added `matchzy_stop_command_no_damage` convar to determine whether the stop command becomes unavailable if a player damages a player from the opposing team.
+- `.map` command can now be used without "de_" prefix for maps. (Example: .map dust2)
+
 # 0.8.1
 
 #### August 17, 2024

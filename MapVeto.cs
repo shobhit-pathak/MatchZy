@@ -647,6 +647,14 @@ namespace MatchZy
             }
         }
 
+        public void SkipVeto()
+        {
+            isWarmup = true;
+            readyAvailable = true;
+            isPreVeto = false;
+            isVeto = false;
+            StartWarmup();
+        }
     }
 }
 

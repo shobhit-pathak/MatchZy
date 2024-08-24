@@ -120,17 +120,14 @@ namespace MatchZy
         [ConsoleCommand("css_stay", "Stays after knife round")]
         public void OnTeamStay(CCSPlayerController? player, CommandInfo? command)
         {
-            if (player == null) return;
+            if (player == null || !isSideSelectionPhase) return;
 
             Log($"[!stay command] {player.UserId}, TeamNum: {player.TeamNum}, knifeWinner: {knifeWinner}, isSideSelectionPhase: {isSideSelectionPhase}");
-            if (isSideSelectionPhase)
+            if (player.TeamNum == knifeWinner)
             {
-                if (player.TeamNum == knifeWinner)
-                {
-                    PrintToAllChat(Localizer["matchzy.knife.decidedtostay", knifeWinnerName]);
-                    // Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} has decided to stay!");
-                    StartLive();
-                }
+                PrintToAllChat(Localizer["matchzy.knife.decidedtostay", knifeWinnerName]);
+                // Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} has decided to stay!");
+                StartLive();
             }
         }
 
@@ -138,19 +135,17 @@ namespace MatchZy
         [ConsoleCommand("css_swap", "Switch after knife round")]
         public void OnTeamSwitch(CCSPlayerController? player, CommandInfo? command)
         {
-            if (player == null) return;
+            if (player == null || !isSideSelectionPhase) return;
 
             Log($"[!switch command] {player.UserId}, TeamNum: {player.TeamNum}, knifeWinner: {knifeWinner}, isSideSelectionPhase: {isSideSelectionPhase}");
-            if (isSideSelectionPhase)
+
+            if (player.TeamNum == knifeWinner)
             {
-                if (player.TeamNum == knifeWinner)
-                {
-                    Server.ExecuteCommand("mp_swapteams;");
-                    SwapSidesInTeamData(true);
-                    PrintToAllChat(Localizer["matchzy.knife.decidedtoswitch", knifeWinnerName]);
-                    // Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} has decided to switch!");
-                    StartLive();
-                }
+                Server.ExecuteCommand("mp_swapteams;");
+                SwapSidesInTeamData(true);
+                PrintToAllChat(Localizer["matchzy.knife.decidedtoswitch", knifeWinnerName]);
+                // Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{knifeWinnerName}{ChatColors.Default} has decided to switch!");
+                StartLive();
             }
         }
 

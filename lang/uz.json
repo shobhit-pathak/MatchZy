@@ -24,6 +24,7 @@
   "matchzy.restore.teamwantstorestore": "{green}{0}{default} oʻyinni joriy raundning boshiga tiklamoqchi. {green}{1}{default}, tasdiqlash uchun !stop yozing.",
   "matchzy.restore.loadedsuccessfully": "Zaxira fayli muvaffaqiyatli yuklandi: {0}",
   "matchzy.restore.restoredsuccessfully": "Zaxira fayli muvaffaqiyatli tiklandi: {0}",
+  "matchzy.restore.stopcommandrequiresnodamage": "A request to restart the round cannot be given once a player has damaged any opposing player.",
 
   "matchzy.backup.stopduringhalftime": "Tanaffus paytida ushbu buyruqdan foydalana olmaysiz.",
   "matchzy.backup.stopmatchended": "Oʻyin tugagandan soʻng siz ushbu buyruqdan foydalana olmaysiz.",

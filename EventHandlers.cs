@@ -20,31 +20,9 @@ public partial class MatchZy
             {
                 var steamId = player.SteamID;
 
-                string whitelistfileName = "MatchZy/whitelist.cfg";
-                string whitelistPath = Path.Join(Server.GameDirectory + "/csgo/cfg", whitelistfileName);
-                string? directoryPath = Path.GetDirectoryName(whitelistPath);
-                if (directoryPath != null)
-                {
-                    if (!Directory.Exists(directoryPath))
-                    {
-                        Directory.CreateDirectory(directoryPath);
-                    }
-                }
-                if (!File.Exists(whitelistPath)) File.WriteAllLines(whitelistPath, new[] { "Steamid1", "Steamid2" });
+                bool kicked = HandlePlayerWhitelist(player, steamId.ToString());
+                if (kicked) return HookResult.Continue;
 
-                var whiteList = File.ReadAllLines(whitelistPath);
-
-                if (isWhitelistRequired == true)
-                {
-                    if (!whiteList.Contains(steamId.ToString()))
-                    {
-                        Log($"[EventPlayerConnectFull] KICKING PLAYER STEAMID: {steamId}, Name: {player.PlayerName} (Not whitelisted!)");
-                        PrintToAllChat($"Kicking player {player.PlayerName} - Not whitelisted.");
-                        KickPlayer(player);
-
-                        return HookResult.Continue;
-                    }
-                }
                 if (isMatchSetup || matchModeOnly)
                 {
                     CsTeam team = GetPlayerTeam(player);
@@ -54,6 +32,10 @@ public partial class MatchZy
                         PrintToAllChat($"Kicking player {player.PlayerName} - Not a player in this game.");
                         KickPlayer(player);
                         return HookResult.Continue;
+                    }
+                    else
+                    {
+                        SwitchPlayerTeam(player, team);
                     }
                 }
             }
@@ -110,25 +92,21 @@ public partial class MatchZy
                 playerReadyStatus.Remove(userId);
                 connectedPlayers--;
             }
-            if (playerData.ContainsKey(userId))
-            {
-                playerData.Remove(userId);
-            }
+            playerData.Remove(userId);
 
-            if (matchzyTeam1.coach == player)
+            if (matchzyTeam1.coach.Contains(player))
             {
-                matchzyTeam1.coach = null;
+                matchzyTeam1.coach.Remove(player);
+                SetPlayerVisible(player);
                 player.Clan = "";
             }
-            else if (matchzyTeam2.coach == player)
+            else if (matchzyTeam2.coach.Contains(player))
             {
-                matchzyTeam2.coach = null;
+                matchzyTeam2.coach.Remove(player);
+                SetPlayerVisible(player);
                 player.Clan = "";
             }
-            if (noFlashList.Contains(userId))
-            {
-                noFlashList.Remove(userId);
-            }
+            noFlashList.Remove(userId);
             lastGrenadesData.Remove(userId);
             nadeSpecificLastGrenadeData.Remove(userId);
 
@@ -260,7 +238,7 @@ public partial class MatchZy
 
             if (@event.Attacker == @event.Userid)
             {
-                if (matchzyTeam1.coach == @event.Attacker || matchzyTeam2.coach == @event.Attacker)
+                if (matchzyTeam1.coach.Contains(@event.Attacker!) || matchzyTeam2.coach.Contains(@event.Attacker!))
                 {
                     info.DontBroadcast = true;
                 }
@@ -271,20 +249,6 @@ public partial class MatchZy
         catch (Exception e)
         {
             Log($"[EventPlayerDeathPreHandler FATAL] An error occurred: {e.Message}");
-            return HookResult.Continue;
-        }
-    }
-
-    public HookResult EventRoundFreezeEndHandler(EventRoundFreezeEnd @event, GameEventInfo info)
-    {
-        try
-        {
-            HandlePostRoundFreezeEndEvent(@event);
-            return HookResult.Continue;
-        }
-        catch (Exception e)
-        {
-            Log($"[EventRoundFreezeEnd FATAL] An error occurred: {e.Message}");
             return HookResult.Continue;
         }
     }

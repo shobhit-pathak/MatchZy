@@ -314,7 +314,7 @@ namespace MatchZy
 
                     savedNadesDict[playerSteamID][lineupName] = new Dictionary<string, string>
                     {
-                        { "LineupPos", $"{playerPos.X} {playerPos.Y} {playerPos.Z}" },
+                        { "LineupPos", $"{playerPos.X} {playerPos.Y} {playerPos.Z+4}" },
                         { "LineupAng", $"{playerAngle.X} {playerAngle.Y} {playerAngle.Z}" },
                         { "Desc", lineupDesc },
                         { "Map", currentMapName },
@@ -1018,7 +1018,7 @@ namespace MatchZy
             var player = @event.Userid;
             if (!IsPlayerValid(player)) return HookResult.Continue;
 
-            if (matchStarted && (matchzyTeam1.coach == player || matchzyTeam2.coach == player))
+            if (matchStarted && (matchzyTeam1.coach.Contains(player!) || matchzyTeam2.coach.Contains(player!)))
             {
                 player!.InGameMoneyServices!.Account = 0;
 
@@ -1508,7 +1508,7 @@ namespace MatchZy
             if (IsValidPositionForLastGrenade(player!, 1))
             {
                 // PrintToPlayerChat(player!, $"Index of last thrown grenade: {lastGrenadesData[player!.UserId!.Value].Count}");
-                PrintToPlayerChat(player, Localizer["matchzy.pm.indexlastgrenade", $"{lastGrenadesData[player!.UserId!.Value].Count}"]);
+                PrintToPlayerChat(player!, Localizer["matchzy.pm.indexlastgrenade", $"{lastGrenadesData[player!.UserId!.Value].Count}"]);
             } 
         }
 
