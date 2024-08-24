@@ -59,6 +59,9 @@ Again, inside `csgo/cfg/MatchZy`, a file named `config.cfg` should be present. T
 ####`matchzy_stop_command_available`
 :   Whether !stop/.stop command to restore the backup of the current round is enabled by default or not.<br>**`Default: false`**
 
+####`matchzy_stop_command_no_damage`
+:   Whether the stop command becomes unavailable if a player damages a player from the opposing team.<br>**`Default: false`**
+
 ####`matchzy_pause_after_restore`
 :   Whether to pause the match after round restore or not. Players can unpause the match using !unpause/.unpause. (Both the teams will have to use unpause command) or admins can use `.fup` to force-unpause the game<br>**`Default: true`**
 
@@ -140,6 +143,12 @@ Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <b
 
 ####`matchzy_enable_damage_report`
 :   Whether to show damage report after each round or not. **`Default: "true"`**
+
+####`matchzy_addplayer <steam64> <team1|team2|spec> [name]`
+:   Adds a Steam64 to the provided team. The name parameter locks the player's name.
+
+####`matchzy_removeplayer <steam64>`
+:   Removes a Steam64 from all teams
 
 ### Configuring Warmup/Knife/Live/Prac CFGs
 Again, inside `csgo/cfg/MatchZy`, files named `warmup.cfg`, `knife.cfg`, `live.cfg` and `prac.cfg` should be present. These configs are executed when Warmup, Knife, Live and Practice Mode is started respectively.

@@ -338,8 +338,8 @@ namespace MatchZy
             foreach (var key in playerData.Keys)
             {
                 CCSPlayerController player = playerData[key];
-                if (team == 2 && reverseTeamSides["TERRORIST"].coach == player) continue;
-                if (team == 3 && reverseTeamSides["CT"].coach == player) continue;
+                if (team == 2 && reverseTeamSides["TERRORIST"].coach.Contains(player)) continue;
+                if (team == 3 && reverseTeamSides["CT"].coach.Contains(player)) continue;
                 if (!IsPlayerValid(player)) continue;
                 if (player.TeamNum == team)
                 {
@@ -380,6 +380,7 @@ namespace MatchZy
                 lastMatchZyBackupFileName = "";
 
                 isRoundRestorePending = false;
+                playerHasTakenDamage = false;
 
                 // Unready all players
                 foreach (var key in playerReadyStatus.Keys)
@@ -421,11 +422,16 @@ namespace MatchZy
                 matchzyTeam1.teamPlayers = null;
                 matchzyTeam2.teamPlayers = null;
 
-                if (matchzyTeam1.coach != null) matchzyTeam1.coach.Clan = "";
-                if (matchzyTeam2.coach != null) matchzyTeam2.coach.Clan = "";
+                HashSet<CCSPlayerController> coaches = GetAllCoaches();
 
-                matchzyTeam1.coach = null;
-                matchzyTeam2.coach = null;
+                foreach (var coach in coaches)
+                {
+                    coach.Clan = "";
+                    SetPlayerVisible(coach);
+                }
+
+                matchzyTeam1.coach = new();
+                matchzyTeam2.coach = new();
 
                 matchzyTeam1.seriesScore = 0;
                 matchzyTeam2.seriesScore = 0;
@@ -454,7 +460,7 @@ namespace MatchZy
                 }
                 else
                 {
-                    // Since we should be already in warmup phase by this point, we are juts setting up the SendUnreadyPlayersMessage timer
+                    // Since we should be already in warmup phase by this point, we are just setting up the SendUnreadyPlayersMessage timer
                     unreadyPlayerMessageTimer?.Kill();
                     unreadyPlayerMessageTimer = null;
                     unreadyPlayerMessageTimer ??= AddTimer(chatTimerDelay, SendUnreadyPlayersMessage, TimerFlags.REPEAT);
@@ -464,15 +470,6 @@ namespace MatchZy
             {
                 Log($"[ResetMatch - FATAL] [ERROR]: {ex.Message}");
             }
-        }
-
-        public void SkipVeto()
-        {
-            isWarmup = true;
-            readyAvailable = true;
-            isPreVeto = false;
-            isVeto = false;
-            StartWarmup();
         }
 
         private void UpdatePlayersMap()
@@ -608,12 +605,7 @@ namespace MatchZy
                 return;
             }
 
-            if (!mapName.Contains("_"))
-            {
-                mapName = "de_" + mapName;
-            }
-
-            if (!mapName.Contains("_"))
+            if (!long.TryParse(mapName, out _) && !mapName.Contains('_'))
             {
                 mapName = "de_" + mapName;
             }
@@ -701,6 +693,7 @@ namespace MatchZy
         {
             isPractice = false;
             isDryRun = false;
+            matchStarted = true;
             if (isRoundRestorePending)
             {
                 RestoreRoundBackup(null, pendingRestoreFileName);
@@ -719,7 +712,9 @@ namespace MatchZy
                     if (playerData[key].TeamNum == 3)
                     {
                         matchzyTeam1.teamName = "team_" + RemoveSpecialCharacters(playerData[key].PlayerName.Replace(" ", "_"));
-                        if (matchzyTeam1.coach != null) matchzyTeam1.coach.Clan = $"[{matchzyTeam1.teamName} COACH]";
+                        foreach (var coach in matchzyTeam1.coach) {
+                            coach.Clan = $"[{matchzyTeam1.teamName} COACH]";
+                        }
                         break;
                     }
                 }
@@ -736,7 +731,9 @@ namespace MatchZy
                     if (playerData[key].TeamNum == 2)
                     {
                         matchzyTeam2.teamName = "team_" + RemoveSpecialCharacters(playerData[key].PlayerName.Replace(" ", "_"));
-                        if (matchzyTeam2.coach != null) matchzyTeam2.coach.Clan = $"[{matchzyTeam2.teamName} COACH]";
+                        foreach (var coach in matchzyTeam2.coach) {
+                            coach.Clan = $"[{matchzyTeam2.teamName} COACH]";
+                        }
                         break;
                     }
                 }
@@ -1003,74 +1000,11 @@ namespace MatchZy
         public void HandlePostRoundStartEvent(EventRoundStart @event)
         {
             if (!matchStarted) return;
+            playerHasTakenDamage = false;
             HandleCoaches();
             CreateMatchZyRoundDataBackup();
             InitPlayerDamageInfo();
             UpdateHostname();
-        }
-
-        public void HandlePostRoundFreezeEndEvent(EventRoundFreezeEnd @event)
-        {
-            if (!matchStarted) return;
-            List<CCSPlayerController?> coaches = new()
-            {
-                matchzyTeam1.coach,
-                matchzyTeam2.coach
-            };
-
-            foreach (var coach in coaches)
-            {
-                if (!IsPlayerValid(coach)) continue;
-                // Temporary elevating the player so that they do not block the players
-                // coach!.PlayerPawn.Value!.Teleport(new Vector(coach.PlayerPawn.Value.CBodyComponent!.SceneNode!.AbsOrigin.X, coach.PlayerPawn.Value.CBodyComponent!.SceneNode!.AbsOrigin.Y, coach.PlayerPawn.Value.CBodyComponent!.SceneNode!.AbsOrigin.Z + 250.0f), coach.PlayerPawn.Value.EyeAngles, new Vector(0, 0, 0));
-                AddTimer(1.5f, () => HandleCoachTeam(coach!, false, false));
-            }
-        }
-
-        public CsTeam GetCoachTeam(CCSPlayerController coach)
-        {
-            if (matchzyTeam1.coach == coach)
-            {
-                if (teamSides[matchzyTeam1] == "CT")
-                {
-                    return CsTeam.CounterTerrorist;
-                }
-                else if (teamSides[matchzyTeam1] == "TERRORIST")
-                {
-                    return CsTeam.Terrorist;
-                }
-            }
-            if (matchzyTeam2.coach == coach)
-            {
-                if (teamSides[matchzyTeam2] == "CT")
-                {
-                    return CsTeam.CounterTerrorist;
-                }
-                else if (teamSides[matchzyTeam2] == "TERRORIST")
-                {
-                    return CsTeam.Terrorist;
-                }
-            }
-            return CsTeam.Spectator;
-        }
-
-        private void HandleCoachTeam(CCSPlayerController playerController, bool isFreezeTime = false, bool suicide = false)
-        {
-            CsTeam oldTeam = GetCoachTeam(playerController);
-            if (!(isFreezeTime && playerController.TeamNum == (int)oldTeam))
-            {
-                playerController.ChangeTeam(CsTeam.Spectator);
-                AddTimer(0.01f, () => playerController.ChangeTeam(oldTeam));
-            }
-            if (playerController.InGameMoneyServices != null) playerController.InGameMoneyServices.Account = 0;
-            if (suicide && playerController.PlayerPawn.IsValid && playerController.PlayerPawn.Value != null)
-            {
-                bool suicidePenalty = ConVar.Find("mp_suicide_penalty")!.GetPrimitiveValue<bool>();
-                int deathDropGunEnabled = ConVar.Find("mp_death_drop_gun")!.GetPrimitiveValue<int>();
-                Server.ExecuteCommand("mp_suicide_penalty 0; mp_death_drop_gun 0");
-                playerController.PlayerPawn.Value.CommitSuicide(explode: false, force: true);
-                Server.ExecuteCommand($"mp_suicide_penalty {suicidePenalty}; mp_death_drop_gun {deathDropGunEnabled}");
-            }
         }
 
         private void HandlePostRoundEndEvent(EventRoundEnd @event)
@@ -1940,6 +1874,120 @@ namespace MatchZy
             catch (Exception e)
             {
                 Log($"[UploadFileAsync FATAL] An error occurred: {e.Message}");
+            }
+        }
+
+        public bool HandlePlayerWhitelist(CCSPlayerController player, string steamId)
+        {
+            string whitelistfileName = "MatchZy/whitelist.cfg";
+            string whitelistPath = Path.Join(Server.GameDirectory + "/csgo/cfg", whitelistfileName);
+            string? directoryPath = Path.GetDirectoryName(whitelistPath);
+            if (directoryPath != null)
+            {
+                if (!Directory.Exists(directoryPath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                }
+            }
+            if (!File.Exists(whitelistPath)) File.WriteAllLines(whitelistPath, new[] { "Steamid1", "Steamid2" });
+
+            var whiteList = File.ReadAllLines(whitelistPath);
+
+            if (isWhitelistRequired == true)
+            {
+                if (!whiteList.Contains(steamId.ToString()))
+                {
+                    Log($"[EventPlayerConnectFull] KICKING PLAYER STEAMID: {steamId}, Name: {player.PlayerName} (Not whitelisted!)");
+                    PrintToAllChat($"Kicking player {player.PlayerName} - Not whitelisted.");
+                    KickPlayer(player);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void SwitchPlayerTeam(CCSPlayerController player, CsTeam team)
+        {
+            if (player.Team == team) return;
+
+            Server.NextFrame(() =>
+            {
+                if (team == CsTeam.Spectator)
+                {
+                    player.ChangeTeam(team);
+                }
+                else
+                {
+                    player.SwitchTeam(team);
+                    var gameRules = GetGameRules();
+                    if (gameRules.WarmupPeriod)
+                    {
+                        player.Respawn();
+                    }
+                }
+            });
+        }
+
+        public void SetPlayerInvisible(CCSPlayerController player, bool setWeaponsInvisible)
+        {
+            if (!IsPlayerValid(player)) return;
+            var playerPawnValue = player.PlayerPawn.Value;
+
+            if (playerPawnValue != null && playerPawnValue.IsValid)
+            {
+                playerPawnValue.Render = Color.FromArgb(0, 0, 0, 0);
+                Utilities.SetStateChanged(playerPawnValue, "CBaseModelEntity", "m_clrRender");
+            }
+
+            if (!setWeaponsInvisible) return;
+
+            var activeWeapon = playerPawnValue!.WeaponServices?.ActiveWeapon.Value;
+            if (activeWeapon != null && activeWeapon.IsValid)
+            {
+                activeWeapon.Render = Color.FromArgb(0, 0, 0, 0);
+                activeWeapon.ShadowStrength = 0.0f;
+                Utilities.SetStateChanged(activeWeapon, "CBaseModelEntity", "m_clrRender");
+            }
+
+            var myWeapons = playerPawnValue.WeaponServices?.MyWeapons;
+            if (myWeapons != null)
+            {
+                foreach (var gun in myWeapons)
+                {
+                    var weapon = gun.Value;
+                    if (weapon != null)
+                    {
+                        weapon.Render = Color.FromArgb(0, 0, 0, 0);
+                        weapon.ShadowStrength = 0.0f;
+                        Utilities.SetStateChanged(weapon, "CBaseModelEntity", "m_clrRender");
+                    }
+                }
+            }
+        }
+
+        public void SetPlayerVisible(CCSPlayerController player)
+        {
+            if (!IsPlayerValid(player)) return;
+
+            var playerPawnValue = player.PlayerPawn.Value;
+            if (playerPawnValue == null)
+                return;
+
+            playerPawnValue.Render = Color.FromArgb(255, 255, 255, 255);
+            Utilities.SetStateChanged(playerPawnValue, "CBaseModelEntity", "m_clrRender");
+        }
+
+        public void DropWeaponByDesignerName(CCSPlayerController player, string weaponName)
+        {
+            if (!IsPlayerValid(player) || player.PlayerPawn.Value!.WeaponServices is null) return;
+            var matchedWeapon = player.PlayerPawn.Value!.WeaponServices!.MyWeapons
+                .Where(weapon => weapon.Value!.DesignerName == weaponName).FirstOrDefault();
+
+            if (matchedWeapon != null && matchedWeapon.IsValid)
+            {
+                player.PlayerPawn.Value.WeaponServices.ActiveWeapon.Raw = matchedWeapon.Raw;
+                player.DropActiveWeapon();
             }
         }
     }

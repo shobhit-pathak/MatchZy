@@ -58,6 +58,11 @@ namespace MatchZy
                     ReplyToUserCommand(player, Localizer["matchzy.backup.stoptacticaltimeout"]);
                     return;
                 }
+                if (playerHasTakenDamage && stopCommandNoDamage.Value)
+                {
+                    ReplyToUserCommand(player, Localizer["matchzy.restore.stopcommandrequiresnodamage"]);
+                    return;    
+                }
                 string stopTeamName = "";
                 string remainingStopTeam = "";
                 if (player.TeamNum == 2) {

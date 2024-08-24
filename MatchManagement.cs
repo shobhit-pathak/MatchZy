@@ -508,12 +508,18 @@ namespace MatchZy
                 matchzyTeam1.teamName = teamName;
                 teamSides[matchzyTeam1] = "CT";
                 reverseTeamSides["CT"] = matchzyTeam1;
-                if (matchzyTeam1.coach != null) matchzyTeam1.coach.Clan = $"[{matchzyTeam1.teamName} COACH]";
+                foreach (var coach in matchzyTeam1.coach)
+                {
+                    coach.Clan = $"[{matchzyTeam1.teamName} COACH]";
+                }
             } else if (teamNum == 2) {
                 matchzyTeam2.teamName = teamName;
                 teamSides[matchzyTeam2] = "TERRORIST";
                 reverseTeamSides["TERRORIST"] = matchzyTeam2;
-                if (matchzyTeam2.coach != null) matchzyTeam2.coach.Clan = $"[{matchzyTeam2.teamName} COACH]";
+                foreach (var coach in matchzyTeam2.coach)
+                {
+                    coach.Clan = $"[{matchzyTeam2.teamName} COACH]";
+                }
             }
             Server.ExecuteCommand($"mp_teamname_{teamNum} {teamName};");
         }
