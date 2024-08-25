@@ -1,5 +1,13 @@
 # MatchZy Changelog
 
+# 0.8.3
+
+#### August 25, 2024
+
+- Fixed issues with backup restore where `.restore` command would show as round restored, but nothing happened. (Improved file naming and backup saving logic)
+- Updated live.cfg as per new rules (mp_team_timeout_max 3; mp_team_timeout_ot_max 1; mp_team_timeout_ot_add_each 1)
+- Added css_globalnades alias (!globalnades) for css_save_nades_as_global / .globalnades
+
 # 0.8.2
 
 #### August 25, 2024

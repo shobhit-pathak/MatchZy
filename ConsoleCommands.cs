@@ -35,6 +35,7 @@ namespace MatchZy
         }
 
         [ConsoleCommand("css_save_nades_as_global", "Toggles Global Lineups for players")]
+        [ConsoleCommand("css_globalnades", "Toggles Global Lineups for players")]
         public void OnSaveNadesAsGlobalCommand(CCSPlayerController? player, CommandInfo? command)
         {
             if (IsPlayerAdmin(player, "css_save_nades_as_global", "@css/config"))
