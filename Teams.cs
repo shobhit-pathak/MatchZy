@@ -115,8 +115,8 @@ namespace MatchZy
             command.ReplyToCommand($"Player {playerName} added to {playerTeam} successfully!");
         }
 
-        [ConsoleCommand("matchzy_removeplayer", "Adds player to the provided team")]
-        [ConsoleCommand("get5_removeplayer", "Adds player to the provided team")]
+        [ConsoleCommand("matchzy_removeplayer", "Removes the player from all the teams")]
+        [ConsoleCommand("get5_removeplayer", "Removes the player from all the teams")]
         [CommandHelper(minArgs: 1, usage: "<steam64>")]
         public void OnRemovePlayerCommand(CCSPlayerController? player, CommandInfo? command)
         {
@@ -127,7 +127,7 @@ namespace MatchZy
             }
             if (IsHalfTimePhase())
             {
-                command.ReplyToCommand("Cannot add players during halftime. Please wait until the next round starts.");
+                command.ReplyToCommand("Cannot remove players during halftime. Please wait until the next round starts.");
                 return;
             }
 

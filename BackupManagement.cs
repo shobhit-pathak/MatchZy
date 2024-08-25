@@ -121,7 +121,7 @@ namespace MatchZy
             if (!string.IsNullOrWhiteSpace(commandArg)) {
                 if (int.TryParse(commandArg, out int roundNumber) && roundNumber >= 0) {
                     string round = roundNumber.ToString("D2");
-                    string requiredBackupFileName = $"matchzy_data_backup_{liveMatchId}_{matchConfig.CurrentMapNumber}_round_{round}.json";
+                    string requiredBackupFileName = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}_round{round}.json";
                     RestoreRoundBackup(player, requiredBackupFileName);
                 }
                 else {
@@ -186,6 +186,20 @@ namespace MatchZy
 
                 isRoundRestoring = true;
 
+                // MatchID is set first to avoid generating a new one.
+                if (backupData.TryGetValue("matchid", out var matchId))
+                {
+                    liveMatchId = long.Parse(matchId);
+                }
+                if (backupData.TryGetValue("match_loaded", out var matchLoaded))
+                {
+                    isMatchSetup = bool.Parse(matchLoaded);
+                }
+                if (backupData.TryGetValue("match_config", out var matchConfigValue))
+                {
+                    matchConfig = Newtonsoft.Json.JsonConvert.DeserializeObject<MatchConfig>(matchConfigValue)!;
+                    SetupRoundBackupFile();
+                }
                 if (backupData.TryGetValue("map_name", out var map_name))
                 {
                     if (map_name != Server.MapName)
@@ -253,22 +267,18 @@ namespace MatchZy
                 {
                     gameRules.CTTimeOuts = int.Parse(ctTimeouts);
                 }
-                if (backupData.TryGetValue("matchid", out var matchId))
-                {
-                    liveMatchId = long.Parse(matchId);
-                }
-                if (backupData.TryGetValue("match_loaded", out var matchLoaded))
-                {
-                    isMatchSetup = bool.Parse(matchLoaded);
-                }
-                if (backupData.TryGetValue("match_config", out var matchConfigValue))
-                {
-                    matchConfig = Newtonsoft.Json.JsonConvert.DeserializeObject<MatchConfig>(matchConfigValue)!;
-                }
                 if (backupData.TryGetValue("valve_backup", out var valveBackup))
                 {
-                    string tempFilePath = Path.Combine(Server.GameDirectory, "csgo", $"{fileName}.txt");
-                    File.WriteAllText(tempFilePath, valveBackup);
+                    string tempFileName = fileName.Replace(".json", ".txt");
+                    if (backupData.TryGetValue("round", out var roundNumber))
+                    {
+                        tempFileName = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}_round{roundNumber}";
+                    }
+                    string tempFilePath = Path.Combine(Server.GameDirectory, "csgo", tempFileName);
+                    if (!File.Exists(tempFilePath))
+                    {
+                        File.WriteAllText(tempFilePath, valveBackup);
+                    }
                     int restoreTimer = liveSetupRequired ? 2 : 0;
                     if (liveSetupRequired)
                     {
@@ -279,7 +289,7 @@ namespace MatchZy
                         Server.ExecuteCommand($"mp_backup_restore_load_file {tempFilePath}");
                         StartDemoRecording();
                     });
-                    AddTimer(5, () => File.Delete(tempFilePath));
+                    // AddTimer(5, () => File.Delete(tempFilePath));
                 }
             }
             catch (Exception e) {
@@ -307,7 +317,7 @@ namespace MatchZy
                 (int t1score, int t2score) = GetTeamsScore();
                 int roundNumber = t1score + t2score;
                 string round = roundNumber.ToString("D2");
-                string matchZyBackupFileName = $"matchzy_data_backup_{liveMatchId}_{matchConfig.CurrentMapNumber}_round_{round}.json";
+                string matchZyBackupFileName = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}_round{round}.json";
                 string filePath = Server.GameDirectory + "/csgo/MatchZyDataBackup/" + matchZyBackupFileName;
                 string? directoryPath = Path.GetDirectoryName(filePath);
                 if (directoryPath != null && !Directory.Exists(directoryPath))
@@ -379,7 +389,7 @@ namespace MatchZy
             var directoryInfo = new DirectoryInfo(backupDir);
             var files = directoryInfo.GetFiles();
 
-            var pattern = $"matchzy_data_backup_{matchID}_";
+            var pattern = $"matchzy_{matchID}_";
             var backups = new List<string>();
 
             foreach (var file in files)
