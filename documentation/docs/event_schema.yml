@@ -336,7 +336,7 @@ components:
     Team:
       type: string
       nullable: true
-      description: Represents a team. `null` if no team. Represented as an integer enum.
+      description: Represents a team. `null` if no team. Represented as a string enum.
       enum:
         - team1
         - team2
@@ -344,17 +344,14 @@ components:
     Side:
       type: string
       nullable: true
-      description: Represents a side (CT vs T). `null` if no side. Represented as an integer enum.
+      description: Represents a side based on the team. `null` if no side. Represented as a string enum.
       oneOf:
-      - title: CT
+      - title: team1
         const: '1'
-        description: The string `1` represents the CT side
-      - title: T
+        description: The string `1` represents team1 won the round
+      - title: team2
         const: '2'
-        description: The string `2` represents the T side
-      - title: Spectate
-        const: '3'
-        description: The string `3` represents a spectator
+        description: The string `2` represents team2 won the round
     MatchZyTeamWrapper:
       type: object
       description: Describes a team (`Team1` or `Team2`).
