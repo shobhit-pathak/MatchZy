@@ -227,6 +227,7 @@ namespace MatchZy
             }
 
             // Setting match phases bools
+            matchStarted = true;
             isKnifeRound = true;
             readyAvailable = false;
             isWarmup = false;
@@ -426,12 +427,15 @@ namespace MatchZy
 
                 foreach (var coach in coaches)
                 {
+                    if (!IsPlayerValid(coach)) continue;
                     coach.Clan = "";
                     SetPlayerVisible(coach);
                 }
 
                 matchzyTeam1.coach = new();
                 matchzyTeam2.coach = new();
+                coachKillTimer?.Kill();
+                coachKillTimer = null;
 
                 matchzyTeam1.seriesScore = 0;
                 matchzyTeam2.seriesScore = 0;
@@ -693,7 +697,6 @@ namespace MatchZy
         {
             isPractice = false;
             isDryRun = false;
-            matchStarted = true;
             if (isRoundRestorePending)
             {
                 RestoreRoundBackup(null, pendingRestoreFileName);
@@ -1013,6 +1016,8 @@ namespace MatchZy
             {
                 if (isMatchLive)
                 {
+                    coachKillTimer?.Kill();
+                    coachKillTimer = null;
                     (int t1score, int t2score) = GetTeamsScore();
                     Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{matchzyTeam1.teamName} [{t1score} - {t2score}] {matchzyTeam2.teamName}");
 
@@ -1260,6 +1265,9 @@ namespace MatchZy
 
         private void SetMatchPausedFlags()
         {
+            coachKillTimer?.Kill();
+            coachKillTimer = null;
+
             Server.ExecuteCommand("mp_pause_match;");
             isPaused = true;
 

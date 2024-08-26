@@ -200,6 +200,34 @@ namespace MatchZy
                     matchConfig = Newtonsoft.Json.JsonConvert.DeserializeObject<MatchConfig>(matchConfigValue)!;
                     SetupRoundBackupFile();
                 }
+                if (backupData.TryGetValue("team1", out var team1config))
+                {
+                    matchzyTeam1 = Newtonsoft.Json.JsonConvert.DeserializeObject<Team>(team1config)!;
+                }
+                if (backupData.TryGetValue("team2", out var team2config))
+                {
+                    matchzyTeam2 = Newtonsoft.Json.JsonConvert.DeserializeObject<Team>(team2config)!;
+                }
+                if (backupData.TryGetValue("team1_side", out var team1Side))
+                {
+
+                    if (team1Side == "CT")
+                    {
+                        teamSides[matchzyTeam1] = "CT";
+                        reverseTeamSides["CT"] = matchzyTeam1;
+                        teamSides[matchzyTeam2] = "TERRORIST";
+                        reverseTeamSides["TERRORIST"] = matchzyTeam2;
+                        // SwapSidesInTeamData(false);
+                    }
+                    else if (team1Side == "TERRORIST")
+                    {
+                        teamSides[matchzyTeam1] = "TERRORIST";
+                        reverseTeamSides["TERRORIST"] = matchzyTeam1;
+                        teamSides[matchzyTeam2] = "CT";
+                        reverseTeamSides["CT"] = matchzyTeam2;
+                        // SwapSidesInTeamData(false);
+                    }
+                }
                 if (backupData.TryGetValue("map_name", out var map_name))
                 {
                     if (map_name != Server.MapName)
@@ -227,37 +255,6 @@ namespace MatchZy
                         liveSetupRequired = true;
                     }
                 }
-
-                if (backupData.TryGetValue("team1", out var team1config))
-                {
-                    matchzyTeam1 = Newtonsoft.Json.JsonConvert.DeserializeObject<Team>(team1config)!;
-                }
-                if (backupData.TryGetValue("team2", out var team2config))
-                {
-                    matchzyTeam2 = Newtonsoft.Json.JsonConvert.DeserializeObject<Team>(team2config)!;
-                }
-
-                if (backupData.TryGetValue("team1_side", out var team1Side))
-                {
-
-                    if (team1Side == "CT")
-                    {
-                        teamSides[matchzyTeam1] = "CT";
-                        reverseTeamSides["CT"] = matchzyTeam1;
-                        teamSides[matchzyTeam2] = "TERRORIST";
-                        reverseTeamSides["TERRORIST"] = matchzyTeam2;
-                        // SwapSidesInTeamData(false);
-                    }
-                    else if (team1Side == "TERRORIST")
-                    {
-                        teamSides[matchzyTeam1] = "TERRORIST";
-                        reverseTeamSides["TERRORIST"] = matchzyTeam1;
-                        teamSides[matchzyTeam2] = "CT";
-                        reverseTeamSides["CT"] = matchzyTeam2;
-                        // SwapSidesInTeamData(false);
-                    }
-                }
-
                 if (backupData.TryGetValue("TerroristTimeOuts", out var terroristTimeouts))
                 {
                     gameRules.TerroristTimeOuts = int.Parse(terroristTimeouts);
