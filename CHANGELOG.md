@@ -7,6 +7,7 @@
 - Fixes in coach system, where players would spawn into each other.
 - Improved backup loading (teams will be locked automatically with the first restore if match setup was being used.)
 - Fixed veto bug where ready system would not work after the veto.
+- Updated Uzbek translations 
 
 # 0.8.3
 
