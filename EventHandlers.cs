@@ -160,6 +160,41 @@ public partial class MatchZy
         }
     }
 
+    public HookResult EventRoundFreezeEndHandler(EventRoundFreezeEnd @event, GameEventInfo info)
+    {
+        try
+        {
+            if (!matchStarted) return HookResult.Continue;
+            HashSet<CCSPlayerController> coaches = GetAllCoaches();
+
+            foreach (var coach in coaches)
+            {
+                if (!IsPlayerValid(coach)) continue;
+                // If coaches are still left alive after freezetime ends, this code will force them to spectate their team again.
+                if (coach.PlayerPawn.Value?.LifeState != (byte)LifeState_t.LIFE_ALIVE) continue;
+
+                Position coachPosition = new(coach.PlayerPawn.Value!.CBodyComponent!.SceneNode!.AbsOrigin, coach.PlayerPawn.Value!.CBodyComponent!.SceneNode!.AbsRotation);
+                coach!.PlayerPawn.Value!.Teleport(new Vector(coachPosition.PlayerPosition.X, coachPosition.PlayerPosition.Y, coachPosition.PlayerPosition.Z + 20.0f), coachPosition.PlayerAngle, new Vector(0, 0, 0));
+                // Dropping the C4 if it was picked up or passed to the coach.
+                DropWeaponByDesignerName(coach, "weapon_c4");
+                AddTimer(1.5f, () =>
+                {
+                    coach!.PlayerPawn.Value!.Teleport(new Vector(coachPosition.PlayerPosition.X, coachPosition.PlayerPosition.Y, coachPosition.PlayerPosition.Z + 20.0f), coachPosition.PlayerAngle, new Vector(0, 0, 0));
+                    DropWeaponByDesignerName(coach, "weapon_c4");
+                    CsTeam oldTeam = GetCoachTeam(coach);
+                    coach.ChangeTeam(CsTeam.Spectator);
+                    AddTimer(0.01f, () => coach.ChangeTeam(oldTeam));
+                });
+            }
+            return HookResult.Continue;
+        }
+        catch (Exception e)
+        {
+            Log($"[EventRoundFreezeEnd FATAL] An error occurred: {e.Message}");
+            return HookResult.Continue;
+        }
+    }
+
     public void OnEntitySpawnedHandler(CEntityInstance entity)
     {
         try
