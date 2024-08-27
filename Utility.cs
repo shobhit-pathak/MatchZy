@@ -1356,35 +1356,32 @@ namespace MatchZy
         private void SendAvailableCommandsMessage(CCSPlayerController? player)
         {
             if (!IsPlayerValid(player)) return;
+
+            ReplyToUserCommand(player, "Available commands:");
+
             if (isPractice)
             {
-                ReplyToUserCommand(player, $"{ChatColors.Green}Available commands: {ChatColors.Default}");
-                player!.PrintToChat($" {ChatColors.Green}Spawns: {ChatColors.Default}.spawn, .ctspawn, .tspawn, .bestspawn, .worstspawn");
-                player.PrintToChat($" {ChatColors.Green}Bots: {ChatColors.Default}.bot, .nobots, .crouchbot, .boost, .crouchboost");
-                player.PrintToChat($" {ChatColors.Green}Nades: {ChatColors.Default}.loadnade, .savenade, .importnade, .listnades");
-                player.PrintToChat($" {ChatColors.Green}Nade Throw: {ChatColors.Default}.rethrow, .throwindex <index>, .lastindex, .delay <number>");
-                player.PrintToChat($" {ChatColors.Green}Utility & Toggles: {ChatColors.Default}.clear, .fastforward, .last, .back, .solid, .impacts, .traj");
-                player.PrintToChat($" {ChatColors.Green}Sides & Others: {ChatColors.Default}.ct, .t, .spec, .fas, .god, .dryrun, .break, .exitprac");
+                player!.PrintToChat($"{ChatColors.Green}Spawns: {ChatColors.Default}.spawn, .ctspawn, .tspawn, .bestspawn, .worstspawn");
+                player.PrintToChat($"{ChatColors.Green}Bots: {ChatColors.Default}.bot, .nobots, .crouchbot, .boost, .crouchboost");
+                player.PrintToChat($"{ChatColors.Green}Nades: {ChatColors.Default}.loadnade, .savenade, .importnade, .listnades");
+                player.PrintToChat($"{ChatColors.Green}Nade Throw: {ChatColors.Default}.rethrow, .throwindex <index>, .lastindex, .delay <number>");
+                player.PrintToChat($"{ChatColors.Green}Utility & Toggles: {ChatColors.Default}.clear, .fastforward, .last, .back, .solid, .impacts, .traj");
+                player.PrintToChat($"{ChatColors.Green}Sides & Others: {ChatColors.Default}.ct, .t, .spec, .fas, .god, .dryrun, .break, .exitprac");
                 return;
             }
             if (readyAvailable)
             {
-                ReplyToUserCommand(player, $"{ChatColors.Green}Available commands: {ChatColors.Default}");
-                player!.PrintToChat($" {ChatColors.Green}Ready/Unready: {ChatColors.Default}.ready, .unready");
-                return;
+                
+                return player!.PrintToChat($"{ChatColors.Green}Ready/Unready: {ChatColors.Default}.ready, .unready");
             }
             if (isSideSelectionPhase)
             {
-                ReplyToUserCommand(player, $"{ChatColors.Green}Available commands: {ChatColors.Default}");
-                player!.PrintToChat($" {ChatColors.Green}Side Selection: {ChatColors.Default}.stay, .switch");
-                return;
+                return player!.PrintToChat($"{ChatColors.Green}Side Selection: {ChatColors.Default}.stay, .switch");
             }
             if (matchStarted)
             {
                 string stopCommandMessage = isStopCommandAvailable ? ", .stop" : "";
-                ReplyToUserCommand(player, $"{ChatColors.Green}Available commands: {ChatColors.Default}");
-                player!.PrintToChat($" {ChatColors.Green}Pause/Restore: {ChatColors.Default}.pause, .unpause, .tac, .tech{stopCommandMessage}");
-                return;
+                return player!.PrintToChat($"{ChatColors.Green}Pause/Restore: {ChatColors.Default}.pause, .unpause, .tac, .tech{stopCommandMessage}");
             }
         }
 
