@@ -441,6 +441,7 @@ namespace MatchZy
         }
 
         [ConsoleCommand("css_restart", "Restarts the match")]
+        [ConsoleCommand("css_rr", "Restarts the match")]
         public void OnRestartMatchCommand(CCSPlayerController? player, CommandInfo? command)
         {
             if (IsPlayerAdmin(player, "css_restart", "@css/config"))

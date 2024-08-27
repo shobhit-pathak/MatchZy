@@ -32,6 +32,25 @@ namespace MatchZy
             player.PrintToChat($"{chatPrefix} {message}");
         }
 
+        private void ReplyToUserCommand(CCSPlayerController? player, string message, bool console = false)
+        {
+            if (player == null)
+            {
+                Server.PrintToConsole($"{chatPrefix} {message}");
+            }
+            else
+            {
+                if (console)
+                {
+                    player.PrintToConsole($"{chatPrefix} {message}");
+                }
+                else
+                {
+                    player.PrintToChat($"{chatPrefix} {message}");
+                }
+            }
+        }
+
         private void LoadAdmins()
         {
             string fileName = "MatchZy/admins.json";
@@ -1123,25 +1142,6 @@ namespace MatchZy
                 }
             }
             return false;
-        }
-
-        private void ReplyToUserCommand(CCSPlayerController? player, string message, bool console = false)
-        {
-            if (player == null)
-            {
-                Server.PrintToConsole($"[MatchZy] {message}");
-            }
-            else
-            {
-                if (console)
-                {
-                    player.PrintToConsole($"[MatchZy] {message}");
-                }
-                else
-                {
-                    player.PrintToChat($"{chatPrefix} {message}");
-                }
-            }
         }
 
         private void PauseMatch(CCSPlayerController? player, CommandInfo? command)
