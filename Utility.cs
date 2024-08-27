@@ -1371,17 +1371,19 @@ namespace MatchZy
             }
             if (readyAvailable)
             {
-                
-                return player!.PrintToChat($"{ChatColors.Green}Ready/Unready: {ChatColors.Default}.ready, .unready");
+                player!.PrintToChat($"{ChatColors.Green}Ready/Unready: {ChatColors.Default}.ready, .unready");
+                return;
             }
             if (isSideSelectionPhase)
             {
-                return player!.PrintToChat($"{ChatColors.Green}Side Selection: {ChatColors.Default}.stay, .switch");
+                player!.PrintToChat($"{ChatColors.Green}Side Selection: {ChatColors.Default}.stay, .switch");
+                return;
             }
             if (matchStarted)
             {
                 string stopCommandMessage = isStopCommandAvailable ? ", .stop" : "";
-                return player!.PrintToChat($"{ChatColors.Green}Pause/Restore: {ChatColors.Default}.pause, .unpause, .tac, .tech{stopCommandMessage}");
+                player!.PrintToChat($"{ChatColors.Green}Pause/Restore: {ChatColors.Default}.pause, .unpause, .tac, .tech{stopCommandMessage}");
+                return;
             }
         }
 
