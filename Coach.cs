@@ -72,10 +72,11 @@ public partial class MatchZy
     {
         coachKillTimer?.Kill();
         coachKillTimer = null;
+        HashSet<CCSPlayerController> coaches = GetAllCoaches();
+        if (coaches.Count == 0) return;
         int freezeTime = ConVar.Find("mp_freezetime")!.GetPrimitiveValue<int>();
         freezeTime = freezeTime > 2 ? freezeTime: 2;
         coachKillTimer ??= AddTimer(freezeTime - 1.5f, KillCoaches);
-        HashSet<CCSPlayerController> coaches = GetAllCoaches();
         HashSet<CCSPlayerController> competitiveSpawnCoaches = new();
         if (spawnsData.Values.Any(list => list.Count == 0)) GetSpawns();
 
@@ -203,12 +204,13 @@ public partial class MatchZy
     {
         if (isPaused || IsTacticalTimeoutActive()) return;
         HashSet<CCSPlayerController> coaches = GetAllCoaches();
+        if (coaches.Count == 0) return;
         string suicidePenalty = GetConvarStringValue(ConVar.Find("mp_suicide_penalty"));
         string deathDropGunEnabled = GetConvarStringValue(ConVar.Find("mp_death_drop_gun"));
         string specFreezeTime = GetConvarStringValue(ConVar.Find("spec_freeze_time"));
         string specFreezeTimeLock = GetConvarStringValue(ConVar.Find("spec_freeze_time_lock"));
         string specFreezeDeathanim = GetConvarStringValue(ConVar.Find("spec_freeze_deathanim_time"));
-        Server.ExecuteCommand("mp_suicide_penalty 0; mp_death_drop_gun 0;spec_freeze_time 0; spec_freeze_time_lock 0; spec_freeze_deathanim_time 0;");
+        Server.ExecuteCommand("mp_suicide_penalty 0;spec_freeze_time 0; spec_freeze_time_lock 0; spec_freeze_deathanim_time 0;");
 
         // Adding timer to make sure above commands are executed successfully.
         AddTimer(0.5f, () =>
@@ -224,7 +226,7 @@ public partial class MatchZy
                 DropWeaponByDesignerName(coach, "weapon_c4");
                 coach.PlayerPawn.Value!.CommitSuicide(explode: false, force: true);
             }
-            Server.ExecuteCommand($"mp_suicide_penalty {suicidePenalty}; mp_death_drop_gun {deathDropGunEnabled}; spec_freeze_time {specFreezeTime}; spec_freeze_time_lock {specFreezeTimeLock}; spec_freeze_deathanim_time {specFreezeDeathanim};");
+            Server.ExecuteCommand($"mp_suicide_penalty {suicidePenalty}; spec_freeze_time {specFreezeTime}; spec_freeze_time_lock {specFreezeTimeLock}; spec_freeze_deathanim_time {specFreezeDeathanim};");
         });
     }
 }

@@ -1,5 +1,13 @@
 # MatchZy Changelog
 
+# 0.8.5
+
+#### August 27, 2024
+
+- Added `matchzy_match_start_message` convar to configure message to show when the match starts. Use $$$ to break message into multiple lines.
+- Some improvements and guard checks in coach system
+- Fixed `matchzy_hostname_format` not getting disabled on setting its value to ""
+
 # 0.8.4
 
 #### August 27, 2024

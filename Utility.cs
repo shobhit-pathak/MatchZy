@@ -771,6 +771,14 @@ namespace MatchZy
             {
                 Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}MatchZy{ChatColors.Default} Plugin by {ChatColors.Green}WD-{ChatColors.Default}");
             }
+            if (matchStartMessage.Value.Trim() != "")
+            {
+                List<string> matchStartMessages = [.. matchStartMessage.Value.Split("$$$")];
+                foreach (string message in matchStartMessages)
+                {
+                    PrintToAllChat(GetColorTreatedString(FormatCvarValue(message.Trim())));
+                }
+            }
         }
 
         public void HandleClanTags()
@@ -1526,8 +1534,9 @@ namespace MatchZy
 
         public void UpdateHostname()
         {
-            if (hostnameFormat.Value.Trim() == "") return;
-            string formattedHostname = FormatCvarValue(hostnameFormat.Value);
+            string hostname = hostnameFormat.Value.Trim();
+            if (hostname == "" || hostname == "\"\"") return;
+            string formattedHostname = FormatCvarValue(hostname);
             Log($"UPDATING HOSTNAME TO: {formattedHostname}");
             Server.ExecuteCommand($"hostname {formattedHostname}");
         }
