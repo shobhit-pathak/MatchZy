@@ -771,7 +771,7 @@ namespace MatchZy
             {
                 Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}MatchZy{ChatColors.Default} Plugin by {ChatColors.Green}WD-{ChatColors.Default}");
             }
-            if (matchStartMessage.Value.Trim() != "")
+            if (matchStartMessage.Value.Trim() != "" && matchStartMessage.Value.Trim() != "\"\"")
             {
                 List<string> matchStartMessages = [.. matchStartMessage.Value.Split("$$$")];
                 foreach (string message in matchStartMessages)
@@ -1037,7 +1037,7 @@ namespace MatchZy
                     long matchId = liveMatchId;
                     int ctTeamNum = reverseTeamSides["CT"] == matchzyTeam1 ? 1 : 2;
                     int tTeamNum = reverseTeamSides["TERRORIST"] == matchzyTeam1 ? 1 : 2;
-                    Winner winner = new(@event.Winner == 3 ? ctTeamNum.ToString() : tTeamNum.ToString(), t1score > t2score ? "team1" : "team2");
+                    Winner winner = new(@event.Winner.ToString(), t1score > t2score ? "team1" : "team2");
 
                     var roundEndEvent = new MatchZyRoundEndedEvent
                     {
