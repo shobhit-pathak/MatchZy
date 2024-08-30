@@ -32,6 +32,25 @@ namespace MatchZy
             player.PrintToChat($"{chatPrefix} {message}");
         }
 
+        private void ReplyToUserCommand(CCSPlayerController? player, string message, bool console = false)
+        {
+            if (player == null)
+            {
+                Server.PrintToConsole($"{chatPrefix} {message}");
+            }
+            else
+            {
+                if (console)
+                {
+                    player.PrintToConsole($"{chatPrefix} {message}");
+                }
+                else
+                {
+                    player.PrintToChat($"{chatPrefix} {message}");
+                }
+            }
+        }
+
         private void LoadAdmins()
         {
             string fileName = "MatchZy/admins.json";
@@ -1125,25 +1144,6 @@ namespace MatchZy
             return false;
         }
 
-        private void ReplyToUserCommand(CCSPlayerController? player, string message, bool console = false)
-        {
-            if (player == null)
-            {
-                Server.PrintToConsole($"[MatchZy] {message}");
-            }
-            else
-            {
-                if (console)
-                {
-                    player.PrintToConsole($"[MatchZy] {message}");
-                }
-                else
-                {
-                    player.PrintToChat($"{chatPrefix} {message}");
-                }
-            }
-        }
-
         private void PauseMatch(CCSPlayerController? player, CommandInfo? command)
         {
             if (isMatchLive && isPaused)
@@ -1356,9 +1356,11 @@ namespace MatchZy
         private void SendAvailableCommandsMessage(CCSPlayerController? player)
         {
             if (!IsPlayerValid(player)) return;
+
+            ReplyToUserCommand(player, "Available commands:");
+
             if (isPractice)
             {
-                ReplyToUserCommand(player, $"{ChatColors.Green}Available commands: {ChatColors.Default}");
                 player!.PrintToChat($" {ChatColors.Green}Spawns: {ChatColors.Default}.spawn, .ctspawn, .tspawn, .bestspawn, .worstspawn");
                 player.PrintToChat($" {ChatColors.Green}Bots: {ChatColors.Default}.bot, .nobots, .crouchbot, .boost, .crouchboost");
                 player.PrintToChat($" {ChatColors.Green}Nades: {ChatColors.Default}.loadnade, .savenade, .importnade, .listnades");
@@ -1369,20 +1371,17 @@ namespace MatchZy
             }
             if (readyAvailable)
             {
-                ReplyToUserCommand(player, $"{ChatColors.Green}Available commands: {ChatColors.Default}");
                 player!.PrintToChat($" {ChatColors.Green}Ready/Unready: {ChatColors.Default}.ready, .unready");
                 return;
             }
             if (isSideSelectionPhase)
             {
-                ReplyToUserCommand(player, $"{ChatColors.Green}Available commands: {ChatColors.Default}");
                 player!.PrintToChat($" {ChatColors.Green}Side Selection: {ChatColors.Default}.stay, .switch");
                 return;
             }
             if (matchStarted)
             {
                 string stopCommandMessage = isStopCommandAvailable ? ", .stop" : "";
-                ReplyToUserCommand(player, $"{ChatColors.Green}Available commands: {ChatColors.Default}");
                 player!.PrintToChat($" {ChatColors.Green}Pause/Restore: {ChatColors.Default}.pause, .unpause, .tac, .tech{stopCommandMessage}");
                 return;
             }

@@ -199,7 +199,7 @@ namespace MatchZy
             if (player.UserId != vetoCaptains[currentTeamToBan]) return;
 
             if (!BanMap(map, playerTeam)) {
-                player.PrintToChat($"{chatPrefix} {map} is not a valid map.");
+                PrintToPlayerChat(player, $"{map} is not a valid map.");
             } else {
                 HandleVetoStep();
             }
@@ -229,7 +229,7 @@ namespace MatchZy
             if (player.UserId != vetoCaptains[currentTeamToPick]) return;
 
             if (!PickMap(map, playerTeam)) {
-                player.PrintToChat($"{chatPrefix} {map} is not a valid map.");
+                PrintToPlayerChat(player, $"{map} is not a valid map.");
             } else {
                 HandleVetoStep();
             }
