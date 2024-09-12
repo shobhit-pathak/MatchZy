@@ -163,20 +163,45 @@ namespace MatchZy
         }
         public static string ExtractJsonFileName(string input)
         {
-            
+           
+            if (string.IsNullOrEmpty(input))
+            {
+                return string.Empty;
+            }
 
+            
+            if (!input.Contains('\\') && !input.Contains('/'))
+            {
+                // If no directory separators are found, return the input as-is
+                return input;
+            }
+
+            // Find the index of ".json" in the input
             int jsonIndex = input.IndexOf(".json", StringComparison.OrdinalIgnoreCase);
             if (jsonIndex != -1)
             {
-                int startIndex = input.LastIndexOfAny(new[] { '\\', '/' }, jsonIndex);
-                string fileName = input.Substring(startIndex + 1, jsonIndex - startIndex + 5);
                
-                return fileName;
+                int startIndex = input.LastIndexOfAny(new[] { '\\', '/' }, jsonIndex);
+
+               
+                if (startIndex >= 0)
+                {
+                   
+                    int length = jsonIndex - startIndex + 5;
+
+                  
+                    if (length > 0 && startIndex + 1 + length <= input.Length)
+                    {
+                        string fileName = input.Substring(startIndex + 1, length);
+                        return fileName;
+                    }
+                }
             }
 
-           
             return string.Empty;
         }
+
+
 
         private void RestoreRoundBackup(CCSPlayerController? player, string fileName)
         {
