@@ -1287,6 +1287,7 @@ namespace MatchZy
             if (matchStarted || (!isPractice && !isSleep)) return;
             ExecUnpracCommands();
             ResetMatch();
+            RemoveSpawnBeams();
             Server.PrintToChatAll($"{chatPrefix} Match mode loaded!");
         }
 
@@ -1786,6 +1787,12 @@ namespace MatchZy
             {
                 return true;
             }
+            return false;
+        }
+
+        public bool IsWingmanMode()
+        {
+            if (GetGameMode() == 2 && GetGameType() == 0) return true;
             return false;
         }
 
