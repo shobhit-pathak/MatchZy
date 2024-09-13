@@ -12,6 +12,7 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.stop` Restore the backup of the current round (Both teams need to type .stop to restore the current round)
 - `.tac` Starts a tactical timeout
 - `.coach <side>` Starts coaching the specified side. Example: `.coach t` to start coaching terrorist side!
+- `.uncoach` Leaves coaching slot
 
 # Practice Mode Commands
 
@@ -24,6 +25,8 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.worstctspawn` Teleports you to CT team's furthest spawn from your current position
 - `.besttspawn` Teleports you to T team's closest spawn from your current position
 - `.worsttspawn` Teleports you to T team's furthest spawn from your current position
+- `.showspawns` Highlights all the competitive spawns
+- `.hidespawns` Hides the highlighted spawns
 - `.bot` Adds a bot on user's current position
 - `.crouchbot` Adds a crouched bot on user's current position (Alias: `.cbot`)
 - `.boost` Adds a bot on current position and boosts player on it
