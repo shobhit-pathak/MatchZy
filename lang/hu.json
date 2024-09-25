@@ -1,5 +1,6 @@
 {
   "matchzy.ready.markedready": "Készen állsz.",
+  "matchzy.ready.matchedreadyonteam": "Felkészült a csapatba {green}{0}{default}!",
   "matchzy.ready.markedunready": "Nem állsz készen.",
   "matchzy.ready.readytotestorebackupinfomessage": "Unready players: {0}. Please type .ready when you are ready to restore the match backup. {1}",
   "matchzy.knife.sidedecisionpending": "{green}{0}{default} nyerte a késes kört. Várjuk, hogy beírják: {green}.stay{default} vagy {green}.switch{default}.",

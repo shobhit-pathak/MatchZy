@@ -1,5 +1,6 @@
 {
   "matchzy.ready.markedready": "You have been marked as ready.",
+  "matchzy.ready.matchedreadyonteam": "You have been marked ready on team {green}{0}{default}!",
   "matchzy.ready.markedunready": "You have been marked as NOT ready.",
   "matchzy.ready.readytotestorebackupinfomessage": "Unready players: {0}. Please type .ready when you are ready to restore the match backup. {1}",
 
