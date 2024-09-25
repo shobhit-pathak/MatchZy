@@ -1,5 +1,6 @@
 {
     "matchzy.ready.markedready": "Du bist bereit.",
+    "matchzy.ready.matchedreadyonteam": "Je bent gemarkeerd als klaar voor het team {green}{0}{default}!",
     "matchzy.ready.markedunready": "Du bist nicht mehr bereit.",
     "matchzy.ready.readytotestorebackupinfomessage": "Unready players: {0}. Please type .ready when you are ready to restore the match backup. {1}",
   

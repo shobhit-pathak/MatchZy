@@ -82,7 +82,14 @@ namespace MatchZy
                     {
                         playerReadyStatus[player.UserId.Value] = true;
                         // player.PrintToChat($"{chatPrefix} {Localizer["matchzy.youareready"]}");
-                        PrintToPlayerChat(player, Localizer["matchzy.ready.markedready"]);
+
+                        if (enableMatchScrim && (player.TeamNum == (int)CsTeam.CounterTerrorist || player.TeamNum == (int)CsTeam.Terrorist)) {
+                            string teamName = player.TeamNum == (int)CsTeam.CounterTerrorist ? reverseTeamSides["CT"].teamName : reverseTeamSides["TERRORIST"].teamName;
+                            PrintToPlayerChat(player, Localizer["matchzy.ready.matchedreadyonteam", teamName]);
+                        }
+                        else {
+                            PrintToPlayerChat(player, Localizer["matchzy.ready.markedready"]);
+                        }
                     }
                     CheckLiveRequired();
                     HandleClanTags();
