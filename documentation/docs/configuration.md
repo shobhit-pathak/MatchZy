@@ -81,9 +81,6 @@ Again, inside `csgo/cfg/MatchZy`, a file named `config.cfg` should be present. T
 :   If defined, recorded demo will be [uploaded](../gotv#automatic-upload) to this URL once the map ends. Make sure that the URL is wrapped in double quotes (""). 
 Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <br>**`Default: ""`**
 
-####`matchzy_kick_when_no_match_loaded`
-:   Whether to kick all clients and prevent anyone from joining the server if no match is loaded. This means if server is in match mode, a match needs to be set-up using `matchzy_loadmatch`/`matchzy_loadmatch_url` to load and configure a match.<br>**`Default: false`**
-
 ####`matchzy_chat_prefix`
 :   Chat prefix to show whenever a MatchZy message is sent to players. Available Colors: {Default}, {Darkred}, {Green}, {LightYellow}, {LightBlue}, {Olive}, {Lime}, {Red}, {Purple}, {Grey}, {Yellow}, {Gold}, {Silver}, {Blue}, {DarkBlue}, {BlueGrey}, {Magenta} and {LightRed}. Make sure to end your prefix with {Default} to avoid coloring the messages in your prefix color.<br>**`Default: [{Green}MatchZy{Default}]`**
 
@@ -170,12 +167,13 @@ steamid2
 steamid3
 ```
 
-## Match/Players Stats and Data
-
-### Database Stats
+### Match/Players Stats and Data
 
 MatchZy comes with a default database (SQLite), which configures itself automatically. MySQL Database can also be used with MatchZy!
-Currently we are using 2 tables, `matchzy_stats_matches` and `matchzy_stats_players`. As their names suggest, `matchzy_stats_matches` holds the data of every match, like matchid, team names, scores, etc.
+Currently we are using 3 tables, `matchzy_stats_matches`, `matchzy_stats_maps` and `matchzy_stats_players`.
+ 
+As their names suggest, `matchzy_stats_matches` holds the data of every match, like matchid, team names, scores, etc.
+`matchzy_stats_maps` stores data of every map in a match.
 Whereas, `matchzy_stats_players` stores data/stats of every player who played in that match. It stores data like matchid, kills, deaths, assists, and other important stats!
 
 ### Using MySQL Database with MatchZy

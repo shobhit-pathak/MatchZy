@@ -40,7 +40,7 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.dryrun` Turns on dry-run mode (Alias: `.dry`)
 - `.god` Turns on god mode
 - `.savenade <name> <optional description>` Saves a lineup (Alias: `.sn`)
-- `.loadnade <name>` Loads a lineup (Alias: `.sn`)
+- `.loadnade <name>` Loads a lineup (Alias: `.ln`)
 - `.deletenade <name>` Deletes a lineup from file (Alias: `.dn`)
 - `.importnade <code>` Upon saving a lineup a code will be printed to chat, alternatively those can be retrieved from the savednades.cfg (Alias: `.in`)
 - `.listnades <optional filter>` Lists either all saved lineups ever or if given a filter only those that match the filter (Alias: `.lin`)
