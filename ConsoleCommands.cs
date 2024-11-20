@@ -452,8 +452,7 @@ namespace MatchZy
                 }
                 else
                 {
-                    // ReplyToUserCommand(player, "Practice mode is active, cannot restart the match.");
-                    ReplyToUserCommand(player, Localizer["matchzy.cc.rrispracc"]);
+                    Server.ExecuteCommand("mp_restartgame 1")
                 }
             }
             else
