@@ -452,7 +452,7 @@ namespace MatchZy
                 }
                 else
                 {
-                    Server.ExecuteCommand("mp_restartgame 1")
+                    Server.ExecuteCommand("mp_restartgame 1");
                 }
             }
             else
