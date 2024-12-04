@@ -1147,6 +1147,19 @@ namespace MatchZy
 
         private void PauseMatch(CCSPlayerController? player, CommandInfo? command)
         {
+            if (!techPauseEnabled.Value && player != null)
+            {
+                PrintToPlayerChat(player, Localizer["matchzy.ready.techpausenotenabled"]);
+                return;
+            }
+            if(!string.IsNullOrEmpty(techPausePermission.Value))
+            {
+                if (!IsPlayerAdmin(player, "css_pause", techPausePermission.Value))
+                {
+                    SendPlayerNotAdminMessage(player);
+                    return;
+                }
+            }
             if (isMatchLive && isPaused)
             {
                 // ReplyToUserCommand(player, "Match is already paused!");
