@@ -1147,19 +1147,6 @@ namespace MatchZy
 
         private void PauseMatch(CCSPlayerController? player, CommandInfo? command)
         {
-            if (!techPauseEnabled.Value && player != null)
-            {
-                PrintToPlayerChat(player, Localizer["matchzy.ready.techpausenotenabled"]);
-                return;
-            }
-            if(!string.IsNullOrEmpty(techPausePermission.Value))
-            {
-                if (!IsPlayerAdmin(player, "css_pause", techPausePermission.Value))
-                {
-                    SendPlayerNotAdminMessage(player);
-                    return;
-                }
-            }
             if (isMatchLive && isPaused)
             {
                 // ReplyToUserCommand(player, "Match is already paused!");
@@ -1183,6 +1170,19 @@ namespace MatchZy
                 // ReplyToUserCommand(player, "You cannot use this command when tactical timeout is active.");
                 ReplyToUserCommand(player, Localizer["matchzy.utility.tacticaltimeout"]);
                 return;
+            }
+            if (!techPauseEnabled.Value && player != null)
+            {
+                PrintToPlayerChat(player, Localizer["matchzy.pause.techpausenotenabled"]);
+                return;
+            }
+            if(!string.IsNullOrEmpty(techPausePermission.Value))
+            {
+                if (!IsPlayerAdmin(player, "css_pause", techPausePermission.Value))
+                {
+                    SendPlayerNotAdminMessage(player);
+                    return;
+                }
             }
             if (isMatchLive && !isPaused)
             {
