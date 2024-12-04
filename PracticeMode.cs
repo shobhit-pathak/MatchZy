@@ -17,11 +17,24 @@ namespace MatchZy
 
         public Vector PlayerPosition { get; private set; }
         public QAngle PlayerAngle { get; private set; }
+
+        // Copy constructor
+        public Position(Position other)
+        {
+            PlayerPosition = other.PlayerPosition;
+            PlayerAngle = other.PlayerAngle;
+        }
+
         public Position(Vector playerPosition, QAngle playerAngle)
         {
             // Create deep copies of the Vector and QAngle objects
             PlayerPosition = new Vector(playerPosition.X, playerPosition.Y, playerPosition.Z);
             PlayerAngle = new QAngle(playerAngle.X, playerAngle.Y, playerAngle.Z);
+        }
+
+        public void Teleport(CCSPlayerController player)
+        {
+            player!.PlayerPawn.Value!.Teleport(PlayerPosition, PlayerAngle, new Vector(0, 0, 0));
         }
 
         public override bool Equals(object? obj)

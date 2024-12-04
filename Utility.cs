@@ -1029,6 +1029,7 @@ namespace MatchZy
 
         public void HandlePostRoundStartEvent(EventRoundStart @event)
         {
+            if (isDryRun) RandomizeSpawns();
             if (!matchStarted) return;
             playerHasTakenDamage = false;
             HandleCoaches();
@@ -1169,6 +1170,19 @@ namespace MatchZy
                 // ReplyToUserCommand(player, "You cannot use this command when tactical timeout is active.");
                 ReplyToUserCommand(player, Localizer["matchzy.utility.tacticaltimeout"]);
                 return;
+            }
+            if (!techPauseEnabled.Value && player != null)
+            {
+                PrintToPlayerChat(player, Localizer["matchzy.pause.techpausenotenabled"]);
+                return;
+            }
+            if(!string.IsNullOrEmpty(techPausePermission.Value))
+            {
+                if (!IsPlayerAdmin(player, "css_pause", techPausePermission.Value))
+                {
+                    SendPlayerNotAdminMessage(player);
+                    return;
+                }
             }
             if (isMatchLive && !isPaused)
             {
@@ -2011,6 +2025,32 @@ namespace MatchZy
             {
                 player.PlayerPawn.Value.WeaponServices.ActiveWeapon.Raw = matchedWeapon.Raw;
                 player.DropActiveWeapon();
+            }
+        }
+
+        public void RandomizeSpawns()
+        {
+            List<CCSPlayerController> players = Utilities.GetPlayers();
+
+            Dictionary<byte, List<Position>> teamSpawns = new()
+            {
+                { (byte)CsTeam.CounterTerrorist, spawnsData[(byte)CsTeam.CounterTerrorist].Select(position => new Position(position)).ToList() },
+                { (byte)CsTeam.Terrorist, spawnsData[(byte)CsTeam.Terrorist].Select(position => new Position(position)).ToList() }
+            };
+
+            Random random = new();
+
+            foreach (var player in players)
+            {
+                if (!IsPlayerValid(player)) continue;
+                
+                if (teamSpawns[player.TeamNum].Count == 0) break;
+
+                int randomIndex = random.Next(teamSpawns[player.TeamNum].Count);
+                Position spawnPosition = teamSpawns[player.TeamNum][randomIndex];
+                teamSpawns[player.TeamNum].RemoveAt(randomIndex);
+
+                spawnPosition.Teleport(player);
             }
         }
     }
