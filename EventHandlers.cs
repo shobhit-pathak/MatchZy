@@ -26,12 +26,15 @@ public partial class MatchZy
                 if (isMatchSetup || matchModeOnly)
                 {
                     CsTeam team = GetPlayerTeam(player);
-                    if (team == CsTeam.None)
+                    if (enableMatchScrim && matchStarted || !enableMatchScrim)
                     {
-                        Log($"[EventPlayerConnectFull] KICKING PLAYER STEAMID: {steamId}, Name: {player.PlayerName} (NOT ALLOWED!)");
-                        PrintToAllChat($"Kicking player {player.PlayerName} - Not a player in this game.");
-                        KickPlayer(player);
-                        return HookResult.Continue;
+                        if (team == CsTeam.None)
+                        {
+                            Log($"[EventPlayerConnectFull] KICKING PLAYER STEAMID: {steamId}, Name: {player.PlayerName} (NOT ALLOWED!)");
+                            PrintToAllChat($"Kicking player {player.PlayerName} - Not a player in this game.");
+                            KickPlayer(player);
+                            return HookResult.Continue;
+                        }
                     }
                 }
             }

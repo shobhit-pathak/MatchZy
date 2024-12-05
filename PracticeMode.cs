@@ -150,6 +150,8 @@ namespace MatchZy
             };
         }
 
+        public bool enableMatchScrim = false;
+
         public void StartPracticeMode()
         {
             if (matchStarted) return;
