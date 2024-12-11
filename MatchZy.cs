@@ -13,7 +13,7 @@ namespace MatchZy
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.8.5";
+        public override string ModuleVersion => "0.8.7";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -145,6 +145,8 @@ namespace MatchZy
                 { ".reload_admins", OnReloadAdmins },
                 { ".tactics", OnPracCommand },
                 { ".prac", OnPracCommand },
+                { ".showspawns", OnShowSpawnsCommand },
+                { ".hidespawns", OnHideSpawnsCommand },
                 { ".dryrun", OnDryRunCommand },
                 { ".dry", OnDryRunCommand },
                 { ".noflash", OnNoFlashCommand },
@@ -213,7 +215,6 @@ namespace MatchZy
                 // UpdatePlayersMap();
             });
             RegisterListener<Listeners.OnEntitySpawned>(OnEntitySpawnedHandler);
-
             RegisterEventHandler<EventPlayerTeam>((@event, info) => {
                 CCSPlayerController? player = @event.Userid;
                 if (!IsPlayerValid(player)) return HookResult.Continue;
@@ -367,13 +368,13 @@ namespace MatchZy
                 var originalMessage = @event.Text.Trim();
                 var message = @event.Text.Trim().ToLower();
 
-                var parts = message.Split(' ');
+                var parts = originalMessage.Split(' ');
                 var messageCommand = parts.Length > 0 ? parts[0] : string.Empty;
                 var messageCommandArg = parts.Length > 1 ? string.Join(' ', parts.Skip(1)) : string.Empty;
 
                 CCSPlayerController? player = null;
-                if (playerData.ContainsKey(playerUserId)) {
-                    player = playerData[playerUserId];
+                if (playerData.TryGetValue(playerUserId, out CCSPlayerController? value)) {
+                    player = value;
                 }
 
                 if (player == null) {
@@ -455,15 +456,15 @@ namespace MatchZy
                 {
                     HandleSpawnCommand(player, messageCommandArg, (byte)CsTeam.Terrorist, "tspawn");
                 }
-                if (originalMessage.StartsWith(".team1"))
+                if (message.StartsWith(".team1"))
                 {
                     HandleTeamNameChangeCommand(player, messageCommandArg, 1);
                 }
-                if (originalMessage.StartsWith(".team2"))
+                if (message.StartsWith(".team2"))
                 {
                     HandleTeamNameChangeCommand(player, messageCommandArg, 2);
                 }
-                if (originalMessage.StartsWith(".rcon"))
+                if (message.StartsWith(".rcon"))
                 {
                     if (IsPlayerAdmin(player, "css_rcon", "@css/rcon"))
                     {

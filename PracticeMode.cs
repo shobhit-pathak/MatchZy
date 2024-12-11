@@ -6,6 +6,7 @@ using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Utils;
+using System.Drawing;
 using System.Text.Json;
 
 
@@ -16,11 +17,24 @@ namespace MatchZy
 
         public Vector PlayerPosition { get; private set; }
         public QAngle PlayerAngle { get; private set; }
+
+        // Copy constructor
+        public Position(Position other)
+        {
+            PlayerPosition = other.PlayerPosition;
+            PlayerAngle = other.PlayerAngle;
+        }
+
         public Position(Vector playerPosition, QAngle playerAngle)
         {
             // Create deep copies of the Vector and QAngle objects
             PlayerPosition = new Vector(playerPosition.X, playerPosition.Y, playerPosition.Z);
             PlayerAngle = new QAngle(playerAngle.X, playerAngle.Y, playerAngle.Z);
+        }
+
+        public void Teleport(CCSPlayerController player)
+        {
+            player!.PlayerPawn.Value!.Teleport(PlayerPosition, PlayerAngle, new Vector(0, 0, 0));
         }
 
         public override bool Equals(object? obj)
@@ -109,10 +123,9 @@ namespace MatchZy
         Dictionary<int, DateTime> lastGrenadeThrownTime = new();
         Dictionary<int, PlayerPracticeTimer> playerTimers = new();
 
-        public Dictionary<byte, List<Position>> spawnsData = new Dictionary<byte, List<Position>> {
-            { (byte)CsTeam.CounterTerrorist, new List<Position>() },
-            { (byte)CsTeam.Terrorist, new List<Position>() }
-        };
+        public Dictionary<byte, List<Position>> spawnsData = GetEmptySpawnsData();
+
+        public Dictionary<byte, List<Position>> coachSpawns = GetEmptySpawnsData();
 
         public const string practiceCfgPath = "MatchZy/prac.cfg";
         public const string dryrunCfgPath = "MatchZy/dryrun.cfg";
@@ -127,6 +140,15 @@ namespace MatchZy
         public bool isDryRun = false;
 
         public List<int> noFlashList = new List<int>();
+
+        public static Dictionary<byte, List<Position>> GetEmptySpawnsData()
+        {
+            return new Dictionary<byte, List<Position>>
+            {
+                { (byte)CsTeam.CounterTerrorist, new List<Position>() },
+                { (byte)CsTeam.Terrorist, new List<Position>() }
+            };
+        }
 
         public void StartPracticeMode()
         {
@@ -163,10 +185,7 @@ namespace MatchZy
         public void GetSpawns()
         {
             // Resetting spawn data to avoid any glitches
-            spawnsData = new Dictionary<byte, List<Position>> {
-                        { (byte)CsTeam.CounterTerrorist, new List<Position>() },
-                        { (byte)CsTeam.Terrorist, new List<Position>() }
-                    };
+            spawnsData = GetEmptySpawnsData();
 
             int minPriority = 1;
 
@@ -195,6 +214,8 @@ namespace MatchZy
                     spawnsData[(byte)CsTeam.Terrorist].Add(new Position(spawn.CBodyComponent?.SceneNode?.AbsOrigin!, spawn.CBodyComponent?.SceneNode?.AbsRotation!));
                 }
             }
+
+            GetCoachSpawns();
         }
 
         private void HandleSpawnCommand(CCSPlayerController? player, string commandArg, byte teamNum, string command)
@@ -689,6 +710,38 @@ namespace MatchZy
             {
                 // ReplyToUserCommand(player, $"Nade not found! Usage: .loadnade <name>");
                 ReplyToUserCommand(player, Localizer["matchzy.pm.loadnadenotfound"]);
+            }
+        }
+
+        public void ShowSpawnBeam(Position spawn, Color color)
+        {
+            CBeam? beam = Utilities.CreateEntityByName<CBeam>("beam");
+            if (beam == null)
+            {
+                Log($"Failed to create beam for the spawn");
+                return;
+            }
+
+            beam.LifeState = 1;
+            beam.Width = 5;
+            beam.Render = color;
+
+            beam.EndPos.X = spawn.PlayerPosition.X;
+            beam.EndPos.Y = spawn.PlayerPosition.Y;
+            beam.EndPos.Z = spawn.PlayerPosition.Z + 100.0f;
+
+            beam.Teleport(spawn.PlayerPosition, new QAngle(0, 0, 0), new Vector(0, 0, 0));
+
+            beam.DispatchSpawn();
+        }
+
+        public void RemoveSpawnBeams()
+        {
+            var beams = Utilities.FindAllEntitiesByDesignerName<CEntityInstance>("beam");
+            foreach (var beam in beams)
+            {
+                if (beam == null) continue;
+                beam.Remove();
             }
         }
 
@@ -1678,6 +1731,29 @@ namespace MatchZy
         {
             if (!isPractice || !IsPlayerValid(player)) return;
             TeleportPlayerToWorstSpawn(player!, (byte)CsTeam.Terrorist);
+        }
+
+        [ConsoleCommand("css_showspawns", "Highlights all the competitive spawns")]
+        public void OnShowSpawnsCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+            RemoveSpawnBeams();
+            if (spawnsData.Values.Any(list => list.Count == 0)) GetSpawns();
+            foreach (Position spawn in spawnsData[(byte)CsTeam.CounterTerrorist])
+            {
+                ShowSpawnBeam(spawn, Color.Blue);
+            }
+            foreach (Position spawn in spawnsData[(byte)CsTeam.Terrorist])
+            {
+                ShowSpawnBeam(spawn, Color.Orange);
+            }
+        }
+
+        [ConsoleCommand("css_hidespawns", "Hides the highlighted spawns")]
+        public void OnHideSpawnsCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!isPractice || !IsPlayerValid(player)) return;
+            RemoveSpawnBeams();
         }
 
         public void TeleportPlayerToBestSpawn(CCSPlayerController player, byte teamNum)
