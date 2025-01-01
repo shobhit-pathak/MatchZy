@@ -1176,7 +1176,7 @@ namespace MatchZy
                 PrintToPlayerChat(player, Localizer["matchzy.pause.techpausenotenabled"]);
                 return;
             }
-            if(!string.IsNullOrEmpty(techPausePermission.Value))
+            if(!string.IsNullOrEmpty(techPausePermission.Value) && techPausePermission.Value != "\"\"")
             {
                 if (!IsPlayerAdmin(player, "css_pause", techPausePermission.Value))
                 {
