@@ -1,5 +1,30 @@
 # MatchZy Changelog
 
+# 0.8.8
+
+#### January 1, 2025
+
+- Fixed issue with !pause command where non-admin players were not able to take pauses when `matchzy_tech_pause_flag ""` was set.
+
+# 0.8.7
+
+#### December 4, 2024
+
+- Fixed backup / restore on Windows.
+- Dryrun will now have random competitive spawns rather than same spawns every time.
+- Made `.pause` / `.tech` toggleable. Use `matchzy_enable_tech_pause` convar to toggle.
+- Updated pt-PT translation.
+- Fixed live_override
+
+# 0.8.6
+
+#### September 13, 2024
+
+- Improvements in coach, now coaches will spawn on the fixed defined spawn to avoid spawning and getting stuck with the players. Spawns will be defined in `addons/counterstrikesharp/plugins/MatchZy/spawns/coach/<map_name>.json`. Each map will have its json file, in which there will be 2 keys, "3" and "2". 3 -> CT, 2 -> T and the values will be an array of Vector and QAngle objects.
+- Added `.showspawns` and `.hidespawns` command for Practice mode to toggle highlighting of competitive spawns. (Image attached)
+- Removed auto-join of players in match setup which was causing players to spawn under the ground.
+- Added `.rr` alias for `.restart` command.
+
 # 0.8.5
 
 #### August 27, 2024
