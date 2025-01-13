@@ -2015,15 +2015,15 @@ namespace MatchZy
             Utilities.SetStateChanged(playerPawnValue, "CBaseModelEntity", "m_clrRender");
         }
 
-        public void DropWeaponByDesignerName(CCSPlayerController player, string weaponName)
+        public void DropWeaponByDesignerName(CCSPlayerController player, string weaponName, bool remove = false)
         {
             if (!IsPlayerValid(player) || player.PlayerPawn.Value!.WeaponServices is null) return;
             var matchedWeapon = player.PlayerPawn.Value!.WeaponServices!.MyWeapons
-                .Where(weapon => weapon.Value!.DesignerName == weaponName).FirstOrDefault();
+                .Where(x => x.Value?.DesignerName == weaponName).FirstOrDefault();
 
             if (matchedWeapon != null && matchedWeapon.IsValid)
             {
-                player.PlayerPawn.Value.WeaponServices.ActiveWeapon.Raw = matchedWeapon.Raw;
+                player.PlayerPawn.Value!.WeaponServices!.ActiveWeapon.Raw = matchedWeapon.Raw;
                 player.DropActiveWeapon();
             }
         }
