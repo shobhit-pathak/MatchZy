@@ -1,4 +1,4 @@
-using CounterStrikeSharp.API;
+п»їusing CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Utils;
 using CounterStrikeSharp.API.Core;
@@ -67,8 +67,8 @@ namespace MatchZy
                     vetoStateTimer = null;
                     return;
                 }
-                Server.PrintToChatAll($"{chatPrefix} Капитан команды {ChatColors.Green}{matchzyTeam1.teamName}{ChatColors.Default}: {ChatColors.Red}{playerData[team1Captain].PlayerName}{ChatColors.Default}");
-                Server.PrintToChatAll($"{chatPrefix} Капитан команды {ChatColors.Green}{matchzyTeam2.teamName}{ChatColors.Default}: {ChatColors.Red}{playerData[team2Captain].PlayerName}{ChatColors.Default}");
+                Server.PrintToChatAll($"{chatPrefix} РљР°РїРёС‚Р°РЅ РєРѕРјР°РЅРґС‹ {ChatColors.Green}{matchzyTeam1.teamName}{ChatColors.Default}: {ChatColors.Red}{playerData[team1Captain].PlayerName}{ChatColors.Default}");
+                Server.PrintToChatAll($"{chatPrefix} РљР°РїРёС‚Р°РЅ РєРѕРјР°РЅРґС‹ {ChatColors.Green}{matchzyTeam2.teamName}{ChatColors.Default}: {ChatColors.Red}{playerData[team2Captain].PlayerName}{ChatColors.Default}");
 
                 HandleVetoStep();
                 vetoStateTimer?.Kill();
@@ -77,7 +77,7 @@ namespace MatchZy
             }
             warningsPrinted++;
             int secondsRemaining = vetoCountdownTime - warningsPrinted + 1;
-            Server.PrintToChatAll($"{chatPrefix} BAN/PICK начинается через {secondsRemaining}");
+            Server.PrintToChatAll($"{chatPrefix} BAN/PICK РЅР°С‡РёРЅР°РµС‚СЃСЏ С‡РµСЂРµР· {secondsRemaining}");
         }
 
         public void HandleVetoStep()
@@ -127,31 +127,31 @@ namespace MatchZy
             switch (option) 
             {
                 case "team1_ban":
-                    action = $"Очередь {ChatColors.Green}{matchzyTeam1.teamName}{ChatColors.Default} сейчас {ChatColors.Red}БАНИТЬ{ChatColors.Default} карту.";
+                    action = $"РћС‡РµСЂРµРґСЊ {ChatColors.Green}{matchzyTeam1.teamName}{ChatColors.Default} СЃРµР№С‡Р°СЃ {ChatColors.Red}Р‘РђРќРРўР¬{ChatColors.Default} РєР°СЂС‚Сѓ.";
                     client = vetoCaptains["team1"];
-                    stepMessage = $"Введите !ban <map> чтобы забанить карту.";
-                    stepMessage = $"Например: !ban de_mirage";
+                    stepMessage = $"Р’РІРµРґРёС‚Рµ !ban <map> С‡С‚РѕР±С‹ Р·Р°Р±Р°РЅРёС‚СЊ РєР°СЂС‚Сѓ.";
+                    stepMessage = $"РќР°РїСЂРёРјРµСЂ: !ban de_mirage";
                     //stepMessage = $"Use .ban <map> to ban a map";
                     break;
                 case "team2_ban":
-                    action = $"Очередь {ChatColors.Green}{matchzyTeam2.teamName}{ChatColors.Default} сейчас {ChatColors.Red}БАНИТЬ{ChatColors.Default} карту.";
+                    action = $"РћС‡РµСЂРµРґСЊ {ChatColors.Green}{matchzyTeam2.teamName}{ChatColors.Default} СЃРµР№С‡Р°СЃ {ChatColors.Red}Р‘РђРќРРўР¬{ChatColors.Default} РєР°СЂС‚Сѓ.";
                     client = vetoCaptains["team2"];
-                    stepMessage = $"Введите !ban <map>, чтобы забанить карту.";
-                    stepMessage = $"Например: !ban de_mirage";
+                    stepMessage = $"Р’РІРµРґРёС‚Рµ !ban <map>, С‡С‚РѕР±С‹ Р·Р°Р±Р°РЅРёС‚СЊ РєР°СЂС‚Сѓ.";
+                    stepMessage = $"РќР°РїСЂРёРјРµСЂ: !ban de_mirage";
                     //stepMessage = $"Use .ban <map> to ban a map";
                     break;                                                       
                 case "team1_pick":
-                    action = $"Очередь {ChatColors.Green}{matchzyTeam1.teamName}{ChatColors.Default} сейчас {ChatColors.Red}ПИКАТЬ{ChatColors.Default} {matchConfig.Maplist.Count + 1}-ю карту.";
+                    action = $"РћС‡РµСЂРµРґСЊ {ChatColors.Green}{matchzyTeam1.teamName}{ChatColors.Default} СЃРµР№С‡Р°СЃ {ChatColors.Red}РџРРљРђРўР¬{ChatColors.Default} {matchConfig.Maplist.Count + 1}-СЋ РєР°СЂС‚Сѓ.";
                     client = vetoCaptains["team1"];
-                    stepMessage = $"Введите !pick <map>, чтобы пикнуть карту.";
-                    stepMessage = $"Например: !pick de_mirage";
+                    stepMessage = $"Р’РІРµРґРёС‚Рµ !pick <map>, С‡С‚РѕР±С‹ РїРёРєРЅСѓС‚СЊ РєР°СЂС‚Сѓ.";
+                    stepMessage = $"РќР°РїСЂРёРјРµСЂ: !pick de_mirage";
                     //stepMessage = $"Use .pick <map> to pick a map.";
                     break;
                 case "team2_pick":
-                    action = $"Очередь {ChatColors.Green}{matchzyTeam2.teamName}{ChatColors.Default} сейчас {ChatColors.Red}ПИКАТЬ{ChatColors.Default} {matchConfig.Maplist.Count + 1}-ю карту.";
+                    action = $"РћС‡РµСЂРµРґСЊ {ChatColors.Green}{matchzyTeam2.teamName}{ChatColors.Default} СЃРµР№С‡Р°СЃ {ChatColors.Red}РџРРљРђРўР¬{ChatColors.Default} {matchConfig.Maplist.Count + 1}-СЋ РєР°СЂС‚Сѓ.";
                     client = vetoCaptains["team2"];
-                    stepMessage = $"Введите !pick <map>, чтобы пикнуть карту.";
-                    stepMessage = $"Например: !pick de_mirage";
+                    stepMessage = $"Р’РІРµРґРёС‚Рµ !pick <map>, С‡С‚РѕР±С‹ РїРёРєРЅСѓС‚СЊ РєР°СЂС‚Сѓ.";
+                    stepMessage = $"РќР°РїСЂРёРјРµСЂ: !pick de_mirage";
                     //stepMessage = $"Use .pick <map> to pick a map.";
                     break;
             }
@@ -163,7 +163,7 @@ namespace MatchZy
             Server.PrintToChatAll($"{chatPrefix} {action}");
 
             string mapListAsString = string.Join(", ", matchConfig.MapsLeftInVetoPool);
-            Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}Оставшиеся карты:{ChatColors.Default} {mapListAsString}");
+            Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}РћСЃС‚Р°РІС€РёРµСЃСЏ РєР°СЂС‚С‹:{ChatColors.Default} {mapListAsString}");
 
             playerData[client].PrintToChat($"{chatPrefix} {stepMessage}");
         }
@@ -207,7 +207,7 @@ namespace MatchZy
             if (player.UserId != vetoCaptains[currentTeamToBan]) return;
 
             if (!BanMap(map, playerTeam)) {
-                PrintToPlayerChat(player, $"{map} - некорректная карта.");
+                PrintToPlayerChat(player, $"{map} - РЅРµРєРѕСЂСЂРµРєС‚РЅР°СЏ РєР°СЂС‚Р°.");
             } else {
                 HandleVetoStep();
             }
@@ -237,7 +237,7 @@ namespace MatchZy
             if (player.UserId != vetoCaptains[currentTeamToPick]) return;
 
             if (!PickMap(map, playerTeam)) {
-                PrintToPlayerChat(player, $"{map} - некорректная карта.");
+                PrintToPlayerChat(player, $"{map} - РЅРµРєРѕСЂСЂРµРєС‚РЅР°СЏ РєР°СЂС‚Р°.");
             } else {
                 HandleVetoStep();
             }
@@ -253,7 +253,7 @@ namespace MatchZy
 
             if (team != 0) {
                 matchzyTeam = (team == 2) ? reverseTeamSides["TERRORIST"] : reverseTeamSides["CT"];
-                Server.PrintToChatAll($"{chatPrefix} Команда {ChatColors.Green}{matchzyTeam.teamName}{ChatColors.Default} пикнула {matchConfig.Maplist.Count + 1}-ю карту {ChatColors.Green}{mapRemovedName}{ChatColors.Default}");
+                Server.PrintToChatAll($"{chatPrefix} РљРѕРјР°РЅРґР° {ChatColors.Green}{matchzyTeam.teamName}{ChatColors.Default} РїРёРєРЅСѓР»Р° {matchConfig.Maplist.Count + 1}-СЋ РєР°СЂС‚Сѓ {ChatColors.Green}{mapRemovedName}{ChatColors.Default}");
             }
 
             matchConfig.Maplist.Add(mapRemovedName);
@@ -285,7 +285,7 @@ namespace MatchZy
 
             if (team != 0) {
                 matchzyTeam = (team == 2) ? reverseTeamSides["TERRORIST"] : reverseTeamSides["CT"];
-                Server.PrintToChatAll($"{chatPrefix} Команда {ChatColors.Green}{matchzyTeam.teamName}{ChatColors.Default} забанила карту {ChatColors.LightRed}{mapRemovedName}{ChatColors.Default}");
+                Server.PrintToChatAll($"{chatPrefix} РљРѕРјР°РЅРґР° {ChatColors.Green}{matchzyTeam.teamName}{ChatColors.Default} Р·Р°Р±Р°РЅРёР»Р° РєР°СЂС‚Сѓ {ChatColors.LightRed}{mapRemovedName}{ChatColors.Default}");
             }
 
             var mapMapVetoedEvent = new MatchZyMapVetoedEvent
@@ -307,8 +307,8 @@ namespace MatchZy
         public void AbortVeto()
         {
             // Todo: Add AbortVeto() when captain is disconnecting in-between veto
-            Server.PrintToChatAll($"{chatPrefix} Капитан команды ушел во время BAN/PICK. BAN/PICK приостановлен.");
-            Server.PrintToChatAll($"{chatPrefix} Введите !ready, чтобы продолжить BAN/PICK");
+            Server.PrintToChatAll($"{chatPrefix} РљР°РїРёС‚Р°РЅ РєРѕРјР°РЅРґС‹ СѓС€РµР» РІРѕ РІСЂРµРјСЏ BAN/PICK. BAN/PICK РїСЂРёРѕСЃС‚Р°РЅРѕРІР»РµРЅ.");
+            Server.PrintToChatAll($"{chatPrefix} Р’РІРµРґРёС‚Рµ !ready, С‡С‚РѕР±С‹ РїСЂРѕРґРѕР»Р¶РёС‚СЊ BAN/PICK");
             isPreVeto = true;
             isVeto = false;
             if (isPaused)
@@ -329,7 +329,7 @@ namespace MatchZy
 
         public void FinishVeto() 
         {
-            Server.PrintToChatAll($"{chatPrefix} Выбранные карты:");
+            Server.PrintToChatAll($"{chatPrefix} Р’С‹Р±СЂР°РЅРЅС‹Рµ РєР°СЂС‚С‹:");
             matchConfig.MapsLeftInVetoPool.Clear();
 
             if (isPaused) {
@@ -340,7 +340,7 @@ namespace MatchZy
             int mapNumber = matchConfig.CurrentMapNumber;
 
             for (int i = mapNumber; i < matchConfig.Maplist.Count; i++) {
-                Server.PrintToChatAll($"{chatPrefix} Карта {i + 1 - mapNumber}: {matchConfig.Maplist[i]}");
+                Server.PrintToChatAll($"{chatPrefix} РљР°СЂС‚Р° {i + 1 - mapNumber}: {matchConfig.Maplist[i]}");
             }
 
             string currentMapName = Server.MapName;
@@ -465,12 +465,12 @@ namespace MatchZy
             Team matchzyTeam = (team == CsTeam.CounterTerrorist) ? reverseTeamSides["CT"] : reverseTeamSides["TERRORIST"];
             string teamString = (matchzyTeam == matchzyTeam1) ? "team1" : "team2";
             
-            Server.PrintToChatAll($"{chatPrefix} Очередь команды {ChatColors.Green}{matchzyTeam.teamName}{ChatColors.Default} выбрать {ChatColors.Red}сторону{ChatColors.Default} для карты {ChatColors.Green}{mapName}{ChatColors.Default}");
+            Server.PrintToChatAll($"{chatPrefix} РћС‡РµСЂРµРґСЊ РєРѕРјР°РЅРґС‹ {ChatColors.Green}{matchzyTeam.teamName}{ChatColors.Default} РІС‹Р±СЂР°С‚СЊ {ChatColors.Red}СЃС‚РѕСЂРѕРЅСѓ{ChatColors.Default} РґР»СЏ РєР°СЂС‚С‹ {ChatColors.Green}{mapName}{ChatColors.Default}");
 
             int client = vetoCaptains[teamString];
             if (!playerData.ContainsKey(client) || !playerData[client].IsValid) return;
 
-            playerData[client].PrintToChat($"{chatPrefix} Введите !ct или !t");
+            playerData[client].PrintToChat($"{chatPrefix} Р’РІРµРґРёС‚Рµ !ct РёР»Рё !t");
         }
 
         public bool ValidateMapBanLogic() 
@@ -537,7 +537,7 @@ namespace MatchZy
 
             Team matchzyTeam = (team == "team1") ? matchzyTeam1 : matchzyTeam2;
 
-            Server.PrintToChatAll($"{chatPrefix} Команда {ChatColors.Green}{matchzyTeam.teamName}{ChatColors.Default} выбрала сторону {ChatColors.Green}{sideFormatted}{ChatColors.Default} на карте {ChatColors.Green}{mapName}{ChatColors.Default}.");
+            Server.PrintToChatAll($"{chatPrefix} РљРѕРјР°РЅРґР° {ChatColors.Green}{matchzyTeam.teamName}{ChatColors.Default} РІС‹Р±СЂР°Р»Р° СЃС‚РѕСЂРѕРЅСѓ {ChatColors.Green}{sideFormatted}{ChatColors.Default} РЅР° РєР°СЂС‚Рµ {ChatColors.Green}{mapName}{ChatColors.Default}.");
 
             var sidePickedEvent = new MatchZySidePickedEvent
             {

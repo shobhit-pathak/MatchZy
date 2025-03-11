@@ -1,4 +1,4 @@
-using System.Text.Json;
+п»їusing System.Text.Json;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Commands;
@@ -922,17 +922,17 @@ namespace MatchZy
             }
             if (matchzyTeam1.seriesScore > matchzyTeam2.seriesScore)
             {
-                Server.PrintToChatAll($"{chatPrefix} Команда {ChatColors.Green}{matchzyTeam1.teamName}{ChatColors.Default} выиграла текущую карту! Счет матча: {ChatColors.Green}{matchzyTeam1.seriesScore}-{matchzyTeam2.seriesScore}{ChatColors.Default}");
+                Server.PrintToChatAll($"{chatPrefix} РљРѕРјР°РЅРґР° {ChatColors.Green}{matchzyTeam1.teamName}{ChatColors.Default} РІС‹РёРіСЂР°Р»Р° С‚РµРєСѓС‰СѓСЋ РєР°СЂС‚Сѓ! РЎС‡РµС‚ РјР°С‚С‡Р°: {ChatColors.Green}{matchzyTeam1.seriesScore}-{matchzyTeam2.seriesScore}{ChatColors.Default}");
 
             }
             else if (matchzyTeam2.seriesScore > matchzyTeam1.seriesScore)
             {
-                Server.PrintToChatAll($"{chatPrefix} Команда {ChatColors.Green}{matchzyTeam2.teamName}{ChatColors.Default} выиграла текущую карту! Счет матча: {ChatColors.Green}{matchzyTeam2.seriesScore}-{matchzyTeam1.seriesScore}{ChatColors.Default}");
+                Server.PrintToChatAll($"{chatPrefix} РљРѕРјР°РЅРґР° {ChatColors.Green}{matchzyTeam2.teamName}{ChatColors.Default} РІС‹РёРіСЂР°Р»Р° С‚РµРєСѓС‰СѓСЋ РєР°СЂС‚Сѓ! РЎС‡РµС‚ РјР°С‚С‡Р°: {ChatColors.Green}{matchzyTeam2.seriesScore}-{matchzyTeam1.seriesScore}{ChatColors.Default}");
 
             }
             else
             {
-                Server.PrintToChatAll($"{chatPrefix} Счет матча: {ChatColors.Green}{matchzyTeam1.seriesScore}-{matchzyTeam2.seriesScore}{ChatColors.Default}");
+                Server.PrintToChatAll($"{chatPrefix} РЎС‡РµС‚ РјР°С‚С‡Р°: {ChatColors.Green}{matchzyTeam1.seriesScore}-{matchzyTeam2.seriesScore}{ChatColors.Default}");
             }
             matchConfig.CurrentMapNumber += 1;
             string nextMap = matchConfig.Maplist[matchConfig.CurrentMapNumber];

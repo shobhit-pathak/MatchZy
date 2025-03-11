@@ -1,4 +1,4 @@
-using System;
+п»їusing System;
 using System.IO;
 using System.Data;
 using System.Text.Json;
@@ -62,7 +62,7 @@ namespace MatchZy
                 }
                 else if (config != null && databaseType == DatabaseType.MySQL)
                 {
-                    // Сохраняем строку подключения в поле класса connectionString
+                    // РЎРѕС…СЂР°РЅСЏРµРј СЃС‚СЂРѕРєСѓ РїРѕРґРєР»СЋС‡РµРЅРёСЏ РІ РїРѕР»Рµ РєР»Р°СЃСЃР° connectionString
                     this.connectionString = $"Server={config.MySqlHost};Port={config.MySqlPort};Database={config.MySqlDatabase};User Id={config.MySqlUsername};Password={config.MySqlPassword};";
                     connection = new MySqlConnection(this.connectionString);
                 }
@@ -305,10 +305,10 @@ namespace MatchZy
         {
             try
             {
-                // Определяем выражение для получения текущего времени в зависимости от типа базы
+                // РћРїСЂРµРґРµР»СЏРµРј РІС‹СЂР°Р¶РµРЅРёРµ РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ С‚РµРєСѓС‰РµРіРѕ РІСЂРµРјРµРЅРё РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ С‚РёРїР° Р±Р°Р·С‹
                 string dateTimeExpression = (connection is SqliteConnection) ? "datetime('now')" : "NOW()";
 
-                // Формируем SQL-запрос для обновления данных в таблице matchzy_stats_maps
+                // Р¤РѕСЂРјРёСЂСѓРµРј SQL-Р·Р°РїСЂРѕСЃ РґР»СЏ РѕР±РЅРѕРІР»РµРЅРёСЏ РґР°РЅРЅС‹С… РІ С‚Р°Р±Р»РёС†Рµ matchzy_stats_maps
                 string sqlQuery = $@"
             UPDATE matchzy_stats_maps
             SET winner = @winnerName, end_time = {dateTimeExpression}, team1_score = @t1score, team2_score = @t2score
@@ -316,7 +316,7 @@ namespace MatchZy
 
                 int rowsAffected = 0;
 
-                // Создаем новое подключение для выполнения первого запроса
+                // РЎРѕР·РґР°РµРј РЅРѕРІРѕРµ РїРѕРґРєР»СЋС‡РµРЅРёРµ РґР»СЏ РІС‹РїРѕР»РЅРµРЅРёСЏ РїРµСЂРІРѕРіРѕ Р·Р°РїСЂРѕСЃР°
                 using (var conn = new MySqlConnection(this.connectionString))
                 {
                     await conn.OpenAsync();
@@ -324,15 +324,15 @@ namespace MatchZy
                 }
                 Log($"[SetMapEndData] Update on matchzy_stats_maps affected {rowsAffected} row(s)");
 
-                // Формируем SQL-запрос для обновления данных в таблице matchzy_stats_matches
+                // Р¤РѕСЂРјРёСЂСѓРµРј SQL-Р·Р°РїСЂРѕСЃ РґР»СЏ РѕР±РЅРѕРІР»РµРЅРёСЏ РґР°РЅРЅС‹С… РІ С‚Р°Р±Р»РёС†Рµ matchzy_stats_matches
                 sqlQuery = $@"
             UPDATE matchzy_stats_matches
             SET team1_score = @team1SeriesScore, team2_score = @team2SeriesScore
             WHERE matchid = @matchId";
 
-                rowsAffected = 0; // Сбрасываем переменную перед следующим запросом
+                rowsAffected = 0; // РЎР±СЂР°СЃС‹РІР°РµРј РїРµСЂРµРјРµРЅРЅСѓСЋ РїРµСЂРµРґ СЃР»РµРґСѓСЋС‰РёРј Р·Р°РїСЂРѕСЃРѕРј
 
-                // Создаем новое подключение для выполнения второго запроса
+                // РЎРѕР·РґР°РµРј РЅРѕРІРѕРµ РїРѕРґРєР»СЋС‡РµРЅРёРµ РґР»СЏ РІС‹РїРѕР»РЅРµРЅРёСЏ РІС‚РѕСЂРѕРіРѕ Р·Р°РїСЂРѕСЃР°
                 using (var conn = new MySqlConnection(this.connectionString))
                 {
                     await conn.OpenAsync();
