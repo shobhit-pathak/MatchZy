@@ -18,6 +18,7 @@ namespace MatchZy
 {
     public class Database
     {
+        private string connectionString;
         private IDbConnection connection;
 
         DatabaseConfig? config;
@@ -57,14 +58,13 @@ namespace MatchZy
 
                 if (databaseType == DatabaseType.SQLite)
                 {
-                    connection =
-                        new SqliteConnection(
-                            $"Data Source={Path.Join(directory, "matchzy.db")}");
+                    connection = new SqliteConnection($"Data Source={Path.Join(directory, "matchzy.db")}");
                 }
                 else if (config != null && databaseType == DatabaseType.MySQL)
                 {
-                    string connectionString = $"Server={config.MySqlHost};Port={config.MySqlPort};Database={config.MySqlDatabase};User Id={config.MySqlUsername};Password={config.MySqlPassword};";
-                    connection = new MySqlConnection(connectionString);           
+                    // Сохраняем строку подключения в поле класса connectionString
+                    this.connectionString = $"Server={config.MySqlHost};Port={config.MySqlPort};Database={config.MySqlDatabase};User Id={config.MySqlUsername};Password={config.MySqlPassword};";
+                    connection = new MySqlConnection(this.connectionString);
                 }
                 else
                 {
@@ -72,12 +72,11 @@ namespace MatchZy
                     connection = new SqliteConnection($"Data Source={Path.Join(directory, "matchzy.db")}");
                     databaseType = DatabaseType.SQLite;
                 }
-            } 
+            }
             catch (Exception ex)
             {
                 Log($"[InitializeDatabase - FATAL] Database connection error: {ex.Message}");
             }
-
         }
 
         public void CreateRequiredTablesSQLite()
@@ -229,11 +228,11 @@ namespace MatchZy
             )");
         }
 
-        public long InitMatch(string team1name, string team2name, string serverIp, bool isMatchSetup, long liveMatchId, int mapNumber, string seriesType)
+        public long InitMatch(string team1name, string team2name, string serverIp, bool isMatchSetup, long liveMatchId, int mapNumber, string seriesType, MatchConfig matchConfig)
         {
             try
             {
-                string mapName = Server.MapName;
+                string mapName = matchConfig.Maplist[mapNumber];
                 string dateTimeExpression = (connection is SqliteConnection) ? "datetime('now')" : "NOW()";
 
                 if (mapNumber == 0) {
@@ -301,33 +300,53 @@ namespace MatchZy
             }
         }
 
+
         public async Task SetMapEndData(long matchId, int mapNumber, string winnerName, int t1score, int t2score, int team1SeriesScore, int team2SeriesScore)
         {
             try
             {
+                // Определяем выражение для получения текущего времени в зависимости от типа базы
                 string dateTimeExpression = (connection is SqliteConnection) ? "datetime('now')" : "NOW()";
 
+                // Формируем SQL-запрос для обновления данных в таблице matchzy_stats_maps
                 string sqlQuery = $@"
-                    UPDATE matchzy_stats_maps
-                    SET winner = @winnerName, end_time = {dateTimeExpression}, team1_score = @t1score, team2_score = @t2score
-                    WHERE matchid = @matchId AND mapNumber = @mapNumber";
+            UPDATE matchzy_stats_maps
+            SET winner = @winnerName, end_time = {dateTimeExpression}, team1_score = @t1score, team2_score = @t2score
+            WHERE matchid = @matchId AND mapNumber = @mapNumber";
 
-                await connection.ExecuteAsync(sqlQuery, new { matchId, winnerName, t1score, t2score, mapNumber });
+                int rowsAffected = 0;
 
+                // Создаем новое подключение для выполнения первого запроса
+                using (var conn = new MySqlConnection(this.connectionString))
+                {
+                    await conn.OpenAsync();
+                    rowsAffected = await conn.ExecuteAsync(sqlQuery, new { matchId, winnerName, t1score, t2score, mapNumber });
+                }
+                Log($"[SetMapEndData] Update on matchzy_stats_maps affected {rowsAffected} row(s)");
+
+                // Формируем SQL-запрос для обновления данных в таблице matchzy_stats_matches
                 sqlQuery = $@"
-                    UPDATE matchzy_stats_matches
-                    SET team1_score = @team1SeriesScore, team2_score = @team2SeriesScore
-                    WHERE matchid = @matchId";
+            UPDATE matchzy_stats_matches
+            SET team1_score = @team1SeriesScore, team2_score = @team2SeriesScore
+            WHERE matchid = @matchId";
 
-                await connection.ExecuteAsync(sqlQuery, new { matchId, team1SeriesScore, team2SeriesScore });
+                rowsAffected = 0; // Сбрасываем переменную перед следующим запросом
 
-                Log($"[SetMapEndData] Data updated for matchId: {matchId} mapNumber: {mapNumber} winnerName: {winnerName}");
+                // Создаем новое подключение для выполнения второго запроса
+                using (var conn = new MySqlConnection(this.connectionString))
+                {
+                    await conn.OpenAsync();
+                    rowsAffected = await conn.ExecuteAsync(sqlQuery, new { matchId, team1SeriesScore, team2SeriesScore });
+                }
+                Log($"[SetMapEndData] Update on matchzy_stats_matches affected {rowsAffected} row(s)");
             }
             catch (Exception ex)
             {
-                Log($"[SetMapEndData - FATAL] Error updating data of matchId: {matchId} mapNumber: {mapNumber} [ERROR]: {ex.Message}");
-            } 
+                Log($"[SetMapEndData - FATAL] Error updating data for matchId: {matchId}, mapNumber: {mapNumber} [ERROR]: {ex.Message}");
+            }
         }
+
+
 
         public async Task SetMatchEndData(long matchId, string winnerName, int t1score, int t2score)
         {
