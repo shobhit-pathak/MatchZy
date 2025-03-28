@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
@@ -65,7 +66,8 @@ namespace MatchZy
                     Log($"[LoadMatch] Provided file does not exist! Usage: matchzy_loadmatch <filename>");
                     return;
                 }
-                string jsonData = File.ReadAllText(filePath);
+                //string jsonData = File.ReadAllText(filePath);
+                string jsonData = File.ReadAllText(filePath, Encoding.UTF8);
                 bool success = LoadMatchFromJSON(jsonData);
                 if (!success)
                 {

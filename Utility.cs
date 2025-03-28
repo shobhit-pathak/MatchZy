@@ -1737,11 +1737,19 @@ namespace MatchZy
             return (playerStatsDictionary, playerStatsListTeam1, playerStatsListTeam2);
         }
 
+        //static string RemoveSpecialCharacters(string input)
+        //{
+        //    Regex regex = new("[^a-zA-Z0-9 _-]");
+        //    return regex.Replace(input, "");
+        //}
+
+        // support for Russian characters
         static string RemoveSpecialCharacters(string input)
         {
-            Regex regex = new("[^a-zA-Z0-9 _-]");
+            Regex regex = new("[^\\p{L}0-9 _-]");
             return regex.Replace(input, "");
         }
+
 
         private void Log(string message)
         {
@@ -1842,8 +1850,8 @@ namespace MatchZy
 
         public static string? GetConvarValueFromCFGFile(string filePath, string convarName)
         {
-            var fileContent = File.ReadAllText(filePath);
-
+            //var fileContent = File.ReadAllText(filePath);
+            var fileContent = File.ReadAllText(filePath, Encoding.UTF8);
             string pattern = @$"^{convarName}\s+(.+)$";
 
             Regex regex = new(pattern, RegexOptions.Multiline);

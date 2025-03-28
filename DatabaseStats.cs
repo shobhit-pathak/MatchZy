@@ -11,6 +11,7 @@ using CounterStrikeSharp.API.Modules.Memory;
 using CsvHelper;
 using CsvHelper.Configuration;
 using MySqlConnector;
+using System.Text;
 
 
 
@@ -580,7 +581,8 @@ namespace MatchZy
 
             try
             {
-                string jsonContent = File.ReadAllText(configFile);
+                //string jsonContent = File.ReadAllText(configFile);
+                string jsonContent = File.ReadAllText(configFile, Encoding.UTF8);
                 config = JsonSerializer.Deserialize<DatabaseConfig>(jsonContent);
                 // Set the database type
                 if (config != null && config.DatabaseType?.Trim().ToLower() == "mysql") {
