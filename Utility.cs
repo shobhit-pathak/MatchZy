@@ -922,17 +922,16 @@ namespace MatchZy
             }
             if (matchzyTeam1.seriesScore > matchzyTeam2.seriesScore)
             {
-                Server.PrintToChatAll($"{chatPrefix} Команда {ChatColors.Green}{matchzyTeam1.teamName}{ChatColors.Default} выиграла текущую карту! Счет матча: {ChatColors.Green}{matchzyTeam1.seriesScore}-{matchzyTeam2.seriesScore}{ChatColors.Default}");
+                Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{matchzyTeam1.teamName}{ChatColors.Default} is winning the series {ChatColors.Green}{matchzyTeam1.seriesScore}-{matchzyTeam2.seriesScore}{ChatColors.Default}");
 
             }
             else if (matchzyTeam2.seriesScore > matchzyTeam1.seriesScore)
             {
-                Server.PrintToChatAll($"{chatPrefix} Команда {ChatColors.Green}{matchzyTeam2.teamName}{ChatColors.Default} выиграла текущую карту! Счет матча: {ChatColors.Green}{matchzyTeam2.seriesScore}-{matchzyTeam1.seriesScore}{ChatColors.Default}");
-
+                Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{matchzyTeam2.teamName}{ChatColors.Default} is winning the series {ChatColors.Green}{matchzyTeam2.seriesScore}-{matchzyTeam1.seriesScore}{ChatColors.Default}");
             }
             else
             {
-                Server.PrintToChatAll($"{chatPrefix} Счет матча: {ChatColors.Green}{matchzyTeam1.seriesScore}-{matchzyTeam2.seriesScore}{ChatColors.Default}");
+                Server.PrintToChatAll($"{chatPrefix} The series is tied at {ChatColors.Green}{matchzyTeam1.seriesScore}-{matchzyTeam2.seriesScore}{ChatColors.Default}");
             }
             matchConfig.CurrentMapNumber += 1;
             string nextMap = matchConfig.Maplist[matchConfig.CurrentMapNumber];
@@ -1750,7 +1749,6 @@ namespace MatchZy
             return regex.Replace(input, "");
         }
 
-
         private void Log(string message)
         {
             Console.WriteLine("[MatchZy] " + message);
@@ -1850,8 +1848,8 @@ namespace MatchZy
 
         public static string? GetConvarValueFromCFGFile(string filePath, string convarName)
         {
-            //var fileContent = File.ReadAllText(filePath);
-            var fileContent = File.ReadAllText(filePath, Encoding.UTF8);
+            var fileContent = File.ReadAllText(filePath);
+
             string pattern = @$"^{convarName}\s+(.+)$";
 
             Regex regex = new(pattern, RegexOptions.Multiline);

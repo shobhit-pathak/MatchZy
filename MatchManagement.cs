@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json;
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
@@ -66,8 +65,7 @@ namespace MatchZy
                     Log($"[LoadMatch] Provided file does not exist! Usage: matchzy_loadmatch <filename>");
                     return;
                 }
-                //string jsonData = File.ReadAllText(filePath);
-                string jsonData = File.ReadAllText(filePath, Encoding.UTF8);
+                string jsonData = File.ReadAllText(filePath);
                 bool success = LoadMatchFromJSON(jsonData);
                 if (!success)
                 {
@@ -583,11 +581,11 @@ namespace MatchZy
             (int team1Score, int team2Score) = (matchzyTeam1.seriesScore, matchzyTeam2.seriesScore);
             if (winnerName == null)
             {
-                PrintToAllChat($"{ChatColors.Green}{matchzyTeam1.teamName}{ChatColors.Default} и {ChatColors.Green}{matchzyTeam2.teamName}{ChatColors.Default} сыграли в ничью!");
+                PrintToAllChat($"{ChatColors.Green}{matchzyTeam1.teamName}{ChatColors.Default} and {ChatColors.Green}{matchzyTeam2.teamName}{ChatColors.Default} have tied the match");
             }
             else
             {
-                Server.PrintToChatAll($"{chatPrefix} Команда {ChatColors.Green}{winnerName}{ChatColors.Default} выиграла матч!");
+                Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{winnerName}{ChatColors.Default} has won the match");
             }
 
             string winnerTeam = (winnerName == null) ? "none" : matchzyTeam1.seriesScore > matchzyTeam2.seriesScore ? "team1" : "team2";

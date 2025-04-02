@@ -11,7 +11,6 @@ using CounterStrikeSharp.API.Modules.Memory;
 using CsvHelper;
 using CsvHelper.Configuration;
 using MySqlConnector;
-using System.Text;
 
 
 
@@ -63,7 +62,7 @@ namespace MatchZy
                 }
                 else if (config != null && databaseType == DatabaseType.MySQL)
                 {
-                    // Сохраняем строку подключения в поле класса connectionString
+                    // Save the connection string into the class field 'connectionString'
                     this.connectionString = $"Server={config.MySqlHost};Port={config.MySqlPort};Database={config.MySqlDatabase};User Id={config.MySqlUsername};Password={config.MySqlPassword};";
                     connection = new MySqlConnection(this.connectionString);
                 }
@@ -306,10 +305,10 @@ namespace MatchZy
         {
             try
             {
-                // Определяем выражение для получения текущего времени в зависимости от типа базы
+                // Determine the expression for obtaining the current time based on the database type
                 string dateTimeExpression = (connection is SqliteConnection) ? "datetime('now')" : "NOW()";
 
-                // Формируем SQL-запрос для обновления данных в таблице matchzy_stats_maps
+                // Construct the SQL query to update data in the matchzy_stats_maps table
                 string sqlQuery = $@"
             UPDATE matchzy_stats_maps
             SET winner = @winnerName, end_time = {dateTimeExpression}, team1_score = @t1score, team2_score = @t2score
@@ -317,7 +316,7 @@ namespace MatchZy
 
                 int rowsAffected = 0;
 
-                // Создаем новое подключение для выполнения первого запроса
+                // Create a new connection for executing the first query
                 using (var conn = new MySqlConnection(this.connectionString))
                 {
                     await conn.OpenAsync();
@@ -325,15 +324,15 @@ namespace MatchZy
                 }
                 Log($"[SetMapEndData] Update on matchzy_stats_maps affected {rowsAffected} row(s)");
 
-                // Формируем SQL-запрос для обновления данных в таблице matchzy_stats_matches
+                // Construct the SQL query to update data in the matchzy_stats_matches table
                 sqlQuery = $@"
             UPDATE matchzy_stats_matches
             SET team1_score = @team1SeriesScore, team2_score = @team2SeriesScore
             WHERE matchid = @matchId";
 
-                rowsAffected = 0; // Сбрасываем переменную перед следующим запросом
+                rowsAffected = 0; // Reset the variable before the next query
 
-                // Создаем новое подключение для выполнения второго запроса
+                // Create a new connection for executing the second query
                 using (var conn = new MySqlConnection(this.connectionString))
                 {
                     await conn.OpenAsync();
@@ -581,8 +580,7 @@ namespace MatchZy
 
             try
             {
-                //string jsonContent = File.ReadAllText(configFile);
-                string jsonContent = File.ReadAllText(configFile, Encoding.UTF8);
+                string jsonContent = File.ReadAllText(configFile);
                 config = JsonSerializer.Deserialize<DatabaseConfig>(jsonContent);
                 // Set the database type
                 if (config != null && config.DatabaseType?.Trim().ToLower() == "mysql") {
