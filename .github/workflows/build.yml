@@ -32,7 +32,7 @@ jobs:
             echo "MATCHZY_VERSION=$MATCHZY_VERSION" >> $GITHUB_ENV
       - name: Build and Release Artifacts
         run: |
-          CSSHARP_VERSION=$(grep -Po '<PackageReference Include="CounterStrikeSharp.API" Version="\K\d+(\.\d+)*' MatchZy.csproj | sed 's|1.0.||g')
+          CSSHARP_VERSION=$(grep -Po '<PackageReference Include="CounterStrikeSharp.API" Version="\K\d+(\.\d+)*' MatchZy.csproj)
           echo "Creating MatchZy base package with version: $MATCHZY_VERSION"
           dotnet publish -o package/addons/counterstrikesharp/plugins/MatchZy
           cp -r cfg package 
@@ -43,7 +43,7 @@ jobs:
           echo "Installing CounterStrikeSharp (CSSharp) v$CSSHARP_VERSION"
           [ -e addons/counterstrikesharp ] && rm -rf addons/counterstrikesharp && echo "CounterStrikeSharp removed" || echo "old CounterStrikeSharp not found"
           curl -s https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/tags/v$CSSHARP_VERSION |
-              grep "/counterstrikesharp-with-runtime-build-$CSSHARP_VERSION-linux" |
+              grep "/counterstrikesharp-with-runtime-linux-$CSSHARP_VERSION" |
               cut -d : -f 2,3 |
               tr -d \" |
               head -n 1 |
@@ -64,7 +64,7 @@ jobs:
           echo "Installing CounterStrikeSharp (CSSharp) v$CSSHARP_VERSION"
           [ -e addons/counterstrikesharp ] && rm -rf addons/counterstrikesharp && echo "CounterStrikeSharp removed" || echo "old CounterStrikeSharp not found"
           curl -s https://api.github.com/repos/roflmuffin/CounterStrikeSharp/releases/tags/v$CSSHARP_VERSION |
-              grep "/counterstrikesharp-with-runtime-build-$CSSHARP_VERSION-windows" |
+              grep "/counterstrikesharp-with-runtime-windows-$CSSHARP_VERSION" |
               cut -d : -f 2,3 |
               tr -d \" |
               head -n 1 |
