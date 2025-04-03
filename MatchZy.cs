@@ -4,6 +4,7 @@ using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Timers;
+using CounterStrikeSharp.API.Modules.Events;
 
 
 namespace MatchZy
@@ -13,7 +14,7 @@ namespace MatchZy
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.8.8";
+        public override string ModuleVersion => "0.8.9";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
