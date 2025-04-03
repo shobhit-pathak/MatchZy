@@ -1,4 +1,4 @@
-using CounterStrikeSharp.API;
+﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Utils;
 using CounterStrikeSharp.API.Core;
@@ -69,7 +69,6 @@ namespace MatchZy
                 }
                 Server.PrintToChatAll($"{chatPrefix} Captain for {ChatColors.Green}{matchzyTeam1.teamName}{ChatColors.Default}: {ChatColors.Green}{playerData[team1Captain].PlayerName}{ChatColors.Default}");
                 Server.PrintToChatAll($"{chatPrefix} Captain for {ChatColors.Green}{matchzyTeam2.teamName}{ChatColors.Default}: {ChatColors.Green}{playerData[team2Captain].PlayerName}{ChatColors.Default}");
-
                 HandleVetoStep();
                 vetoStateTimer?.Kill();
                 vetoStateTimer = null;
@@ -156,7 +155,6 @@ namespace MatchZy
 
             string mapListAsString = string.Join(", ", matchConfig.MapsLeftInVetoPool);
             Server.PrintToChatAll($"{chatPrefix} Remaining Maps: {mapListAsString}");
-
             playerData[client].PrintToChat($"{chatPrefix} {stepMessage}");
         }
 
@@ -299,8 +297,9 @@ namespace MatchZy
         public void AbortVeto()
         {
             // Todo: Add AbortVeto() when captain is disconnecting in-between veto
-            Server.PrintToChatAll($"{chatPrefix} A team captain left during map selection. Map selection is paused.");
-            Server.PrintToChatAll($"{chatPrefix} Type .ready when you are ready to resume map selection.");
+
+            Server.PrintToChatAll($"{chatPrefix} Капитан команды ушел во время BAN/PICK. BAN/PICK приостановлен.");
+            Server.PrintToChatAll($"{chatPrefix} Введите !ready, чтобы продолжить BAN/PICK");
             isPreVeto = true;
             isVeto = false;
             if (isPaused)
@@ -456,7 +455,7 @@ namespace MatchZy
             string mapName = matchConfig.Maplist[^1];
             Team matchzyTeam = (team == CsTeam.CounterTerrorist) ? reverseTeamSides["CT"] : reverseTeamSides["TERRORIST"];
             string teamString = (matchzyTeam == matchzyTeam1) ? "team1" : "team2";
-            
+
             Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{matchzyTeam.teamName}{ChatColors.Default} must now pick a side to play on {ChatColors.Green}{mapName}{ChatColors.Default}");
 
             int client = vetoCaptains[teamString];
