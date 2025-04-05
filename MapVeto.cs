@@ -341,6 +341,7 @@ namespace MatchZy
             // In case the sides don't match after selection, we check it here before writing the backup.
             // Also required if the map doesn't need to change.
             SetMapSides();
+            if (enableMatchScrim) LockTeamsManually();
             ExecuteChangedConvars();
             foreach (var key in playerReadyStatus.Keys) {
                 playerReadyStatus[key] = false;
