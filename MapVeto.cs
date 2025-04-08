@@ -297,9 +297,8 @@ namespace MatchZy
         public void AbortVeto()
         {
             // Todo: Add AbortVeto() when captain is disconnecting in-between veto
-
-            Server.PrintToChatAll($"{chatPrefix} Капитан команды ушел во время BAN/PICK. BAN/PICK приостановлен.");
-            Server.PrintToChatAll($"{chatPrefix} Введите !ready, чтобы продолжить BAN/PICK");
+            Server.PrintToChatAll($"{chatPrefix} A team captain left during map selection. Map selection is paused.");
+            Server.PrintToChatAll($"{chatPrefix} Type .ready when you are ready to resume map selection.");
             isPreVeto = true;
             isVeto = false;
             if (isPaused)
