@@ -1,5 +1,11 @@
 # MatchZy Changelog
 
+# 0.8.9
+
+#### April 3, 2025
+
+- Fixed issue with EventPlayerChat (. commands) post CSSharp v315 update.
+
 # 0.8.8
 
 #### January 1, 2025
