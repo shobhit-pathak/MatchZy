@@ -150,6 +150,49 @@ namespace MatchZy
             }
         }
 
+        [ConsoleCommand("css_t", "Switches team to Terrorist")]
+        public void OnTCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (player == null || player.UserId == null) return;
+            if (isVeto) {
+                HandleSideChoice(CsTeam.Terrorist, player.UserId.Value);
+                return;
+            }
+
+            if (isSideSelectionPhase && player.TeamNum == knifeWinner) {
+                if (player.Team == CsTeam.Terrorist) {
+                    OnTeamStay(player, command);
+                } else {
+                    OnTeamSwitch(player, command);
+                }
+            }
+
+            if (!isPractice) return;
+            SideSwitchCommand(player, CsTeam.Terrorist);
+        }
+
+        [ConsoleCommand("css_ct", "Switches team to Counter-Terrorist")]
+        public void OnCTCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (player == null || player.UserId == null) return;
+            if (isVeto) {
+                HandleSideChoice(CsTeam.CounterTerrorist, player.UserId.Value);
+                return;
+            }
+
+            if (isSideSelectionPhase && player.TeamNum == knifeWinner) {
+                if (player.Team == CsTeam.CounterTerrorist) {
+                    OnTeamStay(player, command);
+                } else {
+                    OnTeamSwitch(player, command);
+                }
+                return;
+            }
+
+            if (!isPractice) return;
+            SideSwitchCommand(player, CsTeam.CounterTerrorist);
+        }
+
         [ConsoleCommand("css_tech", "Pause the match")]
         public void OnTechCommand(CCSPlayerController? player, CommandInfo? command)
         {
