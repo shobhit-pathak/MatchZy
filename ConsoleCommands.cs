@@ -154,21 +154,15 @@ namespace MatchZy
         public void OnTCommand(CCSPlayerController? player, CommandInfo? command)
         {
             if (player == null || player.UserId == null) return;
-
-            if (isVeto)
-            {
+            if (isVeto) {
                 HandleSideChoice(CsTeam.Terrorist, player.UserId.Value);
                 return;
             }
 
-            if (isSideSelectionPhase && player.TeamNum == knifeWinner)
-            {
-                if (player.Team == CsTeam.Terrorist)
-                {
+            if (isSideSelectionPhase && player.TeamNum == knifeWinner) {
+                if (player.Team == CsTeam.Terrorist) {
                     OnTeamStay(player, command);
-                }
-                else
-                {
+                } else {
                     OnTeamSwitch(player, command);
                 }
             }
@@ -181,20 +175,15 @@ namespace MatchZy
         public void OnCTCommand(CCSPlayerController? player, CommandInfo? command)
         {
             if (player == null || player.UserId == null) return;
-            if (isVeto)
-            {
+            if (isVeto) {
                 HandleSideChoice(CsTeam.CounterTerrorist, player.UserId.Value);
                 return;
             }
 
-            if (isSideSelectionPhase && player.TeamNum == knifeWinner)
-            {
-                if (player.Team == CsTeam.CounterTerrorist)
-                {
+            if (isSideSelectionPhase && player.TeamNum == knifeWinner) {
+                if (player.Team == CsTeam.CounterTerrorist) {
                     OnTeamStay(player, command);
-                }
-                else
-                {
+                } else {
                     OnTeamSwitch(player, command);
                 }
                 return;
