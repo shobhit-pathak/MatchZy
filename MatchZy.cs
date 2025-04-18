@@ -200,7 +200,8 @@ namespace MatchZy
                 { ".bestctspawn", OnBestCTSpawnCommand },
                 { ".worstctspawn", OnWorstCTSpawnCommand },
                 { ".besttspawn", OnBestTSpawnCommand },
-                { ".worsttspawn", OnWorstTSpawnCommand }
+                { ".worsttspawn", OnWorstTSpawnCommand },
+                { ".color", OnColorCommand }
             };
 
             RegisterEventHandler<EventPlayerConnectFull>(EventPlayerConnectFullHandler);

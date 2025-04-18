@@ -1756,6 +1756,20 @@ namespace MatchZy
             RemoveSpawnBeams();
         }
 
+        [ConsoleCommand("css_color", "Set cl_color of current player")]
+        public void OnColorCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!IsPlayerValid(player)) return;
+
+            if(command.ArgCount < 2){
+                PrintToPlayerChat(player, $"add number of color, same as cl_color <number>");
+                return;
+            }
+
+            PrintToPlayerChat(player, $"color was: {player.CompTeammateColor}, set to: {command.ArgByIndex(1)}");
+            player.CompTeammateColor = int.Parse(command.ArgByIndex(1));
+        }
+
         public void TeleportPlayerToBestSpawn(CCSPlayerController player, byte teamNum)
         {
             if (!spawnsData.TryGetValue(teamNum, out List<Position>? teamSpawns)) return;
