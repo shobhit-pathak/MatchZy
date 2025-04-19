@@ -535,7 +535,7 @@ namespace MatchZy
             RegisterEventHandler<EventFlashbangDetonate>(EventFlashbangDetonateHandler);
             RegisterEventHandler<EventHegrenadeDetonate>(EventHegrenadeDetonateHandler);
             RegisterEventHandler<EventMolotovDetonate>(EventMolotovDetonateHandler);
-            RegisterEventHandler<EventDecoyDetonate>(EventDecoyDetonateHandler);
+            RegisterEventHandler<EventDecoyStarted>(EventDecoyDetonateHandler);
 
             Console.WriteLine($"[{ModuleName} {ModuleVersion} LOADED] MatchZy by WD- (https://github.com/shobhit-pathak/)");
         }
