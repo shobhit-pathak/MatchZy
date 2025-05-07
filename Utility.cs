@@ -1391,7 +1391,7 @@ namespace MatchZy
             }
             if (isSideSelectionPhase)
             {
-                player!.PrintToChat($" {ChatColors.Green}Side Selection: {ChatColors.Default}.stay, .switch");
+                player!.PrintToChat($" {ChatColors.Green}Side Selection: {ChatColors.Default}.stay, .switch, .ct, .t");
                 return;
             }
             if (matchStarted)
