@@ -1,5 +1,6 @@
 {
   "matchzy.ready.markedready": "您已被標記為準備完成。",
+  "matchzy.ready.matchedreadyonteam": "您已被標記為已準備好加入團隊 {green}{0}{default}!",
   "matchzy.ready.markedunready": "您已經被標記為未準備。",
   "matchzy.ready.readytotestorebackupinfomessage": "Unready players: {0}. Please type .ready when you are ready to restore the match backup. {1}",
 
