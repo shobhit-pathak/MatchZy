@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Data;
 using System.Text.Json;
@@ -18,7 +18,6 @@ namespace MatchZy
 {
     public class Database
     {
-        private string connectionString;
         private IDbConnection connection;
 
         DatabaseConfig? config;
@@ -58,13 +57,14 @@ namespace MatchZy
 
                 if (databaseType == DatabaseType.SQLite)
                 {
-                    connection = new SqliteConnection($"Data Source={Path.Join(directory, "matchzy.db")}");
+                    connection =
+                        new SqliteConnection(
+                            $"Data Source={Path.Join(directory, "matchzy.db")}");
                 }
                 else if (config != null && databaseType == DatabaseType.MySQL)
                 {
-                    // Save the connection string into the class field 'connectionString'
-                    this.connectionString = $"Server={config.MySqlHost};Port={config.MySqlPort};Database={config.MySqlDatabase};User Id={config.MySqlUsername};Password={config.MySqlPassword};";
-                    connection = new MySqlConnection(this.connectionString);
+                    string connectionString = $"Server={config.MySqlHost};Port={config.MySqlPort};Database={config.MySqlDatabase};User Id={config.MySqlUsername};Password={config.MySqlPassword};";
+                    connection = new MySqlConnection(connectionString);           
                 }
                 else
                 {
@@ -72,11 +72,12 @@ namespace MatchZy
                     connection = new SqliteConnection($"Data Source={Path.Join(directory, "matchzy.db")}");
                     databaseType = DatabaseType.SQLite;
                 }
-            }
+            } 
             catch (Exception ex)
             {
                 Log($"[InitializeDatabase - FATAL] Database connection error: {ex.Message}");
             }
+
         }
 
         public void CreateRequiredTablesSQLite()
@@ -228,11 +229,11 @@ namespace MatchZy
             )");
         }
 
-        public long InitMatch(string team1name, string team2name, string serverIp, bool isMatchSetup, long liveMatchId, int mapNumber, string seriesType, MatchConfig matchConfig)
+        public long InitMatch(string team1name, string team2name, string serverIp, bool isMatchSetup, long liveMatchId, int mapNumber, string seriesType)
         {
             try
             {
-                string mapName = matchConfig.Maplist[mapNumber];
+                string mapName = Server.MapName;
                 string dateTimeExpression = (connection is SqliteConnection) ? "datetime('now')" : "NOW()";
 
                 if (mapNumber == 0) {
@@ -300,53 +301,33 @@ namespace MatchZy
             }
         }
 
-
         public async Task SetMapEndData(long matchId, int mapNumber, string winnerName, int t1score, int t2score, int team1SeriesScore, int team2SeriesScore)
         {
             try
             {
-                // Determine the expression for obtaining the current time based on the database type
                 string dateTimeExpression = (connection is SqliteConnection) ? "datetime('now')" : "NOW()";
 
-                // Construct the SQL query to update data in the matchzy_stats_maps table
                 string sqlQuery = $@"
-            UPDATE matchzy_stats_maps
-            SET winner = @winnerName, end_time = {dateTimeExpression}, team1_score = @t1score, team2_score = @t2score
-            WHERE matchid = @matchId AND mapNumber = @mapNumber";
+                    UPDATE matchzy_stats_maps
+                    SET winner = @winnerName, end_time = {dateTimeExpression}, team1_score = @t1score, team2_score = @t2score
+                    WHERE matchid = @matchId AND mapNumber = @mapNumber";
 
-                int rowsAffected = 0;
+                await connection.ExecuteAsync(sqlQuery, new { matchId, winnerName, t1score, t2score, mapNumber });
 
-                // Create a new connection for executing the first query
-                using (var conn = new MySqlConnection(this.connectionString))
-                {
-                    await conn.OpenAsync();
-                    rowsAffected = await conn.ExecuteAsync(sqlQuery, new { matchId, winnerName, t1score, t2score, mapNumber });
-                }
-                Log($"[SetMapEndData] Update on matchzy_stats_maps affected {rowsAffected} row(s)");
-
-                // Construct the SQL query to update data in the matchzy_stats_matches table
                 sqlQuery = $@"
-            UPDATE matchzy_stats_matches
-            SET team1_score = @team1SeriesScore, team2_score = @team2SeriesScore
-            WHERE matchid = @matchId";
+                    UPDATE matchzy_stats_matches
+                    SET team1_score = @team1SeriesScore, team2_score = @team2SeriesScore
+                    WHERE matchid = @matchId";
 
-                rowsAffected = 0; // Reset the variable before the next query
+                await connection.ExecuteAsync(sqlQuery, new { matchId, team1SeriesScore, team2SeriesScore });
 
-                // Create a new connection for executing the second query
-                using (var conn = new MySqlConnection(this.connectionString))
-                {
-                    await conn.OpenAsync();
-                    rowsAffected = await conn.ExecuteAsync(sqlQuery, new { matchId, team1SeriesScore, team2SeriesScore });
-                }
-                Log($"[SetMapEndData] Update on matchzy_stats_matches affected {rowsAffected} row(s)");
+                Log($"[SetMapEndData] Data updated for matchId: {matchId} mapNumber: {mapNumber} winnerName: {winnerName}");
             }
             catch (Exception ex)
             {
-                Log($"[SetMapEndData - FATAL] Error updating data for matchId: {matchId}, mapNumber: {mapNumber} [ERROR]: {ex.Message}");
-            }
+                Log($"[SetMapEndData - FATAL] Error updating data of matchId: {matchId} mapNumber: {mapNumber} [ERROR]: {ex.Message}");
+            } 
         }
-
-
 
         public async Task SetMatchEndData(long matchId, string winnerName, int t1score, int t2score)
         {
