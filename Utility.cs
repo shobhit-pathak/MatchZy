@@ -27,6 +27,11 @@ namespace MatchZy
             Server.PrintToChatAll($"{chatPrefix} {message}");
         }
 
+        public void PrintToAllChatWithTag(string message)
+        {
+            Server.PrintToChatAll($"{chatPrefix} {message}");
+        }
+
         private void PrintToPlayerChat(CCSPlayerController player, string message)
         {
             player.PrintToChat($"{chatPrefix} {message}");
@@ -645,7 +650,7 @@ namespace MatchZy
             }
             else
             {
-                ReplyToUserCommand(player, $"Invalid map name!");
+                ReplyToUserCommand(player, Localizer["matchzy.cc.invalidmap"]);
             }
         }
 
@@ -978,6 +983,10 @@ namespace MatchZy
                 {
                     Server.ExecuteCommand($"bot_kick");
                     Server.ExecuteCommand($"changelevel \"{mapName}\"");
+                }
+                else
+                {
+                    Log("change map failed");
                 }
             });
         }

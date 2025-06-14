@@ -917,7 +917,12 @@ namespace MatchZy
         {
             try
             {
-                if (!isPractice || player == null || !player.IsValid || !player.PlayerPawn.IsValid || player.PlayerPawn.Value == null) return;
+                if (!isPractice || player == null || !player.IsValid || !player.PlayerPawn.IsValid ||
+                    player.PlayerPawn.Value == null)
+                {
+                    Log("addbot failed");
+                    return;
+                }
                 CCSPlayer_MovementServices movementService = new(player.PlayerPawn.Value.MovementServices!.Handle);
 
                 if ((int)movementService.DuckAmount == 1)

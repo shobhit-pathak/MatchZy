@@ -11,13 +11,13 @@ namespace MatchZy
         public List<string> Maplist { get; set; } = new List<string>();
 
         [JsonPropertyName("maps_pool")]
-        public List<string> MapsPool { get; set; } = new List<string>();
+        public List<string> MapsPool { get; set; } = new List<string>{"de_sdust2", "de_mirage", "de_inferno", "de_nuke", "de_train", "de_ancient", "de_anubis"};
 
         [JsonPropertyName("maps_left_in_veto_pool")]
-        public List<string> MapsLeftInVetoPool { get; set; } = new List<string>();
+        public List<string> MapsLeftInVetoPool { get; set; } = new List<string>{"de_dust2", "de_mirage", "de_inferno", "de_nuke", "de_train", "de_ancient", "de_anubis"};
 
         [JsonPropertyName("map_ban_order")]
-        public List<string> MapBanOrder { get; set; } = new List<string>();
+        public List<string> MapBanOrder { get; set; } = new List<string>{"team1_ban", "team2_ban", "team1_pick", "team2_pick", "team2_ban", "team1_ban"};
 
         [JsonPropertyName("skip_veto")]
         public bool SkipVeto { get; set; } = true;
@@ -26,7 +26,7 @@ namespace MatchZy
         public long MatchId { get; set; }
 
         [JsonPropertyName("num_maps")]
-        public int NumMaps { get; set; } = 1;
+        public int NumMaps { get; set; } = 3;
 
         [JsonPropertyName("players_per_team")]
         public int PlayersPerTeam { get; set; } = 5;
