@@ -1739,7 +1739,7 @@ namespace MatchZy
 
         static string RemoveSpecialCharacters(string input)
         {
-            Regex regex = new("[^a-zA-Z0-9 _-]");
+            Regex regex = new("[^\\p{L}0-9 _-]");
             return regex.Replace(input, "");
         }
 
