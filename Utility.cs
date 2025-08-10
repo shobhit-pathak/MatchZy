@@ -859,7 +859,7 @@ namespace MatchZy
             //     restartDelay = requiredDelay;
             // }
             int currentMapNumber = matchConfig.CurrentMapNumber;
-            Log($"[HandleMatchEnd] MAP ENDED, isMatchSetup: {isMatchSetup} matchid: {liveMatchId} currentMapNumber: {currentMapNumber} tvFlushDelay: {tvFlushDelay}");
+            // Log($"[HandleMatchEnd] MAP ENDED, isMatchSetup: {isMatchSetup} matchid: {liveMatchId} currentMapNumber: {currentMapNumber} tvFlushDelay: {tvFlushDelay}");
 
             // StopDemoRecording(tvFlushDelay - 0.5f, activeDemoFile, liveMatchId, currentMapNumber);
 
@@ -891,7 +891,7 @@ namespace MatchZy
             // Todo: Support BO3/BO5 in pugs as well
             if (!isMatchSetup)
             {
-                EndSeries(winnerName, restartDelay - 1, t1score, t2score);
+                EndSeries(winnerName, t1score, t2score);
                 return;
             }
 
@@ -899,25 +899,25 @@ namespace MatchZy
             Log($"[HandleMatchEnd] MATCH ENDED, remainingMaps: {remainingMaps}, NumMaps: {matchConfig.NumMaps}, Team1SeriesScore: {matchzyTeam1.seriesScore}, Team2SeriesScore: {matchzyTeam2.seriesScore}");
             if (matchzyTeam1.seriesScore == matchzyTeam2.seriesScore && remainingMaps <= 0)
             {
-                EndSeries(null, restartDelay - 1, t1score, t2score);
+                EndSeries(null, t1score, t2score);
             }
             else if (matchConfig.SeriesCanClinch)
             {
                 int mapsToWinSeries = (matchConfig.NumMaps / 2) + 1;
                 if (matchzyTeam1.seriesScore == mapsToWinSeries)
                 {
-                    EndSeries(winnerName, restartDelay - 1, t1score, t2score);
+                    EndSeries(winnerName, t1score, t2score);
                     return;
                 }
                 else if (matchzyTeam2.seriesScore == mapsToWinSeries)
                 {
-                    EndSeries(winnerName, restartDelay - 1, t1score, t2score);
+                    EndSeries(winnerName, t1score, t2score);
                     return;
                 }
             }
             else if (remainingMaps <= 0)
             {
-                EndSeries(winnerName, restartDelay - 1, t1score, t2score);
+                EndSeries(winnerName, t1score, t2score);
                 return;
             }
             if (matchzyTeam1.seriesScore > matchzyTeam2.seriesScore)
@@ -945,23 +945,23 @@ namespace MatchZy
 
             KillPhaseTimers();
 
-            AddTimer(restartDelay - 4, () =>
-            {
-                if (!isMatchSetup) return;
-                ChangeMap(nextMap, 3.0f);
-                matchStarted = false;
-                readyAvailable = true;
-                isPaused = false;
+            // AddTimer(restartDelay - 4, () =>
+            // {
+            //     if (!isMatchSetup) return;
+            //     ChangeMap(nextMap, 3.0f);
+            //     matchStarted = false;
+            //     readyAvailable = true;
+            //     isPaused = false;
 
-                isWarmup = true;
-                isKnifeRound = false;
-                isSideSelectionPhase = false;
-                isMatchLive = false;
-                isPractice = false;
-                isDryRun = false;
-                StartWarmup();
-                SetMapSides();
-            });
+            //     isWarmup = true;
+            //     isKnifeRound = false;
+            //     isSideSelectionPhase = false;
+            //     isMatchLive = false;
+            //     isPractice = false;
+            //     isDryRun = false;
+            //     StartWarmup();
+            //     SetMapSides();
+            // });
         }
 
         private void ChangeMap(string mapName, float delay)
