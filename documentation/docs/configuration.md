@@ -71,16 +71,6 @@ Again, inside `csgo/cfg/MatchZy`, a file named `config.cfg` should be present. T
 ####`matchzy_kick_when_no_match_loaded`
 :   Whether to kick all clients and prevent anyone from joining the server if no match is loaded. This means if server is in match mode, a match needs to be set-up using `matchzy_loadmatch`/`matchzy_loadmatch_url` to load and configure a match.<br>**`Default: false`**
 
-####`matchzy_demo_path`
-:   Path of folder in which demos will be saved. If defined, it must not start with a slash and must end with a slash. Set to empty string to use the csgo root. Example: `matchzy_demo_path MatchZy/`<br>**`Default: MatchZy/`**
-
-####`matchzy_demo_name_format`
-:   Format of demo filname. You may use {TIME}, {MATCH_ID}, {MAP}, {MAPNUMBER}, {TEAM1} and {TEAM2}. Demo files will be named according to the format specified. Do not include .dem format, it will be added automatically. Make sure to keep {TIME} in the format to create a unique demo file everytime.<br>**`Default: "{TIME}_{MATCH_ID}_{MAP}_{TEAM1}_vs_{TEAM2}"`**
-
-####`matchzy_demo_upload_url`
-:   If defined, recorded demo will be [uploaded](../gotv#automatic-upload) to this URL once the map ends. Make sure that the URL is wrapped in double quotes (""). 
-Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <br>**`Default: ""`**
-
 ####`matchzy_kick_when_no_match_loaded`
 :   Whether to kick all clients and prevent anyone from joining the server if no match is loaded. This means if server is in match mode, a match needs to be set-up using `matchzy_loadmatch`/`matchzy_loadmatch_url` to load and configure a match.<br>**`Default: false`**
 

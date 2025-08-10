@@ -35,7 +35,6 @@ nav:
       - Getting Started: getting_started.md
       - Match Setup: match_setup.md
       - Commands: commands.md
-      - GOTV & Demos: gotv.md
   - Advanced:
       - Developers: developers.md
       - Events & Forwards: events_and_forwards.md

@@ -315,7 +315,7 @@ namespace MatchZy
         private void StartLive()
         {
             SetupLiveFlagsAndCfg();
-            // StartDemoRecording();
+            StartDemoRecording();
 
             // Storing 0-0 score backup file as lastBackupFileName, so that .stop functions properly in first round.
             lastBackupFileName = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}_round00.txt";
@@ -375,11 +375,11 @@ namespace MatchZy
             try
             {
                 // We stop demo recording if a live match was restarted
-                // if (matchStarted && isDemoRecording)
-                // {
-                //     Server.ExecuteCommand($"tv_stoprecord");
-                //     isDemoRecording = false;
-                // }
+                if (matchStarted && isDemoRecording)
+                {
+                    Server.ExecuteCommand($"tv_stoprecord");
+                    isDemoRecording = false;
+                }
                 // Reset match data
                 matchStarted = false;
                 readyAvailable = true;
@@ -783,7 +783,7 @@ namespace MatchZy
             }
             else
             {
-                // StartDemoRecording();
+                StartDemoRecording();
                 StartLive();
             }
             if (showCreditsOnMatchStart.Value)
@@ -844,24 +844,24 @@ namespace MatchZy
 
             // This ensures that the mp_match_restart_delay is not shorter than what is required for the GOTV recording to finish.
             // Ref: Get5
-            // int restartDelay = ConVar.Find("mp_match_restart_delay")!.GetPrimitiveValue<int>();
-            // // int tvDelay = GetTvDelay();
-            // // int requiredDelay = tvDelay + 15;
-            // int tvFlushDelay = requiredDelay;
-            // // if (tvDelay > 0.0)
-            // {
-            //     requiredDelay += 10;
-            // }
-            // if (requiredDelay > restartDelay)
-            // {
-            //     Log($"Extended mp_match_restart_delay from {restartDelay} to {requiredDelay} to ensure GOTV broadcast can finish.");
-            //     ConVar.Find("mp_match_restart_delay")!.SetValue(requiredDelay);
-            //     restartDelay = requiredDelay;
-            // }
+            int restartDelay = ConVar.Find("mp_match_restart_delay")!.GetPrimitiveValue<int>();
+            int tvDelay = GetTvDelay();
+            int requiredDelay = tvDelay + 15;
+            int tvFlushDelay = requiredDelay;
+            if (tvDelay > 0.0)
+            {
+                requiredDelay += 10;
+            }
+            if (requiredDelay > restartDelay)
+            {
+                Log($"Extended mp_match_restart_delay from {restartDelay} to {requiredDelay} to ensure GOTV broadcast can finish.");
+                ConVar.Find("mp_match_restart_delay")!.SetValue(requiredDelay);
+                restartDelay = requiredDelay;
+            }
             int currentMapNumber = matchConfig.CurrentMapNumber;
-            // Log($"[HandleMatchEnd] MAP ENDED, isMatchSetup: {isMatchSetup} matchid: {liveMatchId} currentMapNumber: {currentMapNumber} tvFlushDelay: {tvFlushDelay}");
+            Log($"[HandleMatchEnd] MAP ENDED, isMatchSetup: {isMatchSetup} matchid: {liveMatchId} currentMapNumber: {currentMapNumber} tvFlushDelay: {tvFlushDelay}");
 
-            // StopDemoRecording(tvFlushDelay - 0.5f, activeDemoFile, liveMatchId, currentMapNumber);
+            StopDemoRecording(tvFlushDelay - 0.5f, activeDemoFile, liveMatchId, currentMapNumber);
 
             string winnerName = GetMatchWinnerName();
             (int t1score, int t2score) = GetTeamsScore();
@@ -891,7 +891,7 @@ namespace MatchZy
             // Todo: Support BO3/BO5 in pugs as well
             if (!isMatchSetup)
             {
-                EndSeries(winnerName, t1score, t2score);
+                EndSeries(winnerName, restartDelay - 1, t1score, t2score);
                 return;
             }
 
@@ -899,25 +899,25 @@ namespace MatchZy
             Log($"[HandleMatchEnd] MATCH ENDED, remainingMaps: {remainingMaps}, NumMaps: {matchConfig.NumMaps}, Team1SeriesScore: {matchzyTeam1.seriesScore}, Team2SeriesScore: {matchzyTeam2.seriesScore}");
             if (matchzyTeam1.seriesScore == matchzyTeam2.seriesScore && remainingMaps <= 0)
             {
-                EndSeries(null, t1score, t2score);
+                EndSeries(null, restartDelay - 1, t1score, t2score);
             }
             else if (matchConfig.SeriesCanClinch)
             {
                 int mapsToWinSeries = (matchConfig.NumMaps / 2) + 1;
                 if (matchzyTeam1.seriesScore == mapsToWinSeries)
                 {
-                    EndSeries(winnerName, t1score, t2score);
+                    EndSeries(winnerName, restartDelay - 1, t1score, t2score);
                     return;
                 }
                 else if (matchzyTeam2.seriesScore == mapsToWinSeries)
                 {
-                    EndSeries(winnerName, t1score, t2score);
+                    EndSeries(winnerName, restartDelay - 1, t1score, t2score);
                     return;
                 }
             }
             else if (remainingMaps <= 0)
             {
-                EndSeries(winnerName, t1score, t2score);
+                EndSeries(winnerName, restartDelay - 1, t1score, t2score);
                 return;
             }
             if (matchzyTeam1.seriesScore > matchzyTeam2.seriesScore)
@@ -945,23 +945,23 @@ namespace MatchZy
 
             KillPhaseTimers();
 
-            // AddTimer(restartDelay - 4, () =>
-            // {
-            //     if (!isMatchSetup) return;
-            //     ChangeMap(nextMap, 3.0f);
-            //     matchStarted = false;
-            //     readyAvailable = true;
-            //     isPaused = false;
+            AddTimer(restartDelay - 4, () =>
+            {
+                if (!isMatchSetup) return;
+                ChangeMap(nextMap, 3.0f);
+                matchStarted = false;
+                readyAvailable = true;
+                isPaused = false;
 
-            //     isWarmup = true;
-            //     isKnifeRound = false;
-            //     isSideSelectionPhase = false;
-            //     isMatchLive = false;
-            //     isPractice = false;
-            //     isDryRun = false;
-            //     StartWarmup();
-            //     SetMapSides();
-            // });
+                isWarmup = true;
+                isKnifeRound = false;
+                isSideSelectionPhase = false;
+                isMatchLive = false;
+                isPractice = false;
+                isDryRun = false;
+                StartWarmup();
+                SetMapSides();
+            });
         }
 
         private void ChangeMap(string mapName, float delay)

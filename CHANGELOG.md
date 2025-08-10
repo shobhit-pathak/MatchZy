@@ -424,4 +424,3 @@ To maintain backwards compatibility, we still support creating admins using olde
 - Practice mode added ( with `.bot`, `.spawn`, `.ctspawn`, `.tspawn`, `.nobots` and `.exitprac` commands!)
 - Chat prefixes can now be configured using `matchzy_chat_prefix`. Example: `matchzy_chat_prefix [{Green}MatchZy{Default}]` (More details related to colors is present in readme and `config.cfg`)
 - Added RCON command via chat! Now admins can use `!rcon <command>` in chat to trigger a command to the server!
-- Fixed some bugs related to Demo recording and match pause when match was restarted using `.restart`

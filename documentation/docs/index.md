@@ -17,8 +17,6 @@ MatchZy can solve a lot of match management requirements. It provides basic comm
 * [Setting up matches](./match_setup) and locking players into their team
 * Practice Mode with `.bot`, `.spawn`, `.ctspawn`, `.tspawn`, `.nobots`, `.rethrow`, `.last`, `.timer`, `.clear`, `.exitprac` and many more commands!
 * Knife round (With expected logic, i.e., team with most players win. If same number of players, then team with HP advantage wins. If same HP, winner is decided randomly)
-* Automatically starts demo recording and stop recording when match is ended (Make sure you have tv_enable 1)
-* Automatically uploads demo on map end on the given URL.
 * Players whitelisting (Thanks to [DEAFPS](https://github.com/DEAFPS)!)
 * Coaching system
 * Damage report after every round

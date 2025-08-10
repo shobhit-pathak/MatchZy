@@ -92,54 +92,6 @@ namespace MatchZy
             OnReadyRequiredCommand(player, command);
         }
 
-        // [ConsoleCommand("matchzy_demo_path", "Path of folder in which demos will be saved. If defined, it must not start with a slash and must end with a slash. Set to empty string to use the csgo root.")]
-        // public void MatchZyDemoPath(CCSPlayerController? player, CommandInfo command)
-        // {
-        //     if (player != null) return;
-        //     if (command.ArgCount == 2)
-        //     {
-        //         string path = command.ArgByIndex(1);
-        //         if (path[0] == '/' || path[0] == '.' || path[^1] != '/' || path.Contains("//"))
-        //         {
-        //             Log($"matchzy_demo_path must end with a slash and must not start with a slash or dot. It will be reset to an empty string! Current value: {demoPath}");
-        //         }
-        //         else
-        //         {
-        //             demoPath = path;
-        //         }
-        //     }
-        // }
-
-        // [ConsoleCommand("matchzy_demo_name_format", "Format of demo filname")]
-        // public void MatchZyDemoNameFormat(CCSPlayerController? player, CommandInfo command)
-        // {
-        //     if (player != null) return;
-        //     if (command.ArgCount == 2)
-        //     {
-        //         string format = command.ArgByIndex(1).Trim();
-
-        //         if (!string.IsNullOrEmpty(format)) 
-        //         {
-        //             demoNameFormat = format;
-        //         }
-        //     }
-        // }
-
-        // [ConsoleCommand("get5_demo_upload_url", "If defined, recorded demos will be uploaded to this URL once the map ends.")]
-        // [ConsoleCommand("matchzy_demo_upload_url", "If defined, recorded demos will be uploaded to this URL once the map ends.")]
-        // public void MatchZyDemoUploadURL(CCSPlayerController? player, CommandInfo command)
-        // {
-        //     if (player != null) return;
-        //     string url = command.ArgByIndex(1);
-        //     if (url.Trim() == "") return;
-        //     if (!IsValidUrl(url))
-        //     {
-        //         Log($"[MatchZyDemoUploadURL] Invalid URL: {url}. Please provide a valid URL for uploading the demo!");
-        //         return;
-        //     }
-        //     demoUploadURL = url;
-        // }
-
         [ConsoleCommand("matchzy_stop_command_available", "Whether .stop command is enabled or not (to restore the current round). Default value: false")]
         public void MatchZyStopCommandEnabled(CCSPlayerController? player, CommandInfo command)
         {
@@ -282,7 +234,7 @@ namespace MatchZy
             if (url.Trim() == "") return;
             if (!IsValidUrl(url))
             {
-                Log($"[MatchZyBackupUploadURL] Invalid URL: {url}. Please provide a valid URL for uploading the demo!");
+                Log($"[MatchZyBackupUploadURL] Invalid URL: {url}. Please provide a valid URL for uploading the backup!");
                 return;
             }
             backupUploadURL = url;
