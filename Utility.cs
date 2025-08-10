@@ -844,20 +844,20 @@ namespace MatchZy
 
             // This ensures that the mp_match_restart_delay is not shorter than what is required for the GOTV recording to finish.
             // Ref: Get5
-            int restartDelay = ConVar.Find("mp_match_restart_delay")!.GetPrimitiveValue<int>();
-            // int tvDelay = GetTvDelay();
-            // int requiredDelay = tvDelay + 15;
-            int tvFlushDelay = requiredDelay;
-            // if (tvDelay > 0.0)
-            {
-                requiredDelay += 10;
-            }
-            if (requiredDelay > restartDelay)
-            {
-                Log($"Extended mp_match_restart_delay from {restartDelay} to {requiredDelay} to ensure GOTV broadcast can finish.");
-                ConVar.Find("mp_match_restart_delay")!.SetValue(requiredDelay);
-                restartDelay = requiredDelay;
-            }
+            // int restartDelay = ConVar.Find("mp_match_restart_delay")!.GetPrimitiveValue<int>();
+            // // int tvDelay = GetTvDelay();
+            // // int requiredDelay = tvDelay + 15;
+            // int tvFlushDelay = requiredDelay;
+            // // if (tvDelay > 0.0)
+            // {
+            //     requiredDelay += 10;
+            // }
+            // if (requiredDelay > restartDelay)
+            // {
+            //     Log($"Extended mp_match_restart_delay from {restartDelay} to {requiredDelay} to ensure GOTV broadcast can finish.");
+            //     ConVar.Find("mp_match_restart_delay")!.SetValue(requiredDelay);
+            //     restartDelay = requiredDelay;
+            // }
             int currentMapNumber = matchConfig.CurrentMapNumber;
             Log($"[HandleMatchEnd] MAP ENDED, isMatchSetup: {isMatchSetup} matchid: {liveMatchId} currentMapNumber: {currentMapNumber} tvFlushDelay: {tvFlushDelay}");
 
