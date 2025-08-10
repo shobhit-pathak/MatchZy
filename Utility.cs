@@ -315,7 +315,7 @@ namespace MatchZy
         private void StartLive()
         {
             SetupLiveFlagsAndCfg();
-            StartDemoRecording();
+            // StartDemoRecording();
 
             // Storing 0-0 score backup file as lastBackupFileName, so that .stop functions properly in first round.
             lastBackupFileName = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}_round00.txt";
@@ -375,11 +375,11 @@ namespace MatchZy
             try
             {
                 // We stop demo recording if a live match was restarted
-                if (matchStarted && isDemoRecording)
-                {
-                    Server.ExecuteCommand($"tv_stoprecord");
-                    isDemoRecording = false;
-                }
+                // if (matchStarted && isDemoRecording)
+                // {
+                //     Server.ExecuteCommand($"tv_stoprecord");
+                //     isDemoRecording = false;
+                // }
                 // Reset match data
                 matchStarted = false;
                 readyAvailable = true;
@@ -783,7 +783,7 @@ namespace MatchZy
             }
             else
             {
-                StartDemoRecording();
+                // StartDemoRecording();
                 StartLive();
             }
             if (showCreditsOnMatchStart.Value)
@@ -861,7 +861,7 @@ namespace MatchZy
             int currentMapNumber = matchConfig.CurrentMapNumber;
             Log($"[HandleMatchEnd] MAP ENDED, isMatchSetup: {isMatchSetup} matchid: {liveMatchId} currentMapNumber: {currentMapNumber} tvFlushDelay: {tvFlushDelay}");
 
-            StopDemoRecording(tvFlushDelay - 0.5f, activeDemoFile, liveMatchId, currentMapNumber);
+            // StopDemoRecording(tvFlushDelay - 0.5f, activeDemoFile, liveMatchId, currentMapNumber);
 
             string winnerName = GetMatchWinnerName();
             (int t1score, int t2score) = GetTeamsScore();
