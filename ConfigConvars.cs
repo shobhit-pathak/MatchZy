@@ -125,20 +125,20 @@ namespace MatchZy
             }
         }
 
-        [ConsoleCommand("get5_demo_upload_url", "If defined, recorded demos will be uploaded to this URL once the map ends.")]
-        [ConsoleCommand("matchzy_demo_upload_url", "If defined, recorded demos will be uploaded to this URL once the map ends.")]
-        public void MatchZyDemoUploadURL(CCSPlayerController? player, CommandInfo command)
-        {
-            if (player != null) return;
-            string url = command.ArgByIndex(1);
-            if (url.Trim() == "") return;
-            if (!IsValidUrl(url))
-            {
-                Log($"[MatchZyDemoUploadURL] Invalid URL: {url}. Please provide a valid URL for uploading the demo!");
-                return;
-            }
-            demoUploadURL = url;
-        }
+        // [ConsoleCommand("get5_demo_upload_url", "If defined, recorded demos will be uploaded to this URL once the map ends.")]
+        // [ConsoleCommand("matchzy_demo_upload_url", "If defined, recorded demos will be uploaded to this URL once the map ends.")]
+        // public void MatchZyDemoUploadURL(CCSPlayerController? player, CommandInfo command)
+        // {
+        //     if (player != null) return;
+        //     string url = command.ArgByIndex(1);
+        //     if (url.Trim() == "") return;
+        //     if (!IsValidUrl(url))
+        //     {
+        //         Log($"[MatchZyDemoUploadURL] Invalid URL: {url}. Please provide a valid URL for uploading the demo!");
+        //         return;
+        //     }
+        //     demoUploadURL = url;
+        // }
 
         [ConsoleCommand("matchzy_stop_command_available", "Whether .stop command is enabled or not (to restore the current round). Default value: false")]
         public void MatchZyStopCommandEnabled(CCSPlayerController? player, CommandInfo command)
