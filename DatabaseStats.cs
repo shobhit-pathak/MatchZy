@@ -18,7 +18,7 @@ namespace MatchZy
 {
     public class Database
     {
-        private IDbConnection? connection;
+        private IDbConnection connection;
 
         DatabaseConfig? config;
         public DatabaseType databaseType { get; set; }

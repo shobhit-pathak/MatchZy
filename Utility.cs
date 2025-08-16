@@ -785,7 +785,7 @@ namespace MatchZy
             }
             else
             {
-                StartDemoRecording();
+                // StartDemoRecording();
                 StartLive();
             }
             if (showCreditsOnMatchStart.Value)
