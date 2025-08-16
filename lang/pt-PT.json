@@ -3,7 +3,7 @@
   "matchzy.ready.markedunready": "Foi marcado como NÃO pronto",
   "matchzy.ready.readytotestorebackupinfomessage": "Jogadores que não estão prontos: {0}. Por favor, escreve .ready quando estiveres pronto para restaurar o backup da partida. {1}",
 
-  "matchzy.knife.sidedecisionpending": "{green}{0}{default} ganhou a ronda de faca. À espera que escolham {green}.stay{default} ou {green}.switch{default}.",
+  "matchzy.knife.sidedecisionpending": "{green}{0}{default} ganhou a ronda de faca. À espera que escolham {green}.ficar{default} ou {green}.trocar{default}.",
   "matchzy.knife.decidedtostay": "{green}{0}{default} decidiu ficar.",
   "matchzy.knife.decidedtoswitch": "{green}{0}{default} decidiu trocar.",
 
