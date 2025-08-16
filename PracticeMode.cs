@@ -668,7 +668,8 @@ namespace MatchZy
                                     }
 
                                     // Extract description, if available
-                                    string lineupDesc = lineupInfo.ContainsKey("Desc") ? lineupInfo["Desc"] : null;
+                                    // string lineupDesc = lineupInfo.ContainsKey("Desc") ? lineupInfo["Desc"] : null;
+                                    string lineupDesc = lineupInfo.ContainsKey("Desc") ? lineupInfo["Desc"] : "";
 
                                     // Print messages
                                     // ReplyToUserCommand(player, $"Lineup {ChatColors.Green}{nearestName}{ChatColors.Default} loaded successfully!");

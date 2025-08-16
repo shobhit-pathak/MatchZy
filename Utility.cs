@@ -375,11 +375,13 @@ namespace MatchZy
             try
             {
                 // We stop demo recording if a live match was restarted
+                /*
                 if (matchStarted && isDemoRecording)
                 {
-                    // Server.ExecuteCommand($"tv_stoprecord");
+                    Server.ExecuteCommand($"tv_stoprecord");
                     isDemoRecording = false;
                 }
+                */
                 // Reset match data
                 matchStarted = false;
                 readyAvailable = true;
@@ -845,7 +847,7 @@ namespace MatchZy
             // This ensures that the mp_match_restart_delay is not shorter than what is required for the GOTV recording to finish.
             // Ref: Get5
             int restartDelay = ConVar.Find("mp_match_restart_delay")!.GetPrimitiveValue<int>();
-            int tvDelay = GetTvDelay();
+            int tvDelay = 0; // Substitua GetTvDelay() por 0
             int requiredDelay = tvDelay + 15;
             int tvFlushDelay = requiredDelay;
             if (tvDelay > 0.0)
