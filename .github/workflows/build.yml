@@ -102,9 +102,9 @@ jobs:
             MatchZy-${{ env.MATCHZY_VERSION }}-with-cssharp-linux.zip
             MatchZy-${{ env.MATCHZY_VERSION }}-with-cssharp-windows.zip
 
-      - name: Publish Discord Notification
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        uses: Ilshidur/action-discord@0.3.2
-        with:
-          args: "A new release of MatchZy is here! MatchZy v${{ env.MATCHZY_VERSION }} (${{ steps.create_release.outputs.url }})"
+      # - name: Publish Discord Notification
+      #   env:
+      #     DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      #   uses: Ilshidur/action-discord@0.3.2
+      #   with:
+      #     args: "A new release of MatchZy is here! MatchZy v${{ env.MATCHZY_VERSION }} (${{ steps.create_release.outputs.url }})"
