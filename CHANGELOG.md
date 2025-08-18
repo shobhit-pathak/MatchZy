@@ -1,12 +1,5 @@
 # MatchZy Changelog
 
-# 0.8.11
-
-#### August 9, 2025
-
-- Updated CSS Version
-- Fixed SmokeGrenadeProjectile Signatures
-
 # 0.8.10
 
 #### May 12, 2025

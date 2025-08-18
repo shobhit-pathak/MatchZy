@@ -883,7 +883,7 @@ namespace MatchZy
             {
                 await SendEventAsync(mapResultEvent);
                 await database.SetMapEndData(liveMatchId, currentMapNumber, winnerName, t1score, t2score, team1SeriesScore, team2SeriesScore);
-                await database.WritePlayerStatsToCsv(statsPath, liveMatchId, currentMapNumber);
+                //await database.WritePlayerStatsToCsv(statsPath, liveMatchId, currentMapNumber);
             });
 
             // If a match is not setup, it was supposed to be a pug/scrim with 1 map
