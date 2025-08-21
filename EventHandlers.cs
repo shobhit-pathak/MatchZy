@@ -231,7 +231,8 @@ public partial class MatchZy
                     angle, 
                     velocity, 
                     player.PlayerPawn.Value.CBodyComponent!.SceneNode!.AbsOrigin, 
-                    player.PlayerPawn.Value.EyeAngles,
+                    ((CCSPlayerPawn)player.PlayerPawn.Value).EyeAngles ?? new QAngle(0, 0, 0),
+                    player.PlayerPawn.Value.MoveType,
                     nadeType,
                     DateTime.Now
                 );
