@@ -282,7 +282,7 @@ namespace MatchZy
             if (url.Trim() == "") return;
             if (!IsValidUrl(url))
             {
-                Log($"[MatchZyBackupUploadURL] Invalid URL: {url}. Please provide a valid URL for uploading the demo!");
+                Log($"[MatchZyBackupUploadURL] Invalid URL: {url}. Please provide a valid URL for uploading the backup!");
                 return;
             }
             backupUploadURL = url;
