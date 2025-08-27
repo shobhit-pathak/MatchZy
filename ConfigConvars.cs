@@ -310,5 +310,13 @@ namespace MatchZy
             if (headerValue != "") backupUploadHeaderValue = headerValue;
         }
 
+        [ConsoleCommand("matchzy_enable_match_scrim", "Allows match setup with no players defined and run like a scrim. Default value: False")]
+        public void MatchZyEnableMatchScrimConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+            string args = command.ArgString;
+
+            enableMatchScrim = bool.TryParse(args, out bool enableMatchScrimValue) ? enableMatchScrimValue : args != "0" && enableMatchScrim;
+        }
     }
 }
