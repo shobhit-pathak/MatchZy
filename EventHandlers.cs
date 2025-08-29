@@ -172,11 +172,11 @@ public partial class MatchZy
                 Position coachPosition = new(coach.PlayerPawn.Value!.CBodyComponent!.SceneNode!.AbsOrigin, coach.PlayerPawn.Value!.CBodyComponent!.SceneNode!.AbsRotation);
                 coach!.PlayerPawn.Value!.Teleport(new Vector(coachPosition.PlayerPosition.X, coachPosition.PlayerPosition.Y, coachPosition.PlayerPosition.Z + 20.0f), coachPosition.PlayerAngle, new Vector(0, 0, 0));
                 // Dropping the C4 if it was picked up or passed to the coach.
-                DropWeaponByDesignerName(coach, "weapon_c4");
+                // DropWeaponByDesignerName(coach, "weapon_c4");
                 AddTimer(1.5f, () =>
                 {
                     coach!.PlayerPawn.Value!.Teleport(new Vector(coachPosition.PlayerPosition.X, coachPosition.PlayerPosition.Y, coachPosition.PlayerPosition.Z + 20.0f), coachPosition.PlayerAngle, new Vector(0, 0, 0));
-                    DropWeaponByDesignerName(coach, "weapon_c4");
+                    // DropWeaponByDesignerName(coach, "weapon_c4");
                     CsTeam oldTeam = GetCoachTeam(coach);
                     coach.ChangeTeam(CsTeam.Spectator);
                     AddTimer(0.01f, () => coach.ChangeTeam(oldTeam));
@@ -189,6 +189,37 @@ public partial class MatchZy
             Log($"[EventRoundFreezeEnd FATAL] An error occurred: {e.Message}");
             return HookResult.Continue;
         }
+    }
+
+    public HookResult EventPlayerGivenC4(EventPlayerGivenC4 @event, GameEventInfo info) {
+        try {
+            if (!matchStarted) return HookResult.Continue;
+            if (@event.Userid == null) return HookResult.Continue;
+            var recv = @event.Userid;
+
+            // check if coach
+            var coaches = reverseTeamSides["TERRORIST"].coach;
+            if (coaches.Contains(recv)) {
+                // find bomb and new target
+                var bomb = recv.PlayerPawn.Value!.WeaponServices!.MyWeapons
+                    .Where(w => w != null && w.IsValid && w.Value!.DesignerName == "weapon_c4")
+                    .FirstOrDefault();
+                var target = Utilities.GetPlayers()
+                    .FirstOrDefault(p => p != null && p != recv && IsPlayerValid(p)
+                        && p.TeamNum == (int)CsTeam.Terrorist && p.PawnIsAlive);
+
+                if (bomb == null) return HookResult.Continue; // should never trigger
+                if (target == null) return HookResult.Continue; // should never trigger
+
+                // transfer bomb
+                Log($"[EventPlayerGivenC4 INFO] Transferred bomb from {recv.PlayerName} (Coach) to {target.PlayerName}.");
+                bomb.Value!.Remove();
+                target.GiveNamedItem("weapon_c4");
+            }
+        } catch (Exception e) {
+            Log($"[EventPlayerGivenC4 FATAL] An error occured: {e.Message}");
+        }
+        return HookResult.Continue;
     }
 
     public void OnEntitySpawnedHandler(CEntityInstance entity)

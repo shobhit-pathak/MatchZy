@@ -180,7 +180,7 @@ public partial class MatchZy
     private void HandleCoachWeapons(CCSPlayerController coach)
     {
         if (!IsPlayerValid(coach)) return;
-        DropWeaponByDesignerName(coach, "weapon_c4");
+        // DropWeaponByDesignerName(coach, "weapon_c4");
         coach.RemoveWeapons();
     }
 
@@ -241,7 +241,7 @@ public partial class MatchZy
             Position coachPosition = new(coach.PlayerPawn.Value!.CBodyComponent!.SceneNode!.AbsOrigin, coach.PlayerPawn.Value!.CBodyComponent!.SceneNode!.AbsRotation);
             coach!.PlayerPawn.Value!.Teleport(new Vector(coachPosition.PlayerPosition.X, coachPosition.PlayerPosition.Y, coachPosition.PlayerPosition.Z + 20.0f), coachPosition.PlayerAngle, new Vector(0, 0, 0));
             // Dropping the C4 if it was picked up or passed to the coach.
-            DropWeaponByDesignerName(coach, "weapon_c4");
+            // DropWeaponByDesignerName(coach, "weapon_c4");
             coach.PlayerPawn.Value!.CommitSuicide(explode: false, force: true);
         }
         Server.ExecuteCommand($"mp_suicide_penalty {suicidePenalty}; spec_freeze_time {specFreezeTime}; spec_freeze_time_lock {specFreezeTimeLock}; spec_freeze_deathanim_time {specFreezeDeathanim};");
