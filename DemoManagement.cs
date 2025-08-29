@@ -20,9 +20,15 @@ namespace MatchZy
         public string activeDemoFile = "";
 
         public bool isDemoRecording = false;
+        public bool isDemoRecordingEnabled = true;
 
         public void StartDemoRecording()
         {
+            if (!isDemoRecordingEnabled)
+            {
+                Log("[StartDemoRecording] Demo recording is disabled.");
+                return;
+            }
             if (isDemoRecording)
             {
                 Log("[StartDemoRecording] Demo recording is already in progress.");
