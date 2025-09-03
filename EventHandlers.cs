@@ -171,12 +171,9 @@ public partial class MatchZy
 
                 Position coachPosition = new(coach.PlayerPawn.Value!.CBodyComponent!.SceneNode!.AbsOrigin, coach.PlayerPawn.Value!.CBodyComponent!.SceneNode!.AbsRotation);
                 coach!.PlayerPawn.Value!.Teleport(new Vector(coachPosition.PlayerPosition.X, coachPosition.PlayerPosition.Y, coachPosition.PlayerPosition.Z + 20.0f), coachPosition.PlayerAngle, new Vector(0, 0, 0));
-                // Transfer the C4 if it was picked up or passed to the coach.
-                TransferCoachBomb(coach);
                 AddTimer(1.5f, () =>
                 {
                     coach!.PlayerPawn.Value!.Teleport(new Vector(coachPosition.PlayerPosition.X, coachPosition.PlayerPosition.Y, coachPosition.PlayerPosition.Z + 20.0f), coachPosition.PlayerAngle, new Vector(0, 0, 0));
-                    TransferCoachBomb(coach);
                     CsTeam oldTeam = GetCoachTeam(coach);
                     coach.ChangeTeam(CsTeam.Spectator);
                     AddTimer(0.01f, () => coach.ChangeTeam(oldTeam));
