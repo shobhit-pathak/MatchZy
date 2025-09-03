@@ -125,6 +125,15 @@ namespace MatchZy
             }
         }
 
+        [ConsoleCommand("matchzy_demo_recording_enabled", "Whether to automatically start demo recording when the match goes live. Default value: true")]
+        public void MatchZyDemoRecordingEnabled(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+            string args = command.ArgString;
+
+            isDemoRecordingEnabled = bool.TryParse(args, out bool isDemoRecordingEnabledValue) ? isDemoRecordingEnabledValue : args != "0" && isDemoRecordingEnabled;
+        }
+
         [ConsoleCommand("get5_demo_upload_url", "If defined, recorded demos will be uploaded to this URL once the map ends.")]
         [ConsoleCommand("matchzy_demo_upload_url", "If defined, recorded demos will be uploaded to this URL once the map ends.")]
         public void MatchZyDemoUploadURL(CCSPlayerController? player, CommandInfo command)
