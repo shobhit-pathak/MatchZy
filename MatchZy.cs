@@ -13,7 +13,8 @@ namespace MatchZy
     {
 
         public override string ModuleName => "MatchZy";
-        public override string ModuleVersion => "0.8.12";
+
+        public override string ModuleVersion => "0.8.13";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -208,6 +209,7 @@ namespace MatchZy
             RegisterEventHandler<EventCsWinPanelMatch>(EventCsWinPanelMatchHandler);
             RegisterEventHandler<EventRoundStart>(EventRoundStartHandler);
             RegisterEventHandler<EventRoundFreezeEnd>(EventRoundFreezeEndHandler);
+            RegisterEventHandler<EventPlayerGivenC4>(EventPlayerGivenC4);
             RegisterEventHandler<EventPlayerDeath>(EventPlayerDeathPreHandler, hookMode: HookMode.Pre);
             RegisterListener<Listeners.OnClientDisconnectPost>(playerSlot => { 
                // May not be required, but just to be on safe side so that player data is properly updated in dictionaries

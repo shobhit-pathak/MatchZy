@@ -1,5 +1,14 @@
 # MatchZy Changelog
 
+# 0.8.13
+
+#### September 03, 2025
+
+- Fixed coach bomb bug and updated CSS version.
+- Added `matchzy_demo_recording_enabled` convar to toggle demo recording.
+- Fixed the Map Winner Logic in MapWinner event
+- Fixed first Map Name in database stats
+
 # 0.8.12
 
 #### August 25, 2025
