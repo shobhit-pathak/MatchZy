@@ -233,7 +233,6 @@ namespace MatchZy
         {
             try
             {
-                string mapName = matchConfig.Maplist[mapNumber];
                 string mapName = isMatchSetup ? matchConfig.Maplist[mapNumber] : Server.MapName;
                 string dateTimeExpression = (connection is SqliteConnection) ? "datetime('now')" : "NOW()";
 
