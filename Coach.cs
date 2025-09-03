@@ -180,8 +180,35 @@ public partial class MatchZy
     private void HandleCoachWeapons(CCSPlayerController coach)
     {
         if (!IsPlayerValid(coach)) return;
-        // DropWeaponByDesignerName(coach, "weapon_c4");
+        TransferCoachBomb(coach);
         coach.RemoveWeapons();
+    }
+
+    /// <summary>
+    /// Transfers bomb from coach to first available non-coach terrorist.
+    /// </summary> 
+    public void TransferCoachBomb(CCSPlayerController coach) {
+        if (coach.TeamNum != (int)CsTeam.Terrorist) return; // can't have bomb
+
+        // find bomb and new target
+        var bomb = coach.PlayerPawn.Value!.WeaponServices!.MyWeapons
+            .Where(w => w != null && w.IsValid && w.Value!.DesignerName == "weapon_c4")
+            .FirstOrDefault();
+        if (bomb == null) return; // should never trigger
+
+        var target = Utilities.GetPlayers()
+            .FirstOrDefault(
+                p => IsPlayerValid(p)
+                && !reverseTeamSides["TERRORIST"].coach.Contains(p)
+                && p.TeamNum == (int)CsTeam.Terrorist
+                && p.PawnIsAlive
+            );
+        if (target == null) return; // should never trigger
+
+        // transfer bomb
+        Log($"[EventPlayerGivenC4 INFO] Transferred bomb from {coach.PlayerName} (Coach) to {target.PlayerName}.");
+        bomb.Value!.Remove();
+        target.GiveNamedItem("weapon_c4");
     }
 
     public CsTeam GetCoachTeam(CCSPlayerController coach)
@@ -240,8 +267,8 @@ public partial class MatchZy
 
             Position coachPosition = new(coach.PlayerPawn.Value!.CBodyComponent!.SceneNode!.AbsOrigin, coach.PlayerPawn.Value!.CBodyComponent!.SceneNode!.AbsRotation);
             coach!.PlayerPawn.Value!.Teleport(new Vector(coachPosition.PlayerPosition.X, coachPosition.PlayerPosition.Y, coachPosition.PlayerPosition.Z + 20.0f), coachPosition.PlayerAngle, new Vector(0, 0, 0));
-            // Dropping the C4 if it was picked up or passed to the coach.
-            // DropWeaponByDesignerName(coach, "weapon_c4");
+            // Transfer the C4 if it was picked up or passed to the coach.
+            TransferCoachBomb(coach);
             coach.PlayerPawn.Value!.CommitSuicide(explode: false, force: true);
         }
         Server.ExecuteCommand($"mp_suicide_penalty {suicidePenalty}; spec_freeze_time {specFreezeTime}; spec_freeze_time_lock {specFreezeTimeLock}; spec_freeze_deathanim_time {specFreezeDeathanim};");
