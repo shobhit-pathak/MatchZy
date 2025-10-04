@@ -314,6 +314,8 @@ namespace MatchZy
 
         private void StartLive()
         {
+            if (enableMatchScrim) LockTeamsManually();
+            SetupLiveFlagsAndCfg();
             SetupLiveFlagsAndCfg();
             StartDemoRecording();
 
