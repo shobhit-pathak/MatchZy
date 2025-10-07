@@ -820,6 +820,7 @@ namespace MatchZy
 
             ExecUnpracCommands();
             ExecDryRunCFG();
+            disableNoClip(); // move players out of noclip
 
             isDryRun = true;
         }

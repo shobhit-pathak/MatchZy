@@ -623,6 +623,7 @@ namespace MatchZy
             }
 
             StartMatchMode();
+            disableNoClip(); // move players out of noclip
         }
 
         [ConsoleCommand("css_exitprac", "Starts match mode")]

@@ -340,6 +340,32 @@ namespace MatchZy
             });
         }
 
+        private void disableNoClip() {
+            void fix()
+            {
+                Server.ExecuteCommand("sv_cheats 1"); // allow noclip 0 without spam
+                foreach (var p in Utilities.GetPlayers())
+                {
+                    if (p == null || !p.IsValid) continue;
+                    p.ExecuteClientCommandFromServer("noclip 0");
+                    // CBasePlayerPawn? pawn = p.Pawn.Value;
+                    // if (pawn == null || !pawn.IsValid) continue;
+                    // if (pawn.MoveType == MoveType_t.MOVETYPE_NOCLIP) {
+                    //     pawn.MoveType = MoveType_t.MOVETYPE_WALK;
+                    //     Schema.SetSchemaValue(pawn.Handle, "CBaseEntity", "m_nActualMoveType", (uint)MoveType_t.MOVETYPE_WALK);
+                    //     Utilities.SetStateChanged(pawn, "CBaseEntity", "m_MoveType");
+                    // }
+                    // Notes: The above code should work according to the CS# discord members. Something else in
+                    // the codebase must interfere with the above handling...
+                }
+                Server.ExecuteCommand("sv_cheats 0");
+            }
+
+            fix();
+            AddTimer(0.25f, fix);
+            AddTimer(1.0f, fix);
+        }
+
         private void KillPhaseTimers()
         {
             unreadyPlayerMessageTimer?.Kill();
