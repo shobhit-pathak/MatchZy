@@ -261,6 +261,8 @@ namespace MatchZy
                 return HookResult.Continue;
             });
 
+            AddCommandListener("noclip", OnConsoleNoClip); // Override noclip
+
             RegisterEventHandler<EventRoundEnd>((@event, info) => 
             {
                 if (!isKnifeRound) return HookResult.Continue;

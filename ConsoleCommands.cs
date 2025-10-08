@@ -623,7 +623,6 @@ namespace MatchZy
             }
 
             StartMatchMode();
-            disableNoClip(); // move players out of noclip
         }
 
         [ConsoleCommand("css_exitprac", "Starts match mode")]
@@ -712,6 +711,25 @@ namespace MatchZy
 
             // Currently returning only server version to show server status as available on Get5
             command.ReplyToCommand((serverVersion != null) ? $"Protocol version {serverVersion} [{serverVersion}/{serverVersion}]" : "Unable to get server version");
+        }
+
+        // Overrides noclip console command. Perform the changes on server side.
+        public HookResult OnConsoleNoClip(CCSPlayerController? player, CommandInfo cmd) {
+            if (player == null || !player.PawnIsAlive || player.Team == CsTeam.Spectator || player.Team == CsTeam.None)
+                return HookResult.Stop;
+
+            // inspired by cs2-noclip
+            if (player.PlayerPawn.Value!.MoveType == MoveType_t.MOVETYPE_NOCLIP) {
+                player.PlayerPawn.Value.MoveType = MoveType_t.MOVETYPE_WALK;
+                player.PlayerPawn.Value.ActualMoveType = MoveType_t.MOVETYPE_WALK;
+                Utilities.SetStateChanged(player.PlayerPawn.Value, "CBaseEntity", "m_MoveType");
+            } else {
+                player.PlayerPawn.Value.MoveType = MoveType_t.MOVETYPE_NOCLIP;
+                player.PlayerPawn.Value.ActualMoveType = MoveType_t.MOVETYPE_OBSERVER;
+                Utilities.SetStateChanged(player.PlayerPawn.Value, "CBaseEntity", "m_MoveType");
+            }
+
+            return HookResult.Stop;
         }
     }
 }
