@@ -4,10 +4,11 @@
 
 #### October 21, 2025
 
-- Bumped CSS Version
-- Added .savepos and .loadpos commands in practice mode
+- Bumped CSS Version.
+- Added .savepos and .loadpos commands in practice mode.
 - Fixed noclip not getting disabled after switching out from practice mode.
-
+- Fixed issues with rethrow of smoke / molly / nade.
+- Fixed .rethrow always throwing incendiary instead of molotov. 
 
 # 0.8.13
 
