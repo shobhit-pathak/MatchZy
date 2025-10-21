@@ -106,11 +106,6 @@ public class GrenadeThrownData
 
 		if (grenadeEntity != null && grenadeEntity.DesignerName != "smokegrenade_projectile")
 		{
-            grenadeEntity.Elasticity = 0.33f;
-            grenadeEntity.IsLive = false;
-            grenadeEntity.DmgRadius = 350.0f;
-            grenadeEntity.Damage = 99.0f;
-
 			grenadeEntity.InitialPosition.X = Position.X;
 			grenadeEntity.InitialPosition.Y = Position.Y;
 			grenadeEntity.InitialPosition.Z = Position.Z;

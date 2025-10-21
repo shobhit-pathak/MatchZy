@@ -1,4 +1,4 @@
-# MatchZy 
+# MatchZy Changelog
 
 # 0.8.14
 
@@ -9,6 +9,7 @@
 - Fixed noclip not getting disabled after switching out from practice mode.
 - Fixed issues with rethrow of smoke / molly / nade.
 - Fixed .rethrow always throwing incendiary instead of molotov. 
+- Fixed `RemoteLogHeaderValue` value while resetting the match.
 
 # 0.8.13
 
