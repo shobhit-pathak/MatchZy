@@ -350,7 +350,6 @@ namespace MatchZy
             pausedStateTimer = null;
         }
 
-
         private (int alivePlayers, int totalHealth) GetAlivePlayers(int team)
         {
             int count = 0;
