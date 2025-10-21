@@ -122,6 +122,7 @@ namespace MatchZy
         Dictionary<int, Dictionary<string, GrenadeThrownData>> nadeSpecificLastGrenadeData = new();
         Dictionary<int, DateTime> lastGrenadeThrownTime = new();
         Dictionary<int, PlayerPracticeTimer> playerTimers = new();
+        Dictionary<int, PlayerLocationData> savedPlayerLocationData = new();
 
         public Dictionary<byte, List<Position>> spawnsData = GetEmptySpawnsData();
 
@@ -179,6 +180,8 @@ namespace MatchZy
             Server.PrintToChatAll($" {ChatColors.Green}Nades: {ChatColors.Default}.loadnade, .savenade, .importnade, .listnades");
             Server.PrintToChatAll($" {ChatColors.Green}Nade Throw: {ChatColors.Default}.rethrow, .throwindex <index>, .lastindex, .delay <number>");
             Server.PrintToChatAll($" {ChatColors.Green}Utility & Toggles: {ChatColors.Default}.clear, .fastforward, .last, .back, .solid, .impacts, .traj");
+            // On new line to prevent text cutting off
+            Server.PrintToChatAll($" {ChatColors.Green}Utility & Toggles: {ChatColors.Default}.savepos, .loadpos");
             Server.PrintToChatAll($" {ChatColors.Green}Sides & Others: {ChatColors.Default}.ct, .t, .spec, .fas, .god, .dryrun, .break, .exitprac");
         }
 
@@ -1445,6 +1448,38 @@ namespace MatchZy
             }
             GrenadeThrownData lastGrenade = lastGrenadesData[userId].Last();
             AddTimer(lastGrenade.Delay, () => lastGrenade.Throw(player));
+        }
+
+        [ConsoleCommand("css_savepos", "Saves the player location")]
+        public void OnSavePosCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!isPractice || player == null || !player.UserId.HasValue || player.PlayerPawn.Value == null) return;
+            
+            int userId = player.UserId.Value;
+            var pawn = player.PlayerPawn.Value;
+            Vector position = new(pawn.AbsOrigin?.X, pawn.AbsOrigin?.Y, pawn.AbsOrigin?.Z);
+            QAngle angle = new(pawn.EyeAngles?.X, pawn.EyeAngles?.Y, pawn.EyeAngles?.Z);
+            
+            savedPlayerLocationData[userId] = new PlayerLocationData(position, angle);
+            Log($"[SavePos] Saved position for UserID {userId}, Position: {position}, Angle: {angle}!");
+            PrintToPlayerChat(player, Localizer["matchzy.pm.savepos"]);
+        }
+
+        [ConsoleCommand("css_loadpos", "Loads the last saved player location")]
+        public void OnLoadPosCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!isPractice || player == null || !player.UserId.HasValue) return;
+            
+            int userId = player.UserId.Value;
+            if (!savedPlayerLocationData.TryGetValue(userId, out var playerLocationData))
+            {
+                PrintToPlayerChat(player, Localizer["matchzy.pm.notsavedpos"]);
+                return;
+            }
+            
+            Log($"[LoadPos] LoadPos position for UserID {userId}, Position: {playerLocationData.Position}, Angles: {playerLocationData.Angle}!");
+            playerLocationData.LoadPosition(player);
+            PrintToPlayerChat(player, Localizer["matchzy.pm.loadpos"]);
         }
 
         [ConsoleCommand("css_throwsmoke", "Throws the last thrown smoke")]
