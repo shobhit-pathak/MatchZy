@@ -1074,13 +1074,22 @@ namespace MatchZy
             var player = @event.Userid;
             if (!IsPlayerValid(player)) return HookResult.Continue;
 
+            // disable noclip on spawn -- all no clipping functionality is handled by the plugin!
+            // Movement adjustments are consistent with cs2-noclip.
+            CBasePlayerPawn pawn = player!.PlayerPawn.Value!;
+            if (pawn.MoveType == MoveType_t.MOVETYPE_NOCLIP) {
+                pawn.MoveType = MoveType_t.MOVETYPE_WALK;
+                pawn.ActualMoveType = MoveType_t.MOVETYPE_WALK;
+                Utilities.SetStateChanged(pawn, "CBaseEntity", "m_MoveType");
+            }
+
             if (matchStarted && (matchzyTeam1.coach.Contains(player!) || matchzyTeam2.coach.Contains(player!)))
             {
                 player!.InGameMoneyServices!.Account = 0;
 
                 Utilities.SetStateChanged(player, "CCSPlayerController", "m_pInGameMoneyServices");
-                player.PlayerPawn.Value!.MoveType = MoveType_t.MOVETYPE_NONE;
-                player.PlayerPawn.Value!.ActualMoveType = MoveType_t.MOVETYPE_NONE;
+                pawn.MoveType = MoveType_t.MOVETYPE_NONE;
+                pawn.ActualMoveType = MoveType_t.MOVETYPE_NONE;
                 
                 return HookResult.Continue;
             }

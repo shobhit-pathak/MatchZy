@@ -350,7 +350,6 @@ namespace MatchZy
             pausedStateTimer = null;
         }
 
-
         private (int alivePlayers, int totalHealth) GetAlivePlayers(int team)
         {
             int count = 0;
@@ -472,7 +471,7 @@ namespace MatchZy
                 {
                     RemoteLogURL = matchConfig.RemoteLogURL,
                     RemoteLogHeaderKey = matchConfig.RemoteLogHeaderKey,
-                    RemoteLogHeaderValue = matchConfig.RemoteLogURL
+                    RemoteLogHeaderValue = matchConfig.RemoteLogHeaderValue
                 };
 
                 KillPhaseTimers();
