@@ -247,7 +247,8 @@ public partial class MatchZy
                     player.PlayerPawn.Value.CBodyComponent!.SceneNode!.AbsOrigin, 
                     player.PlayerPawn.Value.EyeAngles,
                     nadeType,
-                    DateTime.Now
+                    DateTime.Now,
+                    projectile.ItemIndex
                 );
 
                 nadeSpecificLastGrenadeData[client][nadeType] = lastGrenadeThrown;

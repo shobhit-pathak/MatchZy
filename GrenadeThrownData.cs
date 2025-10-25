@@ -21,7 +21,9 @@ public class GrenadeThrownData
 
     public float Delay { get; set; }
 
-    public GrenadeThrownData(Vector nadePosition, QAngle nadeAngle, Vector nadeVelocity, Vector playerPosition, QAngle playerAngle, string grenadeType, DateTime thrownTime)
+    public UInt16 ItemIndex { get; set; }
+
+    public GrenadeThrownData(Vector nadePosition, QAngle nadeAngle, Vector nadeVelocity, Vector playerPosition, QAngle playerAngle, string grenadeType, DateTime thrownTime, UInt16 itemIndex)
     {
         Position = new Vector(nadePosition.X, nadePosition.Y, nadePosition.Z);
         Angle = new QAngle(nadeAngle.X, nadeAngle.Y, nadeAngle.Z);
@@ -31,6 +33,7 @@ public class GrenadeThrownData
         Type = grenadeType;
         ThrownTime = thrownTime;
         Delay = 0;
+        ItemIndex = itemIndex;
     }
 
     public void LoadPosition(CCSPlayerController player)
@@ -41,38 +44,86 @@ public class GrenadeThrownData
 
     public void Throw(CCSPlayerController player)
     {
-        if (Type == "smoke")
-        {
-            SmokeGrenadeProjectile.Create(Position, Angle, Velocity, player);
-        }
-        else if (Type == "flash" || Type == "hegrenade" || Type == "decoy" || Type == "molotov")
-        {
-            var entity = Utilities.CreateEntityByName<CBaseCSGrenadeProjectile>(Constants.NadeProjectileMap[Type]);
-            if (entity == null)
-            {
-                Console.WriteLine($"[GrenadeThrownData Fatal] Failed to create entity!");
-                return;
-            }
-            if (Type == "molotov") entity.SetModel("weapons/models/grenade/incendiary/weapon_incendiarygrenade.vmdl");
-            entity.Elasticity = 0.33f;
-            entity.IsLive = false;
-            entity.DmgRadius = 350.0f;
-            entity.Damage = 99.0f;
-            entity.InitialPosition.X = Position.X;
-            entity.InitialPosition.Y = Position.Y;
-            entity.InitialPosition.Z = Position.Z;
-            entity.InitialVelocity.X = Velocity.X;
-            entity.InitialVelocity.Y = Velocity.Y;
-            entity.InitialVelocity.Z = Velocity.Z;
-            entity.Teleport(Position, Angle, Velocity);
-            entity.DispatchSpawn();
-            entity.Globalname = "custom";
-            entity.AcceptInput("FireUser1", player, player);
-            entity.AcceptInput("InitializeSpawnFromWorld");
-            entity.TeamNum = player.TeamNum;
-            entity.Thrower.Raw = player.PlayerPawn.Raw;
-            entity.OriginalThrower.Raw = player.PlayerPawn.Raw;
-            entity.OwnerEntity.Raw = player.PlayerPawn.Raw;
-        }
+		CBaseCSGrenadeProjectile? grenadeEntity = null;
+		switch (Type)
+		{
+			case "smoke":
+			{
+				grenadeEntity = GrenadeFunctions.CSmokeGrenadeProjectile_CreateFunc.Invoke(
+					Position.Handle,
+					Angle.Handle,
+					Velocity.Handle,
+					Velocity.Handle,
+					IntPtr.Zero,
+					ItemIndex,
+					(int)player.Team);
+				break;
+			}
+			case "molotov":
+			{
+				grenadeEntity = GrenadeFunctions.CMolotovProjectile_CreateFunc.Invoke(
+					Position.Handle,
+					Angle.Handle,
+					Velocity.Handle,
+					Velocity.Handle,
+					IntPtr.Zero,
+					ItemIndex);
+				break;
+			}
+			case "hegrenade":
+			{
+				grenadeEntity = GrenadeFunctions.CHEGrenadeProjectile_CreateFunc.Invoke(
+					Position.Handle,
+					Angle.Handle,
+					Velocity.Handle,
+					Velocity.Handle,
+					IntPtr.Zero,
+					ItemIndex);
+				break;
+			}
+			case "decoy":
+			{
+				grenadeEntity = GrenadeFunctions.CDecoyProjectile_CreateFunc.Invoke(
+					Position.Handle,
+					Angle.Handle,
+					Velocity.Handle,
+					Velocity.Handle,
+					IntPtr.Zero,
+					ItemIndex);
+				break;
+			}
+			case "flash":
+			{
+				grenadeEntity = Utilities.CreateEntityByName<CFlashbangProjectile>("flashbang_projectile");
+				if (grenadeEntity == null) return;
+				grenadeEntity.DispatchSpawn();
+				break;
+			}
+			default:
+				Console.WriteLine($"[MatchZy] Unknown Grenade: {Type}");
+				break;
+		}
+
+		if (grenadeEntity != null && grenadeEntity.DesignerName != "smokegrenade_projectile")
+		{
+			grenadeEntity.InitialPosition.X = Position.X;
+			grenadeEntity.InitialPosition.Y = Position.Y;
+			grenadeEntity.InitialPosition.Z = Position.Z;
+
+			grenadeEntity.InitialVelocity.X = Velocity.X;
+			grenadeEntity.InitialVelocity.Y = Velocity.Y;
+			grenadeEntity.InitialVelocity.Z = Velocity.Z;
+
+			grenadeEntity.AngVelocity.X = Velocity.X;
+			grenadeEntity.AngVelocity.Y = Velocity.Y;
+			grenadeEntity.AngVelocity.Z = Velocity.Z;
+
+            grenadeEntity.Teleport(Position, Angle, Velocity);
+            grenadeEntity.Globalname = "custom";
+            grenadeEntity.TeamNum = player.TeamNum;
+            grenadeEntity.Thrower.Raw = player.PlayerPawn.Raw;
+            grenadeEntity.OriginalThrower.Raw = player.PlayerPawn.Raw;
+            grenadeEntity.OwnerEntity.Raw = player.PlayerPawn.Raw;
+		}
     }
 }
