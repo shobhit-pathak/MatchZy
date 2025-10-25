@@ -2,6 +2,12 @@
 
 # 0.8.14
 
+#### October 26, 2025
+
+- Fixed the /noclip command without any permissions.
+
+# 0.8.14
+
 #### October 21, 2025
 
 - Bumped CSS Version.
