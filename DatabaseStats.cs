@@ -224,8 +224,8 @@ namespace MatchZy
                 cash_earned INT NOT NULL,
                 enemies_flashed INT NOT NULL,
                 PRIMARY KEY (matchid, mapnumber, steamid64),
-                FOREIGN KEY (matchid) REFERENCES matchzy_stats_matches (matchid),
-                FOREIGN KEY (mapnumber) REFERENCES matchzy_stats_maps (mapnumber)
+                CONSTRAINT fk_player_map_ref FOREIGN KEY (matchid, mapnumber) 
+                    REFERENCES matchzy_stats_maps (matchid, mapnumber)
             )");
         }
 
