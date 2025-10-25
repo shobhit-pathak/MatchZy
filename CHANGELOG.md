@@ -1,5 +1,13 @@
 # MatchZy Changelog
 
+# 0.8.15
+
+#### October 26, 2025
+
+- Fixed the /noclip command without any permissions.
+- Updated pt-BR translation.
+- Fixed database schema creation error with MySQL.
+
 # 0.8.14
 
 #### October 21, 2025
