@@ -717,6 +717,10 @@ namespace MatchZy
         public HookResult OnConsoleNoClip(CCSPlayerController? player, CommandInfo cmd) {
             if (player == null || !player.PawnIsAlive || player.Team == CsTeam.Spectator || player.Team == CsTeam.None)
                 return HookResult.Stop;
+            if (cmd.CallingContext != CommandCallingContext.Console) {
+                return HookResult.Stop; // abort when called in chat.
+                                        // inefficient but CS# forces both...
+            }
 
             // inspired by cs2-noclip
             if (player.PlayerPawn.Value!.MoveType == MoveType_t.MOVETYPE_NOCLIP) {
