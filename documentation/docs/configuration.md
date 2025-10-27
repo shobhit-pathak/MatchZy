@@ -130,6 +130,9 @@ Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <b
 :   Message to show when the match starts. Use $$$ to break message into multiple lines. Set to "" to disable. Available Colors: {Default}, {Darkred}, {Green}, {LightYellow}, {LightBlue}, {Olive}, {Lime}, {Red}, {Purple}, {Grey}, {Yellow}, {Gold}, {Silver}, {Blue}, {DarkBlue}. Example usage: matchzy_match_start_message {Green} Welcome to the server! {Default} $$$ Agent models are not allowed and may lead to {Red}disqualification!{Default}
 <br>**`Default: ""`**
 
+####`matchzy_enable_match_scrim`
+:   Allows match setup with no players defined and run like a scrim.<br>**`Default: false`**
+
 ####`matchzy_loadbackup`
 :   Loads a match backup from the given file. Relative to `csgo/MatchZyDataBackup/`.
 

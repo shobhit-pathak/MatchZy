@@ -1,5 +1,6 @@
 {
   "matchzy.ready.markedready": "Siz tayyor deb belgilandingiz.",
+  "matchzy.ready.matchedreadyonteam": "Siz jamoada tayyor deb belgilandingiz {green}{0}{default}!",
   "matchzy.ready.markedunready": "Siz tayyor emas deb belgilandingiz.",
   "matchzy.ready.readytotestorebackupinfomessage": "Tayyormas oʻyinchilar: {0}. Oʻyinning zaxira nusxasini tiklashga tayyor boʻlganingizda .ready yozing. {1}",
 
