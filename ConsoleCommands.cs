@@ -625,6 +625,17 @@ namespace MatchZy
 
             StartMatchMode();
         }
+        [ConsoleCommand("css_deathmatch", "Starts match mode")]
+        public void OnDeathmatchCommand(CCSPlayerController? player, CommandInfo? command)
+        {
+            if (!IsPlayerAdmin(player, "css_match", "@css/map", "@custom/prac"))
+            {
+                SendPlayerNotAdminMessage(player);
+                return;
+            }
+
+            StartDeathmatch();
+        }
 
         [ConsoleCommand("css_exitprac", "Starts match mode")]
         public void OnExitPracCommand(CCSPlayerController? player, CommandInfo? command)

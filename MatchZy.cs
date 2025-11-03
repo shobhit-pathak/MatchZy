@@ -34,6 +34,7 @@ namespace MatchZy
         public bool isMatchLive = false;
         public long liveMatchId = -1;
         public int autoStartMode = 1;
+        public bool isDeathmatch = false;
 
         public bool mapReloadRequired = false;
 
@@ -202,7 +203,9 @@ namespace MatchZy
                 { ".besttspawn", OnBestTSpawnCommand },
                 { ".worsttspawn", OnWorstTSpawnCommand },
                 { ".savepos", OnSavePosCommand},
-                { ".loadpos", OnLoadPosCommand}
+                { ".loadpos", OnLoadPosCommand},
+                { ".deathmatch", OnDeathmatchCommand },
+                { ".dm", OnDeathmatchCommand },
             };
 
             RegisterEventHandler<EventPlayerConnectFull>(EventPlayerConnectFullHandler);

@@ -128,6 +128,8 @@ namespace MatchZy
 
         public Dictionary<byte, List<Position>> coachSpawns = GetEmptySpawnsData();
 
+        public List<Position> deathmatchSpawns;
+
         public const string practiceCfgPath = "MatchZy/prac.cfg";
         public const string dryrunCfgPath = "MatchZy/dryrun.cfg";
 
@@ -158,6 +160,7 @@ namespace MatchZy
             isDryRun = false;
             isWarmup = false;
             readyAvailable = false;
+            isDeathmatch = false;
 
             var absolutePath = Path.Join(Server.GameDirectory + "/csgo/cfg", practiceCfgPath);
 
@@ -1071,8 +1074,21 @@ namespace MatchZy
         [GameEventHandler]
         public HookResult OnPlayerSpawn(EventPlayerSpawn @event, GameEventInfo info)
         {
+            Random random = new();
+            //PrintToAllChat($"spawned");
             var player = @event.Userid;
             if (!IsPlayerValid(player)) return HookResult.Continue;
+             //PrintToAllChat($"deathmatch {isDeathmatch} spawned, {player.SteamID}");
+             
+
+            //Deathmatch
+            if(isDeathmatch){
+                player!.InGameMoneyServices!.Account = 14001;
+                
+                List<Position> DMSpawns = deathmatchSpawns;
+                Position newSpawn = DMSpawns[random.Next(0, DMSpawns.Count)];
+                player!.PlayerPawn.Value!.Teleport(newSpawn.PlayerPosition, newSpawn.PlayerAngle, new Vector(0, 0, 0));
+            }
 
             // disable noclip on spawn -- all no clipping functionality is handled by the plugin!
             // Movement adjustments are consistent with cs2-noclip.
@@ -1129,7 +1145,7 @@ namespace MatchZy
                     });
                 }
             }
-
+            
             return HookResult.Continue;
         }
 

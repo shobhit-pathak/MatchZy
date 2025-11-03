@@ -394,6 +394,7 @@ namespace MatchZy
                 isDryRun = false;
                 isVeto = false;
                 isPreVeto = false;
+                isDeathmatch = false;
 
                 lastBackupFileName = "";
                 lastMatchZyBackupFileName = "";
@@ -627,6 +628,10 @@ namespace MatchZy
                 return;
             }
 
+            if(isDeathmatch){
+                ResetMatch();
+            }
+            
             if (!long.TryParse(mapName, out _) && !mapName.Contains('_'))
             {
                 mapName = "de_" + mapName;
@@ -715,6 +720,7 @@ namespace MatchZy
         {
             isPractice = false;
             isDryRun = false;
+            isDeathmatch = false;
             if (isRoundRestorePending)
             {
                 RestoreRoundBackup(null, pendingRestoreFileName);
@@ -2052,6 +2058,65 @@ namespace MatchZy
 
                 spawnPosition.Teleport(player);
             }
+        }
+
+        private void StartDeathmatch()
+        {
+            if (!isWarmup) return;
+            ExecUnpracCommands();
+            //ExecDeathmatchCommands();
+            ResetMatch();
+            isDeathmatch = true;
+            RemoveSpawnBeams();
+
+            coachSpawns = GetEmptySpawnsData();
+
+    
+            try
+            {
+                string spawnsConfigPath = Path.Combine(ModuleDirectory, "spawns", "deathmatch", $"{Server.MapName}.json");
+                string spawnsConfig = File.ReadAllText(spawnsConfigPath);
+
+                var jsonDictionary = JsonSerializer.Deserialize<Dictionary<string, List<Dictionary<string, string>>>>(spawnsConfig);
+                if (jsonDictionary is null) return;
+                foreach (var entry in jsonDictionary)
+                {
+                    Log($"{entry}");
+                    List<Position> positionList = new();
+
+                    foreach (var positionData in entry.Value)
+                    {
+                        Log($"{entry.Value}");
+                        string[] vectorArray = positionData["pos"].Split(' ');
+
+                        // Parse position and angle
+                        Vector vector = new(float.Parse(vectorArray[0]), float.Parse(vectorArray[1]), float.Parse(vectorArray[2]));
+                        QAngle qAngle = new QAngle(0, 0 ,0);
+
+                        Position position = new(vector, qAngle);
+
+                        positionList.Add(position);
+                    }
+                    deathmatchSpawns = positionList;
+                }
+                Log($"[GetDeathmatchSpawns] Loaded {deathmatchSpawns.Count} deathmatch spawns");
+            }
+            catch (Exception ex)
+            {
+                Log($"[GetDeathmatchSpawns - FATAL] Error getting deathmatch spawns. [ERROR]: {ex.Message}");
+            }
+            
+            const string deathmatchCfgPath = "MatchZy/deathmatch.cfg";
+            var absolutePath = Path.Join(Server.GameDirectory + "/csgo/cfg", deathmatchCfgPath);
+    
+            if (File.Exists(absolutePath)) {
+                Log($"[ExecDryRunCFG] Starting Dryrun! Executing Dryrun CFG from {deathmatchCfgPath}");
+                Server.ExecuteCommand($"exec {deathmatchCfgPath}");
+                Server.ExecuteCommand("mp_restartgame 1;mp_warmup_end;");
+            }
+            Server.PrintToChatAll($"{chatPrefix} Deathmatch mode loaded!");
+
+
         }
     }
 }
