@@ -1,5 +1,14 @@
 # MatchZy Changelog
 
+# 0.8.16
+
+#### January 26, 2026
+
+- Fixed CS8618 warning: non-nullable field 'connection' must contain a non-null value in DatabaseStats.cs.
+- Fixed CS8602 warning: dereference of a possibly null reference in Coach.cs.
+- Fixed CS0162 warnings: unreachable code detected in Pausing.cs and Utility.cs.
+- Fixed CS8600 warning: converting null literal to non-nullable type in PracticeMode.cs.
+
 # 0.8.15
 
 #### October 26, 2025

@@ -13,7 +13,7 @@ public partial class MatchZy
     {
         // Tech Pause is WIP
         return;
-
+#pragma warning disable CS0162 // Unreachable code detected
         if (!isMatchLive) return;
 
         // Treating .tech command as .forcepause if it is used via server console.
@@ -64,5 +64,6 @@ public partial class MatchZy
             PrintToPlayerChat(player, Localizer["matchzy.pause.notechpauseleft", playerTeam.teamName]);
             return;
         }
+#pragma warning restore CS0162 // Unreachable code detected
     }
 }
