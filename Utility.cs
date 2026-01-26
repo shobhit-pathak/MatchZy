@@ -804,7 +804,7 @@ namespace MatchZy
             // Currently it is not possible to keep updating player tags while in warmup without restarting the match
             // Hence returning from here until we find a proper solution
             return;
-
+#pragma warning disable CS0162 // Unreachable code detected
             if (readyAvailable && !matchStarted)
             {
                 foreach (var key in playerData.Keys)
@@ -835,6 +835,7 @@ namespace MatchZy
                     Server.PrintToChatAll($"PlayerName: {playerData[key].PlayerName} Clan: {playerData[key].Clan}");
                 }
             }
+#pragma warning restore CS0162 // Unreachable code detected
         }
 
         private void HandleMatchEnd()
