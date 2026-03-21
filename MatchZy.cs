@@ -81,13 +81,14 @@ namespace MatchZy
         // User command - action map
         public Dictionary<string, Action<CCSPlayerController?, CommandInfo?>>? commandActions;
 
-        // SQLite/MySQL Database 
-        private Database database = new();
-    
+        // Database
+        private IMatchDatabase database = null!;
+
         public override void Load(bool hotReload) {
-            
+
             LoadAdmins();
 
+            database = DatabaseFactory.Create(ModuleDirectory);
             database.InitializeDatabase(ModuleDirectory);
 
             // This sets default config ConVars

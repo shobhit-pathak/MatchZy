@@ -4,5 +4,10 @@
     "MySqlDatabase": "your_mysql_database",
     "MySqlUsername": "your_mysql_username",
     "MySqlPassword": "your_mysql_password",
-    "MySqlPort": 3306
+    "MySqlPort": 3306,
+    "PostgresHost": "your_postgres_host",
+    "PostgresDatabase": "your_postgres_database",
+    "PostgresUsername": "your_postgres_username",
+    "PostgresPassword": "your_postgres_password",
+    "PostgresPort": 5432
 }
