@@ -106,6 +106,8 @@ public partial class MatchZy
             lastGrenadesData.Remove(userId);
             nadeSpecificLastGrenadeData.Remove(userId);
 
+            CheckAutoStartOnFullTeams();
+
             return HookResult.Continue;
         }
         catch (Exception e)

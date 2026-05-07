@@ -1,5 +1,13 @@
 # MatchZy Changelog
 
+# 0.8.16
+
+#### May 7, 2026
+
+- Added `matchzy_autostart_on_full_teams_enabled` convar: when enabled, the match auto-starts once both teams reach `players_per_team` players without requiring `!ready`.
+- Added `matchzy_autostart_on_full_teams_delay` convar: configurable countdown (in seconds) before the match auto-starts once both teams are full.
+- When auto-start is enabled, `!ready` and `!forceready` are disabled and "please type ready" reminder messages are suppressed.
+
 # 0.8.15
 
 #### October 26, 2025

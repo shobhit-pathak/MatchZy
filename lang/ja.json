@@ -2,11 +2,9 @@
   "matchzy.ready.markedready": "準備完了としてマークされました。",
   "matchzy.ready.markedunready": "準備ができていないとマークされています。",
   "matchzy.ready.readytotestorebackupinfomessage": "Unready players: {0}. Please type .ready when you are ready to restore the match backup. {1}",
-
   "matchzy.knife.sidedecisionpending": "{green}{0}{default} ナイフラウンドに勝利しました。 入力を待機してます。 {green}.stay{default} か {green}.switch{default}.",
   "matchzy.knife.decidedtostay": "{green}{0}{default} 留まることに決めたました。",
   "matchzy.knife.decidedtoswitch": "{green}{0}{default} スイッチすることに決めました",
-
   "matchzy.pause.pausedthematch": "{green}{0}{default} 試合を一時停止しました。 試合の一時停止を解除するには、.unpause と入力してください。",
   "matchzy.pause.teamsunpausedthematch": "両チームとも一時停止を解除し、試合を再開します!",
   "matchzy.pause.teamwantstounpause": "{green}{0}{default} 試合の再開を要求してます。 {green}{1}{default}, 試合を再開するには!unpauseと入力してください。",
@@ -20,12 +18,10 @@
   "matchzy.pause.duringhalftime": "ハーフタイム中はこのコマンドは使用できません。",
   "matchzy.pause.matchended": "ゲーム終了後はこのコマンドは使用できません。",
   "matchzy.pause.tacticaltimeout": "テクニカルポーズがアクティブな場合、このコマンドは使用できません。",
-
   "matchzy.restore.teamwantstorestore": "{green}{0}{default} ゲームを現在のラウンドの始めに戻します。 {green}{1}{default}, 確認するには !stop と入力してください。",
   "matchzy.restore.loadedsuccessfully": "Backup file loaded successfully: {0}",
   "matchzy.restore.restoredsuccessfully": "バックアップファイルが正常に復元されました: {0}",
   "matchzy.restore.stopcommandrequiresnodamage": "A request to restart the round cannot be given once a player has damaged any opposing player.",
-
   "matchzy.backup.stopduringhalftime": "ハーフタイム中はこのコマンドは使用できません。",
   "matchzy.backup.stopmatchended": "ゲーム終了後はこのコマンドは使用できません。",
   "matchzy.backup.stoptacticaltimeout": "テクニカルポーズがアクティブな場合、このコマンドは使用できません。",
@@ -34,9 +30,7 @@
   "matchzy.backup.restorematchended": "ゲーム終了後はこのコマンドは使用できません。",
   "matchzy.backup.restoretacticaltimeout": "テクニカルポーズがアクティブな場合、このコマンドは使用できません。",
   "matchzy.backup.restoredoesntexist": "バックアップ ファイル {0} が存在しません。有効なバックアップを復元していることを確認してください。",
-
   "matchzy.cvars.invalidvalue": "matchzy_chat_messages_timer_delay の値が無効です。有効な負でない数値を指定してください。",
-
   "matchzy.cc.enabled": "{green}有効{default}",
   "matchzy.cc.disabled": "{red}無効{default}",
   "matchzy.cc.usage": "使用法: {0}",
@@ -65,7 +59,6 @@
   "matchzy.cc.skipveto": "拒否フェーズはキャンセルされました!",
   "matchzy.cc.matchpaused": "試合はすでに一時停止している為、タイムアウトはできません",
   "matchzy.cc.nomorepauses": "タイムアウトは残っていません!",
-
   "matchzy.mm.matchisalreadysetup": "[LoadMatch] マッチはすでにIDで設定されています: {green}{0}{default}, 新しいマッチをロードできません!",
   "matchzy.mm.filedoesntexist": "[LoadMatch] 指定されたファイルは存在しません! 使用法: matchzy_loadmatch <filename>",
   "matchzy.mm.matchloadfailed": "マッチのロードに失敗しました。現在のマッチをリセットしています",
@@ -73,7 +66,6 @@
   "matchzy.mm.invalidurl": "[LoadMatchDataCommand] 無効なURL: {green}{0}{default}. 試合を読み込むには有効な URL を入力してください。",
   "matchzy.mm.httprequestfailed": "[LoadMatchFromURL] HTTP リクエストがステータス コードで失敗しました: {0}",
   "matchzy.mm.teamcannotbechanged": "試合開始後はチーム名を変更することはできません。",
-
   "matchzy.pm.movedtospawn": "スポーンに移動: {0}",
   "matchzy.pm.negativenumber": "無効な値 {command} コマンド。有効な負でない数値を指定してください。使用法: !{command} <number>",
   "matchzy.pm.lineupissaved": "ラインナップはすでに存在します。別の名前を使用するか、.delnade を使用してください。 <nade>",
@@ -111,12 +103,9 @@
   "matchzy.pm.savepos": "位置を保存しました",
   "matchzy.pm.loadpos": "位置を読み込みました",
   "matchzy.pm.notsavedpos": "まだ位置を保存していません！",
-
   "matchzy.rs.minreadyplayers": "準備するには、サーバーに少なくとも {green}{0}{default} 人のプレイヤーが必要です。",
   "matchzy.rs.forcereadiedby": "あなたのチームは{green}{0}{default}によって強制的に準備されました",
-
   "matchzy.sleep.sleepwhenmatchstared": "試合が開始されるとスリープモードを開始できません。",
-
   "matchzy.utility.unreadyplayers": "準備ができていないプレイヤー: {0}。準備するには「.ready」と入力してください。",
   "matchzy.utility.readyplayers": "現在準備完了のプレイヤー: {green}{0}{default}",
   "matchzy.utility.minimumreadyplayers": "最低限必要な準備完了プレイヤー数 {green}{0}{default}、現在の準備完了プレイヤー数: {green}{1}{default}",
@@ -129,12 +118,15 @@
   "matchzy.utility.matchended": "ゲーム終了後はこのコマンドは使用できません。",
   "matchzy.utility.tacticaltimeout": "テクニカルポーズがアクティブな場合、このコマンドは使用できません。",
   "matchzy.utility.dontpermission": "このコマンドを使用する権限がありません。",
-
   "matchzy.pracc.smoke": "{red}{0}{default} が放出した煙が爆発するまでに {green}{1}{default} 秒かかりました",
   "matchzy.pracc.flash": "{red}{0}{default} が放ったフラッシュが爆発するまでに {green}{1}{default} 秒かかりました",
   "matchzy.pracc.grenade": "{red}{0}{default} が投げた手榴弾は爆発するまでに {green}{1}{default} 秒かかりました",
   "matchzy.pracc.molotov": "{red}{0}{default} が投げた火炎瓶が爆発するまでに {green}{1}{default} 秒かかりました",
   "matchzy.pracc.decoy": "{red}{0}{default} が投げたデコイが爆発するまでに {green}{1}{default} 秒かかりました",
   "matchzy.pracc.damage": "{lightblue}{1}{default}（{green}{2}{default} 体力）に {red}{0}{default} のダメージ",
-  "matchzy.pracc.blind": "{lightblue}{0}{default} は {green}{1}{default} 秒間盲目になりました"
+  "matchzy.pracc.blind": "{lightblue}{0}{default} は {green}{1}{default} 秒間盲目になりました",
+  "matchzy.autostart.starting": "両チームが揃いました！{green}{0}{default} 秒後に試合が自動開始されます。",
+  "matchzy.autostart.countdown": "自動開始まで {green}{0}{default} 秒...",
+  "matchzy.autostart.cancelled": "自動開始がキャンセルされました: チームの人数が不足しています。",
+  "matchzy.autostart.readydisabled": "自動開始が有効です。手動でのready は不要です。"
 }

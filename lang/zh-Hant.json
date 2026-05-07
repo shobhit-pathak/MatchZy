@@ -2,11 +2,9 @@
   "matchzy.ready.markedready": "您已被標記為準備完成。",
   "matchzy.ready.markedunready": "您已經被標記為未準備。",
   "matchzy.ready.readytotestorebackupinfomessage": "Unready players: {0}. Please type .ready when you are ready to restore the match backup. {1}",
-
   "matchzy.knife.sidedecisionpending": "{green}{0}{default} 贏下了刀局。等待他們輸入 {green}.stay{default} 或者 {green}.switch{default}。",
   "matchzy.knife.decidedtostay": "{green}{0}{default} 決定保留陣營。",
   "matchzy.knife.decidedtoswitch": "{green}{0}{default} 決定更換陣營。",
-
   "matchzy.pause.pausedthematch": "{green}{0}{default} 暫停了比賽。輸入 .unpause 來解除暫停",
   "matchzy.pause.teamsunpausedthematch": "雙方均同意解除暫停，比賽正在恢復！",
   "matchzy.pause.teamwantstounpause": "{green}{0}{default} 想要解除暫停。 {green}{1}{default}, 請輸入 !unpause 來確定。",
@@ -20,12 +18,10 @@
   "matchzy.pause.duringhalftime": "你不能在半場時間使用這個命令。",
   "matchzy.pause.matchended": "你不能在比賽結束之後使用此命令。",
   "matchzy.pause.tacticaltimeout": "你不能在戰術暫停期間使用此命令。",
-                              
   "matchzy.restore.teamwantstorestore": "{green}{0}{default} 想要回溯遊戲至本回合開始時。 {green}{1}{default}, 請輸入 !stop 來確定。",
   "matchzy.restore.loadedsuccessfully": "Backup file loaded successfully: {0}",
   "matchzy.restore.restoredsuccessfully": "成功恢復備份文件: {0}",
   "matchzy.restore.stopcommandrequiresnodamage": "A request to restart the round cannot be given once a player has damaged any opposing player.",
-
   "matchzy.backup.stopduringhalftime": "你不能在半場期間使用此命令。",
   "matchzy.backup.stopmatchended": "你不能在比賽結束後使用此命令。",
   "matchzy.backup.stoptacticaltimeout": "你不能在戰術暫停期間使用此命令。",
@@ -34,9 +30,7 @@
   "matchzy.backup.restorematchended": "你不能在比賽結束後使用此命令。",
   "matchzy.backup.restoretacticaltimeout": "你不能在戰術暫停期間使用此命令。",
   "matchzy.backup.restoredoesntexist": "備份文件 {0} 不存在，請確認你正在恢復的是一個有效的備份文件。",
-  
   "matchzy.cvars.invalidvalue": "matchzy_chat_messages_timer_delay 命令的參數不合法。請輸入一個有效的非負數的數值。",
-  
   "matchzy.cc.enabled": "{green}已啟用{default}",
   "matchzy.cc.disabled": "{red}已關閉{default}",
   "matchzy.cc.usage": "使用示例: {0}",
@@ -65,7 +59,6 @@
   "matchzy.cc.skipveto": "Ban/Pick 流程已取消！",
   "matchzy.cc.matchpaused": "比賽已暫停，無法開啟戰術暫停！",
   "matchzy.cc.nomorepauses": "你的戰術暫停次數已使用完！",
-  
   "matchzy.mm.matchisalreadysetup": "[載入比賽] 比賽已被設定 id: {green}{0}{default}，無法載入新比賽！",
   "matchzy.mm.filedoesntexist": "[載入比賽] 提供的文件不存在！使用示例: matchzy_loadmatch <filename>",
   "matchzy.mm.matchloadfailed": "比賽載入失敗！正在重置當前比賽",
@@ -73,7 +66,6 @@
   "matchzy.mm.invalidurl": "[載入比賽數據命令] 無效的 URL: {green}{0}{default}。請提供一個有效的 URL 地址用以加載比賽！",
   "matchzy.mm.httprequestfailed": "[從 URL 載入比賽] HTTP request 失敗，狀態碼：{0}",
   "matchzy.mm.teamcannotbechanged": "隊伍名稱在比賽開始後無法修改！",
-  
   "matchzy.pm.movedtospawn": "移動至復活點：{0}",
   "matchzy.pm.negativenumber": "{command} 命令的參數不合法。請輸入一個有效的非負數值。使用示例: !{command} <number>",
   "matchzy.pm.lineupissaved": "Lineup 已存在！請使用其他名字或者使用 .delnade <nade>",
@@ -111,12 +103,9 @@
   "matchzy.pm.savepos": "位置已儲存",
   "matchzy.pm.loadpos": "位置已載入",
   "matchzy.pm.notsavedpos": "您尚未儲存位置！",
-  
   "matchzy.rs.minreadyplayers": "服務器至少需要 {green}{0}{default} 個已準備的玩家。",
   "matchzy.rs.forcereadiedby": "你的隊伍已被 {green}{0}{default} 強制設置為 已準備 ",
-  
   "matchzy.sleep.sleepwhenmatchstared": "Sleep 模式無法在比賽開始之後啟用！",
-  
   "matchzy.utility.unreadyplayers": "未準備的玩家：{0}。請輸入 .ready 命令進行準備！{1}",
   "matchzy.utility.readyplayers": "當前已準備的玩家：{green}{0}{default}",
   "matchzy.utility.minimumreadyplayers": "最少需要 {green}{0}{default} 個已準備的玩家，當前已準備的玩家：{green}{1}{default}",
@@ -129,12 +118,15 @@
   "matchzy.utility.matchended": "遊戲結束後無法使用此命令。",
   "matchzy.utility.tacticaltimeout": "戰術暫停期間無法使用此命令。",
   "matchzy.utility.dontpermission": "你無權使用此命令！",
-  
   "matchzy.pracc.smoke": "玩家 {red}{0}{default} 扔出的煙霧彈耗時 {green}{1}{default}s 後爆開",
   "matchzy.pracc.flash": "玩家 {red}{0}{default} 扔出的閃光彈耗時 {green}{1}{default}s 後爆開",
   "matchzy.pracc.grenade": "玩家 {red}{0}{default} 扔出的手雷耗時 {green}{1}{default}s 後爆開",
   "matchzy.pracc.molotov": "玩家 {red}{0}{default} 扔出的燃燒彈耗時 {green}{1}{default}s 後爆開",
   "matchzy.pracc.decoy": "玩家 {red}{0}{default} 扔出的誘餌彈耗時 {green}{1}{default}s 後爆開",
   "matchzy.pracc.damage": "對玩家 {lightblue}{1}{default}({green}{2}{default} 造成 {red}{0}{default} 點傷害)",
-  "matchzy.pracc.blind": "玩家 {lightblue}{0}{default} 被閃光彈致盲 {green}{1}{default}s"
+  "matchzy.pracc.blind": "玩家 {lightblue}{0}{default} 被閃光彈致盲 {green}{1}{default}s",
+  "matchzy.autostart.starting": "兩隊人數已滿！比賽將在 {green}{0}{default} 秒後自動開始。",
+  "matchzy.autostart.countdown": "自動開始倒計時：{green}{0}{default} 秒...",
+  "matchzy.autostart.cancelled": "自動開始已取消：某隊人數不足。",
+  "matchzy.autostart.readydisabled": "已啟用自動開始，無需手動準備。"
 }

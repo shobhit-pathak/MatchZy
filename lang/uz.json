@@ -2,11 +2,9 @@
   "matchzy.ready.markedready": "Siz tayyor deb belgilandingiz.",
   "matchzy.ready.markedunready": "Siz tayyor emas deb belgilandingiz.",
   "matchzy.ready.readytotestorebackupinfomessage": "Tayyormas oʻyinchilar: {0}. Oʻyinning zaxira nusxasini tiklashga tayyor boʻlganingizda .ready yozing. {1}",
-
   "matchzy.knife.sidedecisionpending": "{green}{0}{default} pichoq raundida g‘alaba qozondi. Ularni {green}.stay{default} yoki {green}.switch{default} yozishini kutmoqdamiz.",
   "matchzy.knife.decidedtostay": "{green}{0}{default} qolishga qaror qildi.",
   "matchzy.knife.decidedtoswitch": "{green}{0}{default} almashtirishga qaror qildi.",
-
   "matchzy.pause.pausedthematch": "{green}{0}{default} oʻyinni pauza qildi. Oʻyinni davom ettirish uchun .unpause yozing.",
   "matchzy.pause.teamsunpausedthematch": "Ikkala jamoa ham .unpause yozishdi, oʻyinni davom ettiramiz!",
   "matchzy.pause.teamwantstounpause": "{green}{0}{default} oʻyinni davom ettirmoqchi. {green}{1}{default}, tasdiqlash uchun !unpause yozing.",
@@ -20,12 +18,10 @@
   "matchzy.pause.duringhalftime": "Tanaffus paytida ushbu buyruqdan foydalana olmaysiz.",
   "matchzy.pause.matchended": "Oʻyin tugagandan soʻng siz ushbu buyruqdan foydalana olmaysiz.",
   "matchzy.pause.tacticaltimeout": "Taktik taym-out faol boʻlganda siz ushbu buyruqdan foydalana olmaysiz.",
-                                                          
   "matchzy.restore.teamwantstorestore": "{green}{0}{default} oʻyinni joriy raundning boshiga tiklamoqchi. {green}{1}{default}, tasdiqlash uchun !stop yozing.",
   "matchzy.restore.loadedsuccessfully": "Zaxira fayli muvaffaqiyatli yuklandi: {0}",
   "matchzy.restore.restoredsuccessfully": "Zaxira fayli muvaffaqiyatli tiklandi: {0}",
   "matchzy.restore.stopcommandrequiresnodamage": "Agar oʻyinchi raqib oʻyinchisiga zarar yetkazgan boʻlsa, raundni qayta boshlash soʻrovini berish mumkin emas.",
-
   "matchzy.backup.stopduringhalftime": "Tanaffus paytida ushbu buyruqdan foydalana olmaysiz.",
   "matchzy.backup.stopmatchended": "Oʻyin tugagandan soʻng siz ushbu buyruqdan foydalana olmaysiz.",
   "matchzy.backup.stoptacticaltimeout": "Taktik taym-out faol boʻlganda siz ushbu buyruqdan foydalana olmaysiz.",
@@ -34,9 +30,7 @@
   "matchzy.backup.restorematchended": "Oʻyin tugagandan soʻng siz ushbu buyruqdan foydalana olmaysiz.",
   "matchzy.backup.restoretacticaltimeout": "Taktik taym-out faol boʻlganda siz ushbu buyruqdan foydalana olmaysiz.",
   "matchzy.backup.restoredoesntexist": "Zaxira fayli {0} mavjud emas, yaroqli zaxira nusxasini tiklaganingizga ishonch hosil qiling.",
-
   "matchzy.cvars.invalidvalue": "matchzy_chat_messages_timer_delay uchun yaroqsiz qiymat. Iltimos, manfiy boʻlmagan toʻgʻri raqamni kiriting.",
-
   "matchzy.cc.enabled": "{green}Yoqilgan{default}",
   "matchzy.cc.disabled": "{red}Oʻchirilgan{default}",
   "matchzy.cc.usage": "Foydalanish: {0}",
@@ -65,7 +59,6 @@
   "matchzy.cc.skipveto": "Veto bosqichi bekor qilindi!",
   "matchzy.cc.matchpaused": "Oʻyin allaqachon toʻxtatilgan, siz taktik taym-autni boshlay olmaysiz!",
   "matchzy.cc.nomorepauses": "Sizda taktik taym-aut qolmadi!",
-
   "matchzy.mm.matchisalreadysetup": "[LoadMatch] Oʻyin allaqachon id {green}{0}{default} bilan sozlangan, yangi oʻyinni yuklab boʻlmaydi!",
   "matchzy.mm.filedoesntexist": "[LoadMatch] Taqdim etilgan fayl mavjud emas! Foydalanish: matchzy_loadmatch <fayl_nomi>",
   "matchzy.mm.matchloadfailed": "Oʻyin yuklanmadi! Joriy oʻyin qayta tiklanmoqda",
@@ -73,7 +66,6 @@
   "matchzy.mm.invalidurl": "[LoadMatchDataCommand] URL noto‘g‘ri: {green}{0}{default}. Oʻyinni yuklash uchun yaroqli URL manzilini kiriting!",
   "matchzy.mm.httprequestfailed": "[LoadMatchFromURL] HTTP soʻrovi {0} holat kodi bilan bajarilmadi.",
   "matchzy.mm.teamcannotbechanged": "Oʻyin boshlanganidan keyin jamoalar nomini oʻzgartirib boʻlmaydi!",
-
   "matchzy.pm.movedtospawn": "Tugʻilish nuqtasiga koʻchirildi: {0}",
   "matchzy.pm.negativenumber": "{command} buyrug‘i uchun qiymat noto‘g‘ri. Iltimos, manfiy boʻlmagan toʻgʻri raqamni kiriting. Foydalanish: !{buyruq} <raqam>",
   "matchzy.pm.lineupissaved": "Chiziq allaqachon mavjud! Iltimos, boshqa nom toping yoki .delnade <nade> dan foydalaning.",
@@ -111,12 +103,9 @@
   "matchzy.pm.savepos": "Lavozim saqlandi",
   "matchzy.pm.loadpos": "Lavozim yuklandi",
   "matchzy.pm.notsavedpos": "Siz hali lavozim saqlamadingiz!",
-
   "matchzy.rs.minreadyplayers": "Tayyor bo‘lish uchun serverda kamida {green}{0}{default} o‘yinchi bo‘lishi kerak.",
   "matchzy.rs.forcereadiedby": "Jamoangiz {green}{0}{default} tomonidan majburiy tayyor deb belgilandi",
-
   "matchzy.sleep.sleepwhenmatchstared": "Oʻyin boshlanganda Kutish rejimini ishga tushirib boʻlmaydi!",
-
   "matchzy.utility.unreadyplayers": "Tayyormas oʻyinchilar: {lightred}{0}{default}. Tayyorligingizni tasdiqlash uchun .ready yozing! {1}",
   "matchzy.utility.readyplayers": "Hozirgi tayyor oʻyinchilar: {green}{0}{default}",
   "matchzy.utility.minimumreadyplayers": "Minimal tayyor oʻyinchilar kerak: {green}{0}{default}, hozirgi tayyor oʻyinchilar: {green}{1}{default}",
@@ -129,12 +118,15 @@
   "matchzy.utility.matchended": "Oʻyin tugagandan soʻng siz ushbu buyruqdan foydalana olmaysiz.",
   "matchzy.utility.tacticaltimeout": "Taktik taym-out faol boʻlganda siz ushbu buyruqdan foydalana olmaysiz.",
   "matchzy.utility.dontpermission": "Sizda bu buyruqdan foydalanishga ruxsat yoʻq!",
-
   "matchzy.pracc.smoke": "{red}{0}{default} tomonidan otilgan smokening portlashi uchun {green}{1}{default} soniya ketdi",
   "matchzy.pracc.flash": "{red}{0}{default} tomonidan otilgan flashning portlashi uchun {green}{1}{default} soniya ketdi",
   "matchzy.pracc.grenade": "{red}{0}{default} tomonidan otilgan granataning portlashi uchun {green}{1}{default} soniya ketdi",
   "matchzy.pracc.molotov": "{red}{0}{default} tomonidan otilgan molotovning portlashi uchun {green}{1}{default} soniya ketdi",
   "matchzy.pracc.decoy": "{red}{0}{default} tomonidan otilgan decoyning portlashi uchun {green}{1}{default} soniya ketdi",
   "matchzy.pracc.damage": "{red}{0}{default} damage to {lightblue}{1}{default}({green}{2}{default} health)",
-  "matchzy.pracc.blind": "{lightblue}{0}{default} {green}{1}{default} soniyaga oqardi"
+  "matchzy.pracc.blind": "{lightblue}{0}{default} {green}{1}{default} soniyaga oqardi",
+  "matchzy.autostart.starting": "Ikkala jamoa to'ldi! O'yin {green}{0}{default} soniyadan keyin avtomatik boshlanadi.",
+  "matchzy.autostart.countdown": "Avtomatik boshlanishga {green}{0}{default} soniya...",
+  "matchzy.autostart.cancelled": "Avtomatik boshlanish bekor qilindi: bitta jamoa to'liq emas.",
+  "matchzy.autostart.readydisabled": "Avtomatik boshlanish yoqilgan. Qo'lda ready kerak emas."
 }

@@ -148,6 +148,12 @@ Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <b
 ####`matchzy_enable_damage_report`
 :   Whether to show damage report after each round or not. **`Default: "true"`**
 
+####`matchzy_autostart_on_full_teams_enabled`
+:   Whether the match auto-starts when both teams reach `players_per_team` players, without requiring `!ready`. When enabled, `!ready` and `!forceready` are disabled and "please type ready" reminder messages are suppressed.<br>**`Default: false`**
+
+####`matchzy_autostart_on_full_teams_delay`
+:   Delay in seconds before the match auto-starts once both teams are full. If a player leaves a team before the countdown ends, it is cancelled and restarts when teams are full again.<br>**`Default: 30`**
+
 ####`matchzy_addplayer <steam64> <team1|team2|spec> [name]`
 :   Adds a Steam64 to the provided team. The name parameter locks the player's name.
 

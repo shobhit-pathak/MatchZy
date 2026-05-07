@@ -124,5 +124,9 @@
   "matchzy.pracc.blind": "{lightblue}{0}{default} vakítva lett {green}{1}{default} mp-re",
   "matchzy.pm.savepos": "Pozíció mentve",
   "matchzy.pm.loadpos": "Pozíció betöltve",
-  "matchzy.pm.notsavedpos": "Még nem mentettél pozíciót!"
+  "matchzy.pm.notsavedpos": "Még nem mentettél pozíciót!",
+  "matchzy.autostart.starting": "Mindkét csapat teli! A meccs automatikusan elindul {green}{0}{default} másodperc múlva.",
+  "matchzy.autostart.countdown": "Automatikus indítás {green}{0}{default} másodperc múlva...",
+  "matchzy.autostart.cancelled": "Automatikus indítás megszakítva: az egyik csapat már nem teli.",
+  "matchzy.autostart.readydisabled": "Az automatikus indítás engedélyezve van. Manuális ready nem szükséges."
 }

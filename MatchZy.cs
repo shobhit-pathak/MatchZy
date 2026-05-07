@@ -14,7 +14,7 @@ namespace MatchZy
 
         public override string ModuleName => "MatchZy";
 
-        public override string ModuleVersion => "0.8.15";
+        public override string ModuleVersion => "0.8.16";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -247,6 +247,14 @@ namespace MatchZy
 
                 SwitchPlayerTeam(player, playerTeam);
 
+                return HookResult.Continue;
+            });
+
+            RegisterEventHandler<EventPlayerTeam>((@event, info) =>
+            {
+                CCSPlayerController? player = @event.Userid;
+                if (player == null || player.IsBot || player.IsHLTV) return HookResult.Continue;
+                AddTimer(0.1f, CheckAutoStartOnFullTeams);
                 return HookResult.Continue;
             });
 

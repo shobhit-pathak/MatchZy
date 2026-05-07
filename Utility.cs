@@ -143,6 +143,7 @@ namespace MatchZy
         private void SendUnreadyPlayersMessage()
         {
             if (!isWarmup || matchStarted) return;
+            if (autoStartOnFullTeamsEnabled.Value) return;
             List<string> unreadyPlayers = new();
 
             foreach (var key in playerReadyStatus.Keys)
@@ -231,7 +232,10 @@ namespace MatchZy
         {
             unreadyPlayerMessageTimer?.Kill();
             unreadyPlayerMessageTimer = null;
-            unreadyPlayerMessageTimer ??= AddTimer(chatTimerDelay, SendUnreadyPlayersMessage, TimerFlags.REPEAT);
+            if (!autoStartOnFullTeamsEnabled.Value)
+            {
+                unreadyPlayerMessageTimer ??= AddTimer(chatTimerDelay, SendUnreadyPlayersMessage, TimerFlags.REPEAT);
+            }
             isWarmup = true;
             ExecWarmupCfg();
         }
@@ -345,9 +349,12 @@ namespace MatchZy
             unreadyPlayerMessageTimer?.Kill();
             sideSelectionMessageTimer?.Kill();
             pausedStateTimer?.Kill();
+            autoStartCountdownTimer?.Kill();
             unreadyPlayerMessageTimer = null;
             sideSelectionMessageTimer = null;
             pausedStateTimer = null;
+            autoStartCountdownTimer = null;
+            autoStartRemainingSeconds = 0;
         }
 
         private (int alivePlayers, int totalHealth) GetAlivePlayers(int team)
@@ -483,9 +490,12 @@ namespace MatchZy
                 else
                 {
                     // Since we should be already in warmup phase by this point, we are just setting up the SendUnreadyPlayersMessage timer
-                    unreadyPlayerMessageTimer?.Kill();
-                    unreadyPlayerMessageTimer = null;
-                    unreadyPlayerMessageTimer ??= AddTimer(chatTimerDelay, SendUnreadyPlayersMessage, TimerFlags.REPEAT);
+                    if (!autoStartOnFullTeamsEnabled.Value)
+                    {
+                        unreadyPlayerMessageTimer?.Kill();
+                        unreadyPlayerMessageTimer = null;
+                        unreadyPlayerMessageTimer ??= AddTimer(chatTimerDelay, SendUnreadyPlayersMessage, TimerFlags.REPEAT);
+                    }
                 }
             }
             catch (Exception ex)

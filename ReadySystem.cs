@@ -96,7 +96,15 @@ public partial class MatchZy
     public void OnForceReadyCommandCommand(CCSPlayerController? player, CommandInfo? command)
     {
         Log($"{readyAvailable} {isMatchSetup} {allowForceReady} {IsPlayerValid(player)}");
-        if (!readyAvailable || !isMatchSetup || !allowForceReady || !IsPlayerValid(player)) return;
+        if (!readyAvailable || !isMatchSetup || !IsPlayerValid(player)) return;
+
+        if (autoStartOnFullTeamsEnabled.Value)
+        {
+            ReplyToUserCommand(player, Localizer["matchzy.autostart.readydisabled"]);
+            return;
+        }
+
+        if (!allowForceReady) return;
 
         int minReady = GetTeamMinReady(player!.TeamNum);
         (int playerCount, int readyCount) = GetTeamPlayerCount(player!.TeamNum, false);

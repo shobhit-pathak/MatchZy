@@ -2,11 +2,9 @@
   "matchzy.ready.markedready": "Você foi marcado como {green}READY{default}.",
   "matchzy.ready.markedunready": "Você foi marcado como {darkred}NOTREADY{default}.",
   "matchzy.ready.readytotestorebackupinfomessage": "Jogadores {darkred}NOTREADY: {0}{default}. Digite {green}.ready {default}quando estiver pronto para restaurar o backup da partida. {1}",
-
   "matchzy.knife.sidedecisionpending": "{green}{0}{default} ganharam ROUND FACA. Aguardando eles digitarem {green}.stay{default} para ficar ou {green}.switch{default} para trocar de time.",
   "matchzy.knife.decidedtostay": "{green}{0}{default} decidiu ficar no mesmo time.",
   "matchzy.knife.decidedtoswitch": "{green}{0}{default} decidiu trocar de time.",
-
   "matchzy.pause.pausedthematch": "{green}{0}{default} pausou o jogo. Digite {green}.unpause {default}para despausar o jogo.",
   "matchzy.pause.teamsunpausedthematch": "Ambos os times despausaram, jogo retomado!",
   "matchzy.pause.teamwantstounpause": "{green}{0}{default} quer despausar o jogo. {green}{1}{default}, por favor, escreva {green}.unpause {default} para confirmar.",
@@ -20,12 +18,10 @@
   "matchzy.pause.duringhalftime": "Você não pode usar este comando durante o intervalo.",
   "matchzy.pause.matchended": "Você não pode usar este comando depois que o jogo terminou.",
   "matchzy.pause.tacticaltimeout": "Você não pode usar este comando quando o tempo técnico está ativo.",
-
   "matchzy.restore.teamwantstorestore": "{green}{0}{default} quer restaurar o jogo para o início do round atual. {green}{1}{default}, por favor, escreva {green}.stop{default} para confirmar.",
   "matchzy.restore.loadedsuccessfully": "Backup file loaded successfully: {0}",
   "matchzy.restore.restoredsuccessfully": "Arquivo de backup restaurado com sucesso: {0}",
   "matchzy.restore.stopcommandrequiresnodamage": "A request to restart the round cannot be given once a player has damaged any opposing player.",
-
   "matchzy.backup.stopduringhalftime": "Você não pode usar este comando durante o intervalo.",
   "matchzy.backup.stopmatchended": "Você não pode usar este comando depois que o jogo terminou.",
   "matchzy.backup.stoptacticaltimeout": "Você não pode usar este comando quando o tempo técnico está ativo.",
@@ -34,9 +30,7 @@
   "matchzy.backup.restorematchended": "Você não pode usar este comando depois que o jogo terminou.",
   "matchzy.backup.restoretacticaltimeout": "Você não pode usar este comando quando o tempo técnico está ativo.",
   "matchzy.backup.restoredoesntexist": "O arquivo de backup {0} não existe, por favor, certifique-se de estar restaurando um backup válido.",
-
   "matchzy.cvars.invalidvalue": "Valor inválido para {darkred}matchzy_chat_messages_timer_delay{default}. Por favor, especifique um número válido não negativo.",
-
   "matchzy.cc.enabled": "{green}Habilitado{default}",
   "matchzy.cc.disabled": "{darkred}Desabilitado{default}",
   "matchzy.cc.usage": "Use: {0}",
@@ -65,7 +59,6 @@
   "matchzy.cc.skipveto": "A fase de veto foi cancelada!",
   "matchzy.cc.matchpaused": "O jogo já está pausado, não é possível iniciar um tempo técnico!",
   "matchzy.cc.nomorepauses": "Você não tem mais tempos técnicos disponíveis!",
-
   "matchzy.mm.matchisalreadysetup": "[LoadMatch] Já há uma partida configurada com o ID: {green}{0}{default}, não é possível carregar uma nova partida!",
   "matchzy.mm.filedoesntexist": "[LoadMatch] O arquivo fornecido não existe! Use: matchzy_loadmatch <nome do arquivo>",
   "matchzy.mm.matchloadfailed": "Falha ao carregar a partida! Restaurando a partida atual",
@@ -73,7 +66,6 @@
   "matchzy.mm.invalidurl": "[LoadMatchDataCommand] URL inválida: {green}{0}{default}. Por favor, forneça uma URL válida para carregar a partida!",
   "matchzy.mm.httprequestfailed": "[LoadMatchFromURL] Falha na requisição HTTP com o código de status: {0}",
   "matchzy.mm.teamcannotbechanged": "Os nomes dos times não podem ser alterados após o início da partida!",
-
   "matchzy.pm.movedtospawn": "Movido para o spawn: {0}",
   "matchzy.pm.negativenumber": "Valor inválido para o comando {command}. Por favor, especifique um número válido não negativo. Use: !{command} <número>",
   "matchzy.pm.lineupissaved": "Lineup já existe! Por favor, use um nome diferente ou use !delnade <nade>",
@@ -111,12 +103,9 @@
   "matchzy.pm.savepos": "Posição salva",
   "matchzy.pm.loadpos": "Posição carregada",
   "matchzy.pm.notsavedpos": "Você ainda não salvou uma posição!",
-  
   "matchzy.rs.minreadyplayers": "Você deve ter pelo menos {green}{0}{default} jogadores no servidor para ficar ready.",
   "matchzy.rs.forcereadiedby": "Seu time foi forçado a ficar READY por {green}{0}{default}",
-
   "matchzy.sleep.sleepwhenmatchstared": "O Modo Sleep não pode ser iniciado quando uma partida já foi iniciada!",
-
   "matchzy.utility.unreadyplayers": "Jogadores {darkred}NOTREADY: {0}. {default}Por favor, digite {green}.ready {default}para ficar pronto! {1}",
   "matchzy.utility.readyplayers": "Jogadores {green}READY: {0}{default}",
   "matchzy.utility.minimumreadyplayers": "Número mínimo de jogadores prontos necessário {green}{0}{default}, jogadores prontos atuais: {green}{1}{default}",
@@ -129,12 +118,15 @@
   "matchzy.utility.matchended": "Você não pode usar este comando depois que o jogo terminou.",
   "matchzy.utility.tacticaltimeout": "Você não pode usar este comando quando o tempo técnico está ativo.",
   "matchzy.utility.dontpermission": "Você não tem permissão para usar este comando!",
-
   "matchzy.pracc.smoke": "Smoke lançada por {darkred}{0}{default} levou {green}{1}{default}s para detonar",
   "matchzy.pracc.flash": "Flash lançado por {darkred}{0}{default} levou {green}{1}{default}s para detonar",
   "matchzy.pracc.grenade": "Granada lançada por {darkred}{0}{default} levou {green}{1}{default}s para detonar",
   "matchzy.pracc.molotov": "Molotov lançado por {darkred}{0}{default} levou {green}{1}{default}s para detonar",
   "matchzy.pracc.decoy": "Decoy lançada por {darkred}{0}{default} levou {green}{1}{default}s para detonar",
   "matchzy.pracc.damage": "{darkred}{0}{default} de dano para {lightblue}{1}{default} ({green}{2}{default} de vida)",
-  "matchzy.pracc.blind": "{lightblue}{0}{default} foi cegado por {green}{1}{default}s"
+  "matchzy.pracc.blind": "{lightblue}{0}{default} foi cegado por {green}{1}{default}s",
+  "matchzy.autostart.starting": "Ambos os times estão completos! A partida começará automaticamente em {green}{0}{default} segundos.",
+  "matchzy.autostart.countdown": "Início automático em {green}{0}{default} segundos...",
+  "matchzy.autostart.cancelled": "Início automático cancelado: um time não está mais completo.",
+  "matchzy.autostart.readydisabled": "Início automático está habilitado. Ready manual não é necessário."
 }

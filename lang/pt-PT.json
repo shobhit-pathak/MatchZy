@@ -2,11 +2,9 @@
   "matchzy.ready.markedready": "Foi marcado como Pronto.",
   "matchzy.ready.markedunready": "Foi marcado como NÃO pronto",
   "matchzy.ready.readytotestorebackupinfomessage": "Jogadores que não estão prontos: {0}. Por favor, escreve .ready quando estiveres pronto para restaurar o backup da partida. {1}",
-
   "matchzy.knife.sidedecisionpending": "{green}{0}{default} ganhou a ronda de faca. À espera que escolham {green}.stay{default} ou {green}.switch{default}.",
   "matchzy.knife.decidedtostay": "{green}{0}{default} decidiu ficar.",
   "matchzy.knife.decidedtoswitch": "{green}{0}{default} decidiu trocar.",
-
   "matchzy.pause.pausedthematch": "{green}{0}{default} colocou pausa na partida. Escreva .unpause para remover a pausa.",
   "matchzy.pause.teamsunpausedthematch": "Ambas as equipas pediram para terminar a pausa, a resumir a partida!",
   "matchzy.pause.teamwantstounpause": "{green}{0}{default} quer terminar a pausa. {green}{1}{default}, por favor escreva !unpause para confirmar.",
@@ -20,12 +18,10 @@
   "matchzy.pause.duringhalftime": "Não podes usar este comando durante um intervalo.",
   "matchzy.pause.matchended": "Não podes usar este comando depois da partida ter terminado.",
   "matchzy.pause.tacticaltimeout": "Não podes usar este comando enquanto uma pausa tática encontra-se ativa.",
-
   "matchzy.restore.teamwantstorestore": "{green}{0}{default} quer reinicar para o início desta ronda. {green}{1}{default}, escreva !stop para confirmar.",
   "matchzy.restore.loadedsuccessfully": "Ficheiro backup carregado com sucesso: {0}",
   "matchzy.restore.restoredsuccessfully": "Ficheiro Backup restaurado com sucesso: {0}",
   "matchzy.restore.stopcommandrequiresnodamage": "Um pedido para reiniciar a ronda não pode ser realizado a partir do momento que um jogador atacou um adversário.",
-
   "matchzy.backup.stopduringhalftime": "Não podes usar este comando durante um intervalo.",
   "matchzy.backup.stopmatchended": "Não podes usar este comando depois da partida ter terminado.",
   "matchzy.backup.stoptacticaltimeout": "Não podes usar este comando enquanto uma pausa tática encontra-se ativa.",
@@ -34,9 +30,7 @@
   "matchzy.backup.restorematchended": "Não podes usar este comando depois da partida ter terminado.",
   "matchzy.backup.restoretacticaltimeout": "Não podes usar este comando enquanto uma pausa tática encontra-se ativa.",
   "matchzy.backup.restoredoesntexist": "Ficheiro Backup {0} não existe, por favor assegura-te que estás a restaurar um backup válido.",
-
   "matchzy.cvars.invalidvalue": "Valor inválido para matchzy_chat_messages_timer_delay. Por favor, especifica um número não-negativo e válido.",
-
   "matchzy.cc.enabled": "{green}Ativo{default}",
   "matchzy.cc.disabled": "{red}Desativo{default}",
   "matchzy.cc.usage": "Uso: {0}",
@@ -65,7 +59,6 @@
   "matchzy.cc.skipveto": "Fase de votos cancelada!",
   "matchzy.cc.matchpaused": "Jogo já se encontra em pausa, impossível iniciar pausa tática!",
   "matchzy.cc.nomorepauses": "Já não tens pausas táticas!",
-
   "matchzy.mm.matchisalreadysetup": "[LoadMatch] Um partida já se encontra carregado com o id: {green}{0}{default}, impossível carregar uma nova partida!",
   "matchzy.mm.filedoesntexist": "[LoadMatch] Ficheiro fornecido não existe! Uso: matchzy_loadmatch <nome_do_ficheiro>",
   "matchzy.mm.matchloadfailed": "Erro ao carregar partida! Restaurante partida atual",
@@ -73,7 +66,6 @@
   "matchzy.mm.invalidurl": "[LoadMatchDataCommand] URL inválido: {green}{0}{default}. Por favor forneça um URL válido para carregar a partida!",
   "matchzy.mm.httprequestfailed": "[LoadMatchFromURL] Pedido HTTP falhou com código de estado: {0}",
   "matchzy.mm.teamcannotbechanged": "Nomes das Equipas não pode ser alterado depois da partida ter começado!",
-
   "matchzy.pm.movedtospawn": "Movido para spawn: {0}",
   "matchzy.pm.negativenumber": "Valor inválido para comando {command}. Por favor, especifica um valor válido não-negativo. Uso: !{command} <número>",
   "matchzy.pm.lineupissaved": "Lineup já existe! Por favor, usa um nome diferente ou usa .delnade <nade>",
@@ -111,12 +103,9 @@
   "matchzy.pm.savepos": "Posição guardada",
   "matchzy.pm.loadpos": "Posição carregada",
   "matchzy.pm.notsavedpos": "Ainda não guardou uma posição!",
-
   "matchzy.rs.minreadyplayers": "Tens que ter no mínimo {green}{0}{default} jogador(es) no server para estar pronto.",
   "matchzy.rs.forcereadiedby": "A tua equipa foi forçada a estar pronta por {green}{0}{default}",
-
   "matchzy.sleep.sleepwhenmatchstared": "Modo Hibernação não pode ser iniciado quando uma partida foi iniciada!",
-
   "matchzy.utility.unreadyplayers": "Jogadores não prontos: {0}. Por favor, escreve .ready para estar pronto! {1}",
   "matchzy.utility.readyplayers": "Jogadores prontos: {green}{0}{default}",
   "matchzy.utility.minimumreadyplayers": "Mínimo de jogadores prontos {green}{0}{default}, jogadores prontos atualmente: {green}{1}{default}",
@@ -129,12 +118,15 @@
   "matchzy.utility.matchended": "Não podes usar este comando após a partida ter terminado",
   "matchzy.utility.tacticaltimeout": "Não podes usar este comando durante uma pausa tática.",
   "matchzy.utility.dontpermission": "Não tens permissões para usar este comando!",
-
   "matchzy.pracc.smoke": "Smoke atirada por {red}{0}{default} levou {green}{1}{default}s a explodir",
   "matchzy.pracc.flash": "Flash atirada por {red}{0}{default} levou {green}{1}{default}s a explodir",
   "matchzy.pracc.grenade": "Grenade atirada por {red}{0}{default} levou {green}{1}{default}s a explodir",
   "matchzy.pracc.molotov": "Molotov atirada por {red}{0}{default} levou {green}{1}{default}s a explodir",
   "matchzy.pracc.decoy": "Decoy atirada por {red}{0}{default} levou {green}{1}{default}s a explodir",
   "matchzy.pracc.damage": "{red}{0}{default} dano para {lightblue}{1}{default}({green}{2}{default} vida)",
-  "matchzy.pracc.blind": "{lightblue}{0}{default} foi cegado por {green}{1}{default}s"
+  "matchzy.pracc.blind": "{lightblue}{0}{default} foi cegado por {green}{1}{default}s",
+  "matchzy.autostart.starting": "Ambas as equipas estão completas! A partida começa automaticamente em {green}{0}{default} segundos.",
+  "matchzy.autostart.countdown": "Início automático em {green}{0}{default} segundos...",
+  "matchzy.autostart.cancelled": "Início automático cancelado: uma equipa já não está completa.",
+  "matchzy.autostart.readydisabled": "Início automático está ativado. Ready manual não é necessário."
 }

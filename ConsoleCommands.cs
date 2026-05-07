@@ -66,6 +66,11 @@ namespace MatchZy
         {
             if (player == null) return;
             Log($"[!ready command] Sent by: {player.UserId} readyAvailable: {readyAvailable} matchStarted: {matchStarted}");
+            if (autoStartOnFullTeamsEnabled.Value)
+            {
+                PrintToPlayerChat(player, Localizer["matchzy.autostart.readydisabled"]);
+                return;
+            }
             if (readyAvailable && !matchStarted)
             {
                 if (player.UserId.HasValue)

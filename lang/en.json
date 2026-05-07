@@ -2,11 +2,9 @@
   "matchzy.ready.markedready": "You have been marked as ready.",
   "matchzy.ready.markedunready": "You have been marked as NOT ready.",
   "matchzy.ready.readytotestorebackupinfomessage": "Unready players: {0}. Please type .ready when you are ready to restore the match backup. {1}",
-
   "matchzy.knife.sidedecisionpending": "{green}{0}{default} won the knife round. Waiting for them to type {green}.stay{default} or {green}.switch{default}.",
   "matchzy.knife.decidedtostay": "{green}{0}{default} has decided to stay.",
   "matchzy.knife.decidedtoswitch": "{green}{0}{default} has decided to switch.",
-
   "matchzy.pause.pausedthematch": "{green}{0}{default} has paused the match. Type .unpause to unpause the match.",
   "matchzy.pause.teamsunpausedthematch": "Both teams have unpaused, resuming the match!",
   "matchzy.pause.teamwantstounpause": "{green}{0}{default} wants to unpause the match. {green}{1}{default}, please write !unpause to confirm.",
@@ -20,12 +18,10 @@
   "matchzy.pause.duringhalftime": "You cannot use this command during halftime.",
   "matchzy.pause.matchended": "You cannot use this command after the game has ended.",
   "matchzy.pause.tacticaltimeout": "You cannot use this command when tactical timeout is active.",
-
   "matchzy.restore.teamwantstorestore": "{green}{0}{default} wants to restore the game to the beginning of the current round. {green}{1}{default}, please write !stop to confirm.",
   "matchzy.restore.loadedsuccessfully": "Backup file loaded successfully: {0}",
   "matchzy.restore.restoredsuccessfully": "Backup restored successfully from file: {0}",
   "matchzy.restore.stopcommandrequiresnodamage": "A request to restart the round cannot be given once a player has damaged any opposing player.",
-
   "matchzy.backup.stopduringhalftime": "You cannot use this command during halftime.",
   "matchzy.backup.stopmatchended": "You cannot use this command after the game has ended.",
   "matchzy.backup.stoptacticaltimeout": "You cannot use this command when tactical timeout is active.",
@@ -34,9 +30,7 @@
   "matchzy.backup.restorematchended": "You cannot use this command after the game has ended.",
   "matchzy.backup.restoretacticaltimeout": "You cannot use this command when tactical timeout is active.",
   "matchzy.backup.restoredoesntexist": "Backup file {0} does not exist, please make sure you are restoring a valid backup.",
-
   "matchzy.cvars.invalidvalue": "Invalid value for matchzy_chat_messages_timer_delay. Please specify a valid non-negative number.",
-
   "matchzy.cc.enabled": "{green}Enabled{default}",
   "matchzy.cc.disabled": "{red}Disabled{default}",
   "matchzy.cc.usage": "Usage: {0}",
@@ -65,7 +59,6 @@
   "matchzy.cc.skipveto": "Veto phase has been cancelled!",
   "matchzy.cc.matchpaused": "Match is already paused, cannot start a tactical timeout!",
   "matchzy.cc.nomorepauses": "You do not have any tactical timeouts left!",
-
   "matchzy.mm.matchisalreadysetup": "[LoadMatch] A match is already setup with id: {green}{0}{default}, cannot load a new match!",
   "matchzy.mm.filedoesntexist": "[LoadMatch] Provided file does not exist! Usage: matchzy_loadmatch <filename>",
   "matchzy.mm.matchloadfailed": "Match load failed! Resetting current match",
@@ -73,7 +66,6 @@
   "matchzy.mm.invalidurl": "[LoadMatchDataCommand] Invalid URL: {green}{0}{default}. Please provide a valid URL to load the match!",
   "matchzy.mm.httprequestfailed": "[LoadMatchFromURL] HTTP request failed with status code: {0}",
   "matchzy.mm.teamcannotbechanged": "Team names cannot be changed once the match is started!",
-
   "matchzy.pm.movedtospawn": "Moved to spawn: {0}",
   "matchzy.pm.negativenumber": "Invalid value for {command} command. Please specify a valid non-negative number. Usage: !{command} <number>",
   "matchzy.pm.lineupissaved": "Lineup already exists! Please use a different name or use .delnade <nade>",
@@ -111,12 +103,9 @@
   "matchzy.pm.savepos": "Position saved",
   "matchzy.pm.loadpos": "Position loaded",
   "matchzy.pm.notsavedpos": "You have not saved a position yet!",
-
   "matchzy.rs.minreadyplayers": "You must have at least {green}{0}{default} player(s) on the server to ready up.",
   "matchzy.rs.forcereadiedby": "Your team was force-readied by {green}{0}{default}",
-
   "matchzy.sleep.sleepwhenmatchstared": "Sleep Mode cannot be started when a match has been started!",
-
   "matchzy.utility.unreadyplayers": "Unready players: {0}. Please type .ready to ready up! {1}",
   "matchzy.utility.readyplayers": "Current ready players: {green}{0}{default}",
   "matchzy.utility.minimumreadyplayers": "Minimum ready players required {green}{0}{default}, current ready players: {green}{1}{default}",
@@ -129,12 +118,15 @@
   "matchzy.utility.matchended": "You cannot use this command after the game has ended.",
   "matchzy.utility.tacticaltimeout": "You cannot use this command when tactical timeout is active.",
   "matchzy.utility.dontpermission": "You do not have permission to use this command!",
-
   "matchzy.pracc.smoke": "Smoke thrown by {red}{0}{default} took {green}{1}{default}s to detonate",
   "matchzy.pracc.flash": "Flash thrown by {red}{0}{default} took {green}{1}{default}s to detonate",
   "matchzy.pracc.grenade": "Grenade thrown by {red}{0}{default} took {green}{1}{default}s to detonate",
   "matchzy.pracc.molotov": "Molotov thrown by {red}{0}{default} took {green}{1}{default}s to detonate",
   "matchzy.pracc.decoy": "Decoy thrown by {red}{0}{default} took {green}{1}{default}s to detonate",
   "matchzy.pracc.damage": "{red}{0}{default} damage to {lightblue}{1}{default}({green}{2}{default} health)",
-  "matchzy.pracc.blind": "{lightblue}{0}{default} has been blinded for {green}{1}{default}s"
+  "matchzy.pracc.blind": "{lightblue}{0}{default} has been blinded for {green}{1}{default}s",
+  "matchzy.autostart.starting": "Both teams are full! Match will auto-start in {green}{0}{default} seconds. Fill up to cancel.",
+  "matchzy.autostart.countdown": "Match auto-starts in {green}{0}{default} seconds...",
+  "matchzy.autostart.cancelled": "Auto-start cancelled: a team is no longer full.",
+  "matchzy.autostart.readydisabled": "Auto-start is enabled. Manual ready is not required."
 }

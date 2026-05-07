@@ -11,6 +11,9 @@ namespace MatchZy
     public partial class MatchZy
     {
 
+        public FakeConVar<bool> autoStartOnFullTeamsEnabled = new("matchzy_autostart_on_full_teams_enabled", "Whether match auto-starts when both teams are full (players_per_team on each side) without requiring !ready. Default: false", false);
+        public FakeConVar<int> autoStartOnFullTeamsDelay = new("matchzy_autostart_on_full_teams_delay", "Delay in seconds before the match auto-starts once both teams are full. Default: 30", 30);
+
         public FakeConVar<bool> smokeColorEnabled = new("matchzy_smoke_color_enabled", "Whether player-specific smoke color is enabled or not. Default: false", false);
         public FakeConVar<bool> techPauseEnabled = new("matchzy_enable_tech_pause", "Whether .tech command is enabled or not. Default: true", true);
         public FakeConVar<string> techPausePermission  = new("matchzy_tech_pause_flag", "Flag required to use tech pause", "");
