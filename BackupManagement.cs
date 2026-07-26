@@ -30,6 +30,19 @@ namespace MatchZy
         public string backupUploadHeaderKey = "";
         public string backupUploadHeaderValue = "";
 
+        // =========================================================================
+        // Restore Vote System
+        // =========================================================================
+        public bool isRestoreVoteInProgress = false;
+        public Dictionary<ulong, bool> restoreVoteData = new();        // SteamID -> voted yes?
+        public Dictionary<ulong, bool> restoreVotePlayers = new();     // SteamID -> player on server
+        public CounterStrikeSharp.API.Modules.Timers.Timer? restoreVoteTimer = null;
+        public CCSPlayerController? restoreVoteInitiator = null;
+        public long restoreVoteMatchId = -1;                           // match_id for which we're voting
+        public int restoreVoteMapNumber = 0;
+        public int restoreVoteThreshold = 75;                          // percentage needed
+        public int restoreVoteTimeout = 20;                            // seconds
+
 
         public void SetupRoundBackupFile()
         {
@@ -205,9 +218,6 @@ namespace MatchZy
 
         private void RestoreRoundBackup(CCSPlayerController? player, string fileName)
         {
-
- 
-
             if (IsHalfTimePhase())
             {
                 ReplyToUserCommand(player, Localizer["matchzy.backup.restoreduringhalftime"]);
@@ -223,163 +233,127 @@ namespace MatchZy
                 ReplyToUserCommand(player, Localizer["matchzy.backup.restoretacticaltimeout"]);
                 return;
             }
-            string backupFolder = Path.Combine(Server.GameDirectory, "csgo", "MatchZyDataBackup");
-     
-            string filePath = Path.Combine(backupFolder, fileName);
- 
-            if (!File.Exists(filePath))
+
+            // Try DB lookup first by backup id, then by old-style filename
+            BackupRecord? backup = null;
+            string valveBackupContent = "";
+
+            // Try parsing as backup ID (numeric)
+            if (long.TryParse(fileName.Replace(".json", ""), out long backupId))
+            {
+                backup = database.GetRoundBackupById(backupId);
+            }
+
+            // Fallback: try old-style filename lookup (matchzy_<matchId>_<mapNumber>_round<XX>.json)
+            if (backup == null)
+            {
+                // Parse old filename format
+                var match = Regex.Match(fileName, @"matchzy_(\d+)_(\d+)_round(\d+)");
+                if (match.Success)
+                {
+                    long legacyMatchId = long.Parse(match.Groups[1].Value);
+                    int legacyMapNum = int.Parse(match.Groups[2].Value);
+                    int legacyRound = int.Parse(match.Groups[3].Value);
+                    backup = database.GetBackupByMatchAndRound(legacyMatchId, legacyMapNum, legacyRound);
+                }
+            }
+
+            if (backup == null)
             {
                 ReplyToUserCommand(player, Localizer["matchzy.backup.restoredoesntexist", fileName]);
-                Log($"[RestoreRoundBackup FATAL] Required backup data file does not exist! File: {filePath}");
+                Log($"[RestoreRoundBackup FATAL] Backup not found in DB: {fileName}");
                 return;
             }
+
+            valveBackupContent = backup.valve_backup;
 
             var gameRules = GetGameRules();
             bool liveSetupRequired = false;
 
-            // We set active timeouts to false so that timeout does not start after the round has been restored.
-            // This is to prevent any buggish behaviour with timeouts (like incorrect timeout used showing, or force-unpausing the match once timeout ends)
             gameRules.CTTimeOutActive = gameRules.TerroristTimeOutActive = false;
 
-            // Server.ExecuteCommand($"mp_backup_restore_load_file {fileName}");
+            isRoundRestoring = true;
 
-            Dictionary<string, string> backupData = new();
-            try
+            // Restore match state from backup record
+            liveMatchId = backup.match_id;
+            isMatchSetup = backup.match_loaded == 1;
+
+            if (!string.IsNullOrEmpty(backup.match_config))
             {
-                using (StreamReader fileReader = File.OpenText(filePath))
-                {
-                    string jsonContent = fileReader.ReadToEnd();
-                    if (!string.IsNullOrEmpty(jsonContent))
-                    {
-                        JsonSerializerOptions options = new()
-                        {
-                            AllowTrailingCommas = true,
-                        };
-                        backupData = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonContent, options) ?? new Dictionary<string, string>();
-                    }
-                    else
-                    {
-                        // Handle the case where the JSON content is empty or null
-                        backupData = new();
-                    }
-                }
-
-                isRoundRestoring = true;
-
-                // MatchID is set first to avoid generating a new one.
-                if (backupData.TryGetValue("matchid", out var matchId))
-                {
-                    liveMatchId = long.Parse(matchId);
-                }
-                if (backupData.TryGetValue("match_loaded", out var matchLoaded))
-                {
-                    isMatchSetup = bool.Parse(matchLoaded);
-                }
-                if (backupData.TryGetValue("match_config", out var matchConfigValue))
-                {
-                    matchConfig = Newtonsoft.Json.JsonConvert.DeserializeObject<MatchConfig>(matchConfigValue)!;
-                    SetupRoundBackupFile();
-                }
-                if (backupData.TryGetValue("team1", out var team1config))
-                {
-                    matchzyTeam1 = Newtonsoft.Json.JsonConvert.DeserializeObject<Team>(team1config)!;
-                }
-                if (backupData.TryGetValue("team2", out var team2config))
-                {
-                    matchzyTeam2 = Newtonsoft.Json.JsonConvert.DeserializeObject<Team>(team2config)!;
-                }
-                if (backupData.TryGetValue("team1_side", out var team1Side))
-                {
-
-                    if (team1Side == "CT")
-                    {
-                        teamSides[matchzyTeam1] = "CT";
-                        reverseTeamSides["CT"] = matchzyTeam1;
-                        teamSides[matchzyTeam2] = "TERRORIST";
-                        reverseTeamSides["TERRORIST"] = matchzyTeam2;
-                        // SwapSidesInTeamData(false);
-                    }
-                    else if (team1Side == "TERRORIST")
-                    {
-                        teamSides[matchzyTeam1] = "TERRORIST";
-                        reverseTeamSides["TERRORIST"] = matchzyTeam1;
-                        teamSides[matchzyTeam2] = "CT";
-                        reverseTeamSides["CT"] = matchzyTeam2;
-                        // SwapSidesInTeamData(false);
-                    }
-                }
-                if (backupData.TryGetValue("map_name", out var map_name))
-                {
-                    if (map_name != Server.MapName)
-                    {
-                        ChangeMap(map_name, 0);
-                        isRoundRestorePending = true;
-                        pendingRestoreFileName = fileName;
-                        // Returning from here, backup will be restored again once the map is changed.
-                        return;
-                    }
-                }
-
-                // This is done after checking map_name so that we load the correct map first
-                if (gameRules.WarmupPeriod)
-                {
-                    if (!isRoundRestorePending)
-                    {
-                        isRoundRestorePending = true;
-                        pendingRestoreFileName = fileName;
-                        PrintToAllChat(Localizer["matchzy.restore.loadedsuccessfully", fileName]);
-                        return;
-                    }
-                    else
-                    {
-                        liveSetupRequired = true;
-                    }
-                }
-                if (backupData.TryGetValue("TerroristTimeOuts", out var terroristTimeouts))
-                {
-                    gameRules.TerroristTimeOuts = int.Parse(terroristTimeouts);
-                }
-
-                if (backupData.TryGetValue("CTTimeOuts", out var ctTimeouts))
-                {
-                    gameRules.CTTimeOuts = int.Parse(ctTimeouts);
-                }
-                if (backupData.TryGetValue("valve_backup", out var valveBackup))
-                {
-                    string tempFileName = fileName.Replace(".json", ".txt");
-                    if (backupData.TryGetValue("round", out var roundNumber))
-                    {
-                        tempFileName = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}_round{roundNumber}.txt";
-                    }
-                    string tempFilePath = Path.Combine(Server.GameDirectory, "csgo", tempFileName);
-
-
-                    if (!File.Exists(tempFilePath))
-                    {
-                        File.WriteAllText(tempFilePath, valveBackup);
-                    }
-                    int restoreTimer = liveSetupRequired ? 2 : 0;
-                    if (liveSetupRequired)
-                    {
-                        Log($"Game was in warmup, setting up Live!");
-                        SetupLiveFlagsAndCfg();
-                    }
-                    AddTimer(restoreTimer, () => {
-                        string fileName = Path.GetFileName(tempFilePath);
-
-                        Server.ExecuteCommand($"mp_backup_restore_load_file {fileName}");
-                        StartDemoRecording();
-                    });
-                    // AddTimer(5, () => File.Delete(tempFilePath));
-                }
+                matchConfig = Newtonsoft.Json.JsonConvert.DeserializeObject<MatchConfig>(backup.match_config)!;
+                SetupRoundBackupFile();
             }
-            catch (Exception e)
+            if (!string.IsNullOrEmpty(backup.team1_config))
             {
-                Log($"[RestoreRoundBackup FATAL] An error occurred: {e.Message}");
+                matchzyTeam1 = Newtonsoft.Json.JsonConvert.DeserializeObject<Team>(backup.team1_config)!;
+            }
+            if (!string.IsNullOrEmpty(backup.team2_config))
+            {
+                matchzyTeam2 = Newtonsoft.Json.JsonConvert.DeserializeObject<Team>(backup.team2_config)!;
+            }
+
+            // Restore sides
+            if (backup.team1_side == "CT")
+            {
+                teamSides[matchzyTeam1] = "CT";
+                reverseTeamSides["CT"] = matchzyTeam1;
+                teamSides[matchzyTeam2] = "TERRORIST";
+                reverseTeamSides["TERRORIST"] = matchzyTeam2;
+            }
+            else if (backup.team1_side == "TERRORIST")
+            {
+                teamSides[matchzyTeam1] = "TERRORIST";
+                reverseTeamSides["TERRORIST"] = matchzyTeam1;
+                teamSides[matchzyTeam2] = "CT";
+                reverseTeamSides["CT"] = matchzyTeam2;
+            }
+
+            // Map change handling
+            if (backup.map_name != Server.MapName)
+            {
+                ChangeMap(backup.map_name, 0);
+                isRoundRestorePending = true;
+                pendingRestoreFileName = backup.id.ToString();
                 return;
             }
 
-            PrintToAllChat(Localizer["matchzy.restore.restoredsuccessfully", fileName]);
+            // Handle warmup
+            if (gameRules.WarmupPeriod)
+            {
+                if (!isRoundRestorePending)
+                {
+                    isRoundRestorePending = true;
+                    pendingRestoreFileName = backup.id.ToString();
+                    PrintToAllChat(Localizer["matchzy.restore.loadedsuccessfully", $"round {backup.round_number}"]);
+                    return;
+                }
+                else
+                {
+                    liveSetupRequired = true;
+                }
+            }
+
+            gameRules.TerroristTimeOuts = backup.terrorist_timeouts;
+            gameRules.CTTimeOuts = backup.ct_timeouts;
+
+            // Write valve backup to temp file and restore
+            string tempFileName = $"matchzy_{backup.match_id}_{backup.map_number}_round{backup.round_number:D2}.txt";
+            string tempFilePath = Path.Combine(Server.GameDirectory, "csgo", tempFileName);
+            File.WriteAllText(tempFilePath, valveBackupContent);
+
+            int restoreTimer = liveSetupRequired ? 2 : 0;
+            if (liveSetupRequired)
+            {
+                Log($"Game was in warmup, setting up Live!");
+                SetupLiveFlagsAndCfg();
+            }
+            AddTimer(restoreTimer, () => {
+                string fn = Path.GetFileName(tempFilePath);
+                Server.ExecuteCommand($"mp_backup_restore_load_file {fn}");
+                StartDemoRecording();
+            });
+
+            PrintToAllChat(Localizer["matchzy.restore.restoredsuccessfully", $"round {backup.round_number}"]);
             if (pauseAfterRoundRestore)
             {
                 Server.ExecuteCommand("mp_pause_match;");
@@ -389,6 +363,9 @@ namespace MatchZy
                 unpauseData["pauseTeam"] = "RoundRestore";
                 pausedStateTimer ??= AddTimer(chatTimerDelay, SendPausedStateMessage, TimerFlags.REPEAT);
             }
+
+            // Reset vote state
+            ResetRestoreVote();
         }
 
         public void CreateMatchZyRoundDataBackup()
@@ -400,135 +377,88 @@ namespace MatchZy
                 (int t1score, int t2score) = GetTeamsScore();
                 int roundNumber = t1score + t2score;
                 string round = roundNumber.ToString("D2");
-                string matchZyBackupFileName = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}_round{round}.json";
-                string filePath = Path.Combine(Server.GameDirectory, "csgo", "MatchZyDataBackup", matchZyBackupFileName);
 
-                string? directoryPath = Path.GetDirectoryName(filePath);
-                if (directoryPath != null && !Directory.Exists(directoryPath))
-                {
-                    Directory.CreateDirectory(directoryPath);
-                }
-
-                var gameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
-                string lastBackupFilePath = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}_round{round}.txt"; ;
+                // Still write Valve backup to disk (mp_backup_restore_load_file needs it)
+                string lastBackupFilePath = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}_round{round}.txt";
                 bool lastBackupExists = File.Exists(Path.Combine(Server.GameDirectory, "csgo", lastBackupFilePath));
                 lastBackupFilePath = Path.Combine(Server.GameDirectory, "csgo", lastBackupFilePath);
-
                 string valveBackupContent = lastBackupExists ? File.ReadAllText(lastBackupFilePath) : "";
 
-                Dictionary<string, string> roundData = new()
-                    {
-                        { "matchid", liveMatchId.ToString() },
-                        { "timestamp", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") },
-                        { "map_name", Server.MapName },
-                        { "mapnumber", matchConfig.CurrentMapNumber.ToString() },
-                        { "round", round },
-                        { "team1", GetTeamConfig("team1") },
-                        { "team2", GetTeamConfig("team2") },
-                        { "team1_name", matchzyTeam1.teamName },
-                        { "team1_flag", matchzyTeam1.teamFlag },
-                        { "team1_tag", matchzyTeam1.teamTag },
-                        { "team1_side", teamSides[matchzyTeam1] },
-                        { "team2_name", matchzyTeam2.teamName },
-                        { "team2_flag", matchzyTeam2.teamFlag },
-                        { "team2_tag", matchzyTeam2.teamTag },
-                        { "team2_side", teamSides[matchzyTeam2] },
-                        { "team1_score", t1score.ToString() },
-                        { "team2_score", t2score.ToString() },
-                        { "team1_series_score", matchzyTeam1.seriesScore.ToString() },
-                        { "team2_series_score", matchzyTeam2.seriesScore.ToString() },
-                        { "TerroristTimeOuts", gameRules.TerroristTimeOuts.ToString() },
-                        { "CTTimeOuts", gameRules.CTTimeOuts.ToString() },
-                        { "match_loaded", isMatchSetup.ToString() },
-                        { "match_config", GetMatchConfig() },
-                        { "valve_backup", valveBackupContent }
-                    };
-                JsonSerializerOptions options = new()
-                {
-                    WriteIndented = true,
-                };
-                string defaultJson = JsonSerializer.Serialize(roundData, options);
+                var gameRules = Utilities.FindAllEntitiesByDesignerName<CCSGameRulesProxy>("cs_gamerules").First().GameRules!;
 
-                File.WriteAllText(filePath, defaultJson);
+                // Write backup metadata to database
+                database.SaveRoundBackup(
+                    matchId: liveMatchId,
+                    mapNumber: matchConfig.CurrentMapNumber,
+                    roundNumber: roundNumber,
+                    mapName: Server.MapName,
+                    team1Name: matchzyTeam1.teamName,
+                    team1Score: t1score,
+                    team2Name: matchzyTeam2.teamName,
+                    team2Score: t2score,
+                    team1Side: teamSides[matchzyTeam1],
+                    team2Side: teamSides[matchzyTeam2],
+                    team1SeriesScore: matchzyTeam1.seriesScore,
+                    team2SeriesScore: matchzyTeam2.seriesScore,
+                    matchConfigJson: GetMatchConfig(),
+                    team1ConfigJson: GetTeamConfig("team1"),
+                    team2ConfigJson: GetTeamConfig("team2"),
+                    valveBackup: valveBackupContent,
+                    terroristTimeouts: gameRules.TerroristTimeOuts,
+                    ctTimeouts: gameRules.CTTimeOuts,
+                    matchLoaded: isMatchSetup,
+                    team1Flag: matchzyTeam1.teamFlag,
+                    team1Tag: matchzyTeam1.teamTag,
+                    team2Flag: matchzyTeam2.teamFlag,
+                    team2Tag: matchzyTeam2.teamTag,
+                    serverId: matchzyServerId.Value
+                );
+
+                // Also write legacy file backup for backward compatibility (optional, can be disabled)
+                string legacyFilePath = Path.Combine(Server.GameDirectory, "csgo", "MatchZyDataBackup",
+                    $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}_round{round}.json");
+                // Legacy file backup disabled — using database instead.
+                // To re-enable, uncomment the block below.
 
                 Task.Run(async () => {
-                    await UploadFileAsync(filePath, backupUploadURL, backupUploadHeaderKey, backupUploadHeaderValue, liveMatchId, matchConfig.CurrentMapNumber, roundNumber);
+                    // Upload valve backup to configured URL if set
+                    if (!string.IsNullOrEmpty(backupUploadURL))
+                    {
+                        string tempFile = Path.Combine(Server.GameDirectory, "csgo",
+                            $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}_round{round}.txt");
+                        if (File.Exists(tempFile))
+                        {
+                            await UploadFileAsync(tempFile, backupUploadURL, backupUploadHeaderKey, backupUploadHeaderValue,
+                                liveMatchId, matchConfig.CurrentMapNumber, roundNumber);
+                        }
+                    }
                 });
-
             }
             catch (Exception e)
             {
-                Log($"[CreateMatchZyRoundDataBackup FATAL] Error creating the JSON file: {e.Message}");
+                Log($"[CreateMatchZyRoundDataBackup FATAL] Error creating backup: {e.Message}");
             }
         }
 
         public List<string> GetBackups(string matchID)
         {
-            string backupDir = Path.Combine(Server.GameDirectory, "csgo", "MatchZyDataBackup");
+            if (!long.TryParse(matchID, out long mid)) return new List<string>();
 
-
-            if (!Directory.Exists(backupDir))
-            {
-                return [];
-            }
-
-            var directoryInfo = new DirectoryInfo(backupDir);
-            var files = directoryInfo.GetFiles();
-
-            var pattern = $"matchzy_{matchID}_";
-            var backups = new List<string>();
-
-            foreach (var file in files)
-            {
-                if (file.Name.Contains(pattern))
-                {
-                    backups.Add(file.FullName);
-                }
-            }
-
-            backups.Sort((x, y) => string.Compare(y, x, StringComparison.Ordinal));
-            return backups;
+            var records = database.GetRoundBackups(mid, matchConfig.CurrentMapNumber, matchzyServerId.Value, 30);
+            return records.Select(r => $"ID:{r.id} R{r.round_number} {r.timestamp} {r.team1_name}({r.team1_score}) vs {r.team2_name}({r.team2_score}) {r.map_name}").ToList();
         }
 
-        public string GetBackupInfo(string filePath)
+        public string GetBackupInfo(long backupId)
         {
-            string info = "";
-            if (!File.Exists(filePath))
-            {
-                return "";
-            }
+            var backup = database.GetRoundBackupById(backupId);
+            if (backup == null) return "";
 
-            Dictionary<string, string> backupData = new();
-            try
-            {
-                using (StreamReader fileReader = File.OpenText(filePath))
-                {
-                    string jsonContent = fileReader.ReadToEnd();
-                    if (string.IsNullOrEmpty(jsonContent))
-                    {
-                        return "";
-                    }
-                    else
-                    {
-                        JsonSerializerOptions options = new()
-                        {
-                            AllowTrailingCommas = true,
-                        };
-                        backupData = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonContent, options) ?? new Dictionary<string, string>();
+            return $"ID:{backup.id} R{backup.round_number} {backup.timestamp} {backup.team1_name} {backup.team2_name} {backup.map_name} {backup.team1_score} {backup.team2_score}";
+        }
 
-                    }
-                }
-
-                info = $"{filePath.Split("/")[^1]} {backupData["timestamp"]} {backupData["team1_name"]} {backupData["team2_name"]} {backupData["map_name"]} {backupData["team1_score"]} {backupData["team2_score"]}";
-
-            }
-            catch (Exception e)
-            {
-                Log($"[GetBackupInfo FATAL] An error occurred: {e.Message}");
-                return "";
-            }
-
-            return info;
+        private string FormatBackupInfo(BackupRecord r)
+        {
+            return $"#{r.id} | Round {r.round_number} | {r.team1_name} {r.team1_score}:{r.team2_score} {r.team2_name} | {r.map_name} | {r.timestamp}";
         }
 
         public string GetMatchConfig()
@@ -629,24 +559,230 @@ namespace MatchZy
                 return;
             }
             var matchId = command.ArgCount >= 2 ? command.GetArg(1) : liveMatchId.ToString();
-            List<string> backups = GetBackups(matchId);
-
-            if (backups.Count == 0)
+            if (!long.TryParse(matchId, out long mid))
             {
-                command.ReplyToCommand("Found no backup files matching the provided parameters.");
+                command.ReplyToCommand("Invalid match ID.");
+                return;
+            }
+            var records = database.GetRoundBackups(mid, matchConfig.CurrentMapNumber, matchzyServerId.Value, 30);
+
+            if (!records.Any())
+            {
+                command.ReplyToCommand("Found no backups matching the provided parameters.");
+                return;
             }
 
-            foreach (string backup in backups)
+            foreach (var r in records)
             {
-                string backupInfo = GetBackupInfo(backup);
-                if (backupInfo != "")
+                command.ReplyToCommand(FormatBackupInfo(r));
+            }
+        }
+
+        // =========================================================================
+        // Restore Vote System
+        // =========================================================================
+
+        public void StartRestoreVote(CCSPlayerController? initiator)
+        {
+            if (isRestoreVoteInProgress)
+            {
+                ReplyToUserCommand(initiator, Localizer["matchzy.vote.alreadyinprogress"]);
+                return;
+            }
+
+            // Collect eligible voters (all non-bot, non-HLTV players on server)
+            restoreVotePlayers.Clear();
+            restoreVoteData.Clear();
+            foreach (var kvp in playerData)
+            {
+                var p = kvp.Value;
+                if (p != null && IsPlayerValid(p) && !p.IsBot && !p.IsHLTV)
                 {
-                    command.ReplyToCommand(backupInfo);
+                    ulong steamId = p.SteamID;
+                    restoreVotePlayers[steamId] = true;
+                    restoreVoteData[steamId] = false; // defaults to NO
                 }
-                else
+            }
+
+            if (restoreVotePlayers.Count < 2)
+            {
+                ReplyToUserCommand(initiator, Localizer["matchzy.vote.notenoughplayers"]);
+                return;
+            }
+
+            isRestoreVoteInProgress = true;
+            restoreVoteInitiator = initiator;
+            restoreVoteMatchId = liveMatchId;
+            restoreVoteMapNumber = matchConfig.CurrentMapNumber;
+
+            string initiatorName = initiator?.PlayerName ?? "Console";
+            PrintToAllChat(Localizer["matchzy.vote.started", initiatorName, restoreVoteThreshold, restoreVoteTimeout]);
+            PrintToAllChat(Localizer["matchzy.vote.instructions"]);
+
+            // Set 20-second timeout
+            restoreVoteTimer = AddTimer(restoreVoteTimeout, () =>
+            {
+                ProcessRestoreVoteResult();
+            });
+        }
+
+        public void OnRestoreVoteYes(CCSPlayerController? player)
+        {
+            if (player == null || !isRestoreVoteInProgress) return;
+            ulong steamId = player.SteamID;
+            if (!restoreVotePlayers.ContainsKey(steamId)) return;
+
+            restoreVoteData[steamId] = true;
+            PrintToPlayerChat(player, Localizer["matchzy.vote.youvotedyes"]);
+            CheckRestoreVoteThreshold();
+        }
+
+        public void OnRestoreVoteNo(CCSPlayerController? player)
+        {
+            if (player == null || !isRestoreVoteInProgress) return;
+            ulong steamId = player.SteamID;
+            if (!restoreVotePlayers.ContainsKey(steamId)) return;
+
+            restoreVoteData[steamId] = false;
+            PrintToPlayerChat(player, Localizer["matchzy.vote.youvotedno"]);
+            CheckRestoreVoteThreshold();
+        }
+
+        private void CheckRestoreVoteThreshold()
+        {
+            if (!isRestoreVoteInProgress) return;
+
+            int totalVoters = restoreVotePlayers.Count;
+            int yesVotes = restoreVoteData.Count(v => v.Value);
+            int noVotes = restoreVoteData.Count(v => !v.Value);
+            int voted = yesVotes + noVotes;
+
+            // Need ALL players to vote, then check 75%
+            if (voted >= totalVoters)
+            {
+                ProcessRestoreVoteResult();
+            }
+        }
+
+        private void ProcessRestoreVoteResult()
+        {
+            if (!isRestoreVoteInProgress) return;
+
+            // Kill timer
+            if (restoreVoteTimer != null)
+            {
+                restoreVoteTimer.Kill();
+                restoreVoteTimer = null;
+            }
+
+            int totalVoters = restoreVotePlayers.Count;
+            int yesVotes = restoreVoteData.Count(v => v.Value);
+            int noVotes = totalVoters - yesVotes;
+            double yesPercent = totalVoters > 0 ? (double)yesVotes / totalVoters * 100.0 : 0;
+
+            if (yesPercent >= restoreVoteThreshold)
+            {
+                PrintToAllChat(Localizer["matchzy.vote.passed", $"{yesPercent:F0}"]);
+                ShowBackupListForVote();
+            }
+            else
+            {
+                PrintToAllChat(Localizer["matchzy.vote.failed", $"{yesPercent:F0}", restoreVoteThreshold]);
+                ResetRestoreVote();
+            }
+        }
+
+        private void ShowBackupListForVote()
+        {
+            long matchIdToUse = isMatchLive ? liveMatchId : restoreVoteMatchId;
+            int mapNumToUse = isMatchLive ? matchConfig.CurrentMapNumber : restoreVoteMapNumber;
+            string serverId = matchzyServerId.Value;
+
+            if (matchIdToUse <= 0)
+            {
+                // No specific match — show recent backups for THIS server only
+                var recent = database.GetRecentBackups(serverId, 5);
+                if (!recent.Any())
                 {
-                    command.ReplyToCommand(backup);
+                    PrintToAllChat(Localizer["matchzy.vote.nobackups"]);
+                    ResetRestoreVote();
+                    return;
                 }
+                PrintToAllChat(Localizer["matchzy.vote.availablebackups"]);
+                foreach (var r in recent)
+                {
+                    PrintToAllChat($"  {FormatBackupInfo(r)} → .restore {r.id}");
+                }
+            }
+            else
+            {
+                var backups = database.GetRoundBackups(matchIdToUse, mapNumToUse, serverId, 5);
+                if (!backups.Any())
+                {
+                    PrintToAllChat(Localizer["matchzy.vote.nobackups"]);
+                    ResetRestoreVote();
+                    return;
+                }
+                PrintToAllChat(Localizer["matchzy.vote.availablebackups"]);
+                foreach (var r in backups)
+                {
+                    PrintToAllChat($"  {FormatBackupInfo(r)} → .restore {r.id}");
+                }
+            }
+
+            PrintToAllChat(Localizer["matchzy.vote.pickround"]);
+            // Keep vote state active for 30 more seconds so players can pick
+            restoreVoteTimer = AddTimer(30, () =>
+            {
+                PrintToAllChat(Localizer["matchzy.vote.timedout"]);
+                ResetRestoreVote();
+            });
+        }
+
+        public void HandleVoteRestore(CCSPlayerController? player, string arg)
+        {
+            if (!isRestoreVoteInProgress)
+            {
+                // No vote in progress — check if we should start one
+                if (string.IsNullOrWhiteSpace(arg) && !isMatchLive)
+                {
+                    StartRestoreVote(player);
+                    return;
+                }
+
+                // If match is live, only admin can restore
+                if (!IsPlayerAdmin(player, "css_restore", "@css/config"))
+                {
+                    SendPlayerNotAdminMessage(player);
+                    return;
+                }
+
+                HandleRestoreCommand(player, arg);
+                return;
+            }
+
+            // Vote is in progress, arg should be backup ID
+            if (!string.IsNullOrWhiteSpace(arg))
+            {
+                RestoreRoundBackup(player, arg);
+            }
+            else
+            {
+                ReplyToUserCommand(player, Localizer["matchzy.vote.alreadyinprogress"]);
+            }
+        }
+
+        private void ResetRestoreVote()
+        {
+            isRestoreVoteInProgress = false;
+            restoreVoteData.Clear();
+            restoreVotePlayers.Clear();
+            restoreVoteInitiator = null;
+
+            if (restoreVoteTimer != null)
+            {
+                restoreVoteTimer.Kill();
+                restoreVoteTimer = null;
             }
         }
     }

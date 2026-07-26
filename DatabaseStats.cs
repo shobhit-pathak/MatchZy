@@ -152,6 +152,36 @@ namespace MatchZy
                     FOREIGN KEY (matchid) REFERENCES matchzy_stats_matches (matchid),
                     FOREIGN KEY (matchid, mapnumber) REFERENCES matchzy_stats_maps (matchid, mapnumber)
                 )");
+
+            connection.Execute(@"
+                CREATE TABLE IF NOT EXISTS matchzy_backups (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    match_id INTEGER NOT NULL,
+                    map_number INTEGER NOT NULL,
+                    round_number INTEGER NOT NULL,
+                    timestamp TEXT NOT NULL,
+                    map_name TEXT NOT NULL DEFAULT '',
+                    team1_name TEXT NOT NULL DEFAULT '',
+                    team1_score INTEGER NOT NULL DEFAULT 0,
+                    team2_name TEXT NOT NULL DEFAULT '',
+                    team2_score INTEGER NOT NULL DEFAULT 0,
+                    team1_side TEXT NOT NULL DEFAULT '',
+                    team2_side TEXT NOT NULL DEFAULT '',
+                    team1_series_score INTEGER NOT NULL DEFAULT 0,
+                    team2_series_score INTEGER NOT NULL DEFAULT 0,
+                    match_config TEXT NOT NULL DEFAULT '',
+                    team1_config TEXT NOT NULL DEFAULT '',
+                    team2_config TEXT NOT NULL DEFAULT '',
+                    valve_backup TEXT NOT NULL DEFAULT '',
+                    terrorist_timeouts INTEGER NOT NULL DEFAULT 0,
+                    ct_timeouts INTEGER NOT NULL DEFAULT 0,
+                    match_loaded INTEGER NOT NULL DEFAULT 0,
+                    team1_flag TEXT NOT NULL DEFAULT '',
+                    team1_tag TEXT NOT NULL DEFAULT '',
+                    team2_flag TEXT NOT NULL DEFAULT '',
+                    team2_tag TEXT NOT NULL DEFAULT '',
+                    server_id TEXT NOT NULL DEFAULT ''
+                )");
         }
 
         public void CreateRequiredTablesSQL()
@@ -227,6 +257,38 @@ namespace MatchZy
                 CONSTRAINT fk_player_map_ref FOREIGN KEY (matchid, mapnumber) 
                     REFERENCES matchzy_stats_maps (matchid, mapnumber)
             )");
+
+            connection.Execute($@"
+                CREATE TABLE IF NOT EXISTS matchzy_backups (
+                    id INT PRIMARY KEY AUTO_INCREMENT,
+                    match_id INT NOT NULL,
+                    map_number TINYINT UNSIGNED NOT NULL,
+                    round_number TINYINT UNSIGNED NOT NULL,
+                    timestamp VARCHAR(32) NOT NULL,
+                    map_name VARCHAR(64) NOT NULL DEFAULT '',
+                    team1_name VARCHAR(255) NOT NULL DEFAULT '',
+                    team1_score INT NOT NULL DEFAULT 0,
+                    team2_name VARCHAR(255) NOT NULL DEFAULT '',
+                    team2_score INT NOT NULL DEFAULT 0,
+                    team1_side VARCHAR(16) NOT NULL DEFAULT '',
+                    team2_side VARCHAR(16) NOT NULL DEFAULT '',
+                    team1_series_score INT NOT NULL DEFAULT 0,
+                    team2_series_score INT NOT NULL DEFAULT 0,
+                    match_config MEDIUMTEXT NOT NULL,
+                    team1_config MEDIUMTEXT NOT NULL,
+                    team2_config MEDIUMTEXT NOT NULL,
+                    valve_backup MEDIUMTEXT NOT NULL,
+                    terrorist_timeouts INT NOT NULL DEFAULT 0,
+                    ct_timeouts INT NOT NULL DEFAULT 0,
+                    match_loaded TINYINT NOT NULL DEFAULT 0,
+                    team1_flag VARCHAR(16) NOT NULL DEFAULT '',
+                    team1_tag VARCHAR(64) NOT NULL DEFAULT '',
+                    team2_flag VARCHAR(16) NOT NULL DEFAULT '',
+                    team2_tag VARCHAR(64) NOT NULL DEFAULT '',
+                    server_id VARCHAR(64) NOT NULL DEFAULT '',
+                    INDEX idx_match_id (match_id),
+                    INDEX idx_match_map (match_id, map_number)
+                )");
         }
 
         public long InitMatch(string team1name, string team2name, string serverIp, bool isMatchSetup, long liveMatchId, int mapNumber, string seriesType, MatchConfig matchConfig)
@@ -528,6 +590,133 @@ namespace MatchZy
 
         }
 
+        // =========================================================================
+        // Round Backup Methods
+        // =========================================================================
+
+        public void SaveRoundBackup(long matchId, int mapNumber, int roundNumber, string mapName,
+            string team1Name, int team1Score, string team2Name, int team2Score,
+            string team1Side, string team2Side, int team1SeriesScore, int team2SeriesScore,
+            string matchConfigJson, string team1ConfigJson, string team2ConfigJson,
+            string valveBackup, int terroristTimeouts, int ctTimeouts, bool matchLoaded,
+            string team1Flag, string team1Tag, string team2Flag, string team2Tag,
+            string serverId)
+        {
+            try
+            {
+                string dateTimeExpression = (connection is SqliteConnection) ? "datetime('now')" : "NOW()";
+                string sql = $@"
+                    INSERT INTO matchzy_backups (
+                        match_id, map_number, round_number, timestamp, map_name,
+                        team1_name, team1_score, team2_name, team2_score,
+                        team1_side, team2_side, team1_series_score, team2_series_score,
+                        match_config, team1_config, team2_config, valve_backup,
+                        terrorist_timeouts, ct_timeouts, match_loaded,
+                        team1_flag, team1_tag, team2_flag, team2_tag, server_id)
+                    VALUES (
+                        @matchId, @mapNumber, @roundNumber, {dateTimeExpression}, @mapName,
+                        @team1Name, @team1Score, @team2Name, @team2Score,
+                        @team1Side, @team2Side, @team1SeriesScore, @team2SeriesScore,
+                        @matchConfigJson, @team1ConfigJson, @team2ConfigJson, @valveBackup,
+                        @terroristTimeouts, @ctTimeouts, @matchLoaded,
+                        @team1Flag, @team1Tag, @team2Flag, @team2Tag, @serverId)";
+
+                connection.Execute(sql, new
+                {
+                    matchId, mapNumber, roundNumber, mapName,
+                    team1Name, team1Score, team2Name, team2Score,
+                    team1Side, team2Side, team1SeriesScore, team2SeriesScore,
+                    matchConfigJson, team1ConfigJson, team2ConfigJson, valveBackup,
+                    terroristTimeouts, ctTimeouts, matchLoaded = matchLoaded ? 1 : 0,
+                    team1Flag, team1Tag, team2Flag, team2Tag,
+                    serverId
+                });
+
+                Log($"[SaveRoundBackup] Backup saved: match={matchId} map={mapNumber} round={roundNumber} server={serverId}");
+            }
+            catch (Exception ex)
+            {
+                Log($"[SaveRoundBackup FATAL] Error saving backup: {ex.Message}");
+            }
+        }
+
+        public IEnumerable<BackupRecord> GetRoundBackups(long matchId, int mapNumber, string? serverId = null, int limit = 20)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(serverId))
+                {
+                    return connection.Query<BackupRecord>(
+                        "SELECT * FROM matchzy_backups WHERE match_id = @matchId AND map_number = @mapNumber AND server_id = @serverId ORDER BY id DESC LIMIT @limit",
+                        new { matchId, mapNumber, serverId, limit });
+                }
+                else
+                {
+                    return connection.Query<BackupRecord>(
+                        "SELECT * FROM matchzy_backups WHERE match_id = @matchId AND map_number = @mapNumber ORDER BY id DESC LIMIT @limit",
+                        new { matchId, mapNumber, limit });
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"[GetRoundBackups FATAL] Error: {ex.Message}");
+                return new List<BackupRecord>();
+            }
+        }
+
+        public BackupRecord? GetRoundBackupById(long backupId)
+        {
+            try
+            {
+                return connection.QueryFirstOrDefault<BackupRecord>(
+                    "SELECT * FROM matchzy_backups WHERE id = @backupId", new { backupId });
+            }
+            catch (Exception ex)
+            {
+                Log($"[GetRoundBackupById FATAL] Error: {ex.Message}");
+                return null;
+            }
+        }
+
+        public IEnumerable<BackupRecord> GetRecentBackups(string? serverId = null, int limit = 5)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(serverId))
+                {
+                    return connection.Query<BackupRecord>(
+                        "SELECT * FROM matchzy_backups WHERE server_id = @serverId ORDER BY id DESC LIMIT @limit",
+                        new { serverId, limit });
+                }
+                else
+                {
+                    return connection.Query<BackupRecord>(
+                        "SELECT * FROM matchzy_backups ORDER BY id DESC LIMIT @limit",
+                        new { limit });
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"[GetRecentBackups FATAL] Error: {ex.Message}");
+                return new List<BackupRecord>();
+            }
+        }
+
+        public BackupRecord? GetBackupByMatchAndRound(long matchId, int mapNumber, int roundNumber)
+        {
+            try
+            {
+                return connection.QueryFirstOrDefault<BackupRecord>(
+                    "SELECT * FROM matchzy_backups WHERE match_id = @matchId AND map_number = @mapNumber AND round_number = @roundNumber ORDER BY id DESC LIMIT 1",
+                    new { matchId, mapNumber, roundNumber });
+            }
+            catch (Exception ex)
+            {
+                Log($"[GetBackupByMatchAndRound FATAL] Error: {ex.Message}");
+                return null;
+            }
+        }
+
         private void CreateDefaultConfigFile(string configFile)
         {
             // Create a default configuration
@@ -598,6 +787,36 @@ namespace MatchZy
         public string? MySqlUsername { get; set; }
         public string? MySqlPassword { get; set; }
         public int? MySqlPort { get; set; }
+    }
+
+    public class BackupRecord
+    {
+        public long id { get; set; }
+        public long match_id { get; set; }
+        public int map_number { get; set; }
+        public int round_number { get; set; }
+        public string timestamp { get; set; } = "";
+        public string map_name { get; set; } = "";
+        public string team1_name { get; set; } = "";
+        public int team1_score { get; set; }
+        public string team2_name { get; set; } = "";
+        public int team2_score { get; set; }
+        public string team1_side { get; set; } = "";
+        public string team2_side { get; set; } = "";
+        public int team1_series_score { get; set; }
+        public int team2_series_score { get; set; }
+        public string match_config { get; set; } = "";
+        public string team1_config { get; set; } = "";
+        public string team2_config { get; set; } = "";
+        public string valve_backup { get; set; } = "";
+        public int terrorist_timeouts { get; set; }
+        public int ct_timeouts { get; set; }
+        public int match_loaded { get; set; }
+        public string team1_flag { get; set; } = "";
+        public string team1_tag { get; set; } = "";
+        public string team2_flag { get; set; } = "";
+        public string team2_tag { get; set; } = "";
+        public string server_id { get; set; } = "";
     }
 
 }

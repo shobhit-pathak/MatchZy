@@ -125,5 +125,18 @@
     "matchzy.pracc.molotov": "Коктейль Молотова, брошенный {red}{0}{default}, взорвался через {green}{1}{default}с",
     "matchzy.pracc.decoy": "Ложная граната, брошенная {red}{0}{default}, взорвалась через {green}{1}{default}с",
     "matchzy.pracc.damage": "{red}{0}{default} урона по {lightblue}{1}{default}({green}{2}{default} здоровья)",
-    "matchzy.pracc.blind": "{lightblue}{0}{default} был ослеплён на {green}{1}{default}с"
+    "matchzy.pracc.blind": "{lightblue}{0}{default} был ослеплён на {green}{1}{default}с",
+
+    "matchzy.vote.started": "{green}{0}{default} запустил голосование за восстановление матча из бэкапа. Нужно {green}{1}%{default} голосов «за». Время: {2}с",
+    "matchzy.vote.instructions": "Напишите {green}.yes{default} или {green}.no{default} в чат для голосования.",
+    "matchzy.vote.youvotedyes": "Вы проголосовали {green}ЗА{default} восстановление.",
+    "matchzy.vote.youvotedno": "Вы проголосовали {red}ПРОТИВ{default} восстановления.",
+    "matchzy.vote.passed": "Голосование пройдено! {0}% проголосовало «за». Доступные бэкапы:",
+    "matchzy.vote.failed": "Голосование провалено: {0}% «за» (нужно {1}%).",
+    "matchzy.vote.availablebackups": "Доступные бэкапы (сначала новые):",
+    "matchzy.vote.nobackups": "Бэкапы не найдены в базе данных.",
+    "matchzy.vote.pickround": "Напишите {green}.restore <id>{default} чтобы восстановить конкретный раунд.",
+    "matchzy.vote.alreadyinprogress": "Голосование уже идёт.",
+    "matchzy.vote.notenoughplayers": "Недостаточно игроков на сервере для голосования (минимум 2).",
+    "matchzy.vote.timedout": "Время голосования истекло. Раунд не восстановлен."
 }
