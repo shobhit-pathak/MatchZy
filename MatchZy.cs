@@ -202,7 +202,9 @@ namespace MatchZy
                 { ".besttspawn", OnBestTSpawnCommand },
                 { ".worsttspawn", OnWorstTSpawnCommand },
                 { ".savepos", OnSavePosCommand},
-                { ".loadpos", OnLoadPosCommand}
+                { ".loadpos", OnLoadPosCommand},
+                { ".yes", OnVoteYesChat },
+                { ".no", OnVoteNoChat }
             };
 
             RegisterEventHandler<EventPlayerConnectFull>(EventPlayerConnectFullHandler);
@@ -405,7 +407,7 @@ namespace MatchZy
 
                 if (message.StartsWith(".restore"))
                 {
-                    HandleRestoreCommand(player, messageCommandArg);
+                    HandleVoteRestore(player, messageCommandArg);
                 }
                 if (message.StartsWith(".asay"))
                 {
@@ -543,6 +545,17 @@ namespace MatchZy
             RegisterEventHandler<EventDecoyStarted>(EventDecoyDetonateHandler);
 
             Console.WriteLine($"[{ModuleName} {ModuleVersion} LOADED] MatchZy by WD- (https://github.com/shobhit-pathak/)");
+        }
+        [ConsoleCommand("css_yes", "Vote yes for restore")]
+        public void OnVoteYesChat(CCSPlayerController? player, CommandInfo? command)
+        {
+            OnRestoreVoteYes(player);
+        }
+
+        [ConsoleCommand("css_no", "Vote no for restore")]
+        public void OnVoteNoChat(CCSPlayerController? player, CommandInfo? command)
+        {
+            OnRestoreVoteNo(player);
         }
     }
 }

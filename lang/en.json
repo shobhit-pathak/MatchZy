@@ -136,5 +136,18 @@
   "matchzy.pracc.molotov": "Molotov thrown by {red}{0}{default} took {green}{1}{default}s to detonate",
   "matchzy.pracc.decoy": "Decoy thrown by {red}{0}{default} took {green}{1}{default}s to detonate",
   "matchzy.pracc.damage": "{red}{0}{default} damage to {lightblue}{1}{default}({green}{2}{default} health)",
-  "matchzy.pracc.blind": "{lightblue}{0}{default} has been blinded for {green}{1}{default}s"
+  "matchzy.pracc.blind": "{lightblue}{0}{default} has been blinded for {green}{1}{default}s",
+
+  "matchzy.vote.started": "{green}{0}{default} started a vote to restore match from backup. Need {green}{1}%{default} yes votes. Time: {2}s",
+  "matchzy.vote.instructions": "Type {green}.yes{default} or {green}.no{default} in chat to vote.",
+  "matchzy.vote.youvotedyes": "You voted {green}YES{default} to restore.",
+  "matchzy.vote.youvotedno": "You voted {red}NO{default} to restore.",
+  "matchzy.vote.passed": "Vote passed! {0}% voted yes. Showing available backups:",
+  "matchzy.vote.failed": "Vote failed: {0}% yes (needed {1}%).",
+  "matchzy.vote.availablebackups": "Available backups (most recent first):",
+  "matchzy.vote.nobackups": "No backups found in the database.",
+  "matchzy.vote.pickround": "Type {green}.restore <id>{default} to restore a specific round.",
+  "matchzy.vote.alreadyinprogress": "A vote is already in progress.",
+  "matchzy.vote.notenoughplayers": "Not enough players on the server to start a vote (minimum 2).",
+  "matchzy.vote.timedout": "Vote timed out. No round was restored."
 }
