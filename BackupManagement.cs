@@ -42,7 +42,6 @@ namespace MatchZy
         public int restoreVoteMapNumber = 0;
         public int restoreVoteThreshold = 75;                          // percentage needed
         public int restoreVoteTimeout = 20;                            // seconds
-        private int restoreVoteRoundNumber = -1;                       // chosen round to restore
 
 
         public void SetupRoundBackupFile()
@@ -779,7 +778,6 @@ namespace MatchZy
             restoreVoteData.Clear();
             restoreVotePlayers.Clear();
             restoreVoteInitiator = null;
-            restoreVoteRoundNumber = -1;
 
             if (restoreVoteTimer != null)
             {
