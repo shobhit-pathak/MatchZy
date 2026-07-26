@@ -179,7 +179,8 @@ namespace MatchZy
                     team1_flag TEXT NOT NULL DEFAULT '',
                     team1_tag TEXT NOT NULL DEFAULT '',
                     team2_flag TEXT NOT NULL DEFAULT '',
-                    team2_tag TEXT NOT NULL DEFAULT ''
+                    team2_tag TEXT NOT NULL DEFAULT '',
+                    server_id TEXT NOT NULL DEFAULT ''
                 )");
         }
 
@@ -284,6 +285,7 @@ namespace MatchZy
                     team1_tag VARCHAR(64) NOT NULL DEFAULT '',
                     team2_flag VARCHAR(16) NOT NULL DEFAULT '',
                     team2_tag VARCHAR(64) NOT NULL DEFAULT '',
+                    server_id VARCHAR(64) NOT NULL DEFAULT '',
                     INDEX idx_match_id (match_id),
                     INDEX idx_match_map (match_id, map_number)
                 )");
@@ -597,7 +599,8 @@ namespace MatchZy
             string team1Side, string team2Side, int team1SeriesScore, int team2SeriesScore,
             string matchConfigJson, string team1ConfigJson, string team2ConfigJson,
             string valveBackup, int terroristTimeouts, int ctTimeouts, bool matchLoaded,
-            string team1Flag, string team1Tag, string team2Flag, string team2Tag)
+            string team1Flag, string team1Tag, string team2Flag, string team2Tag,
+            string serverId)
         {
             try
             {
@@ -609,14 +612,14 @@ namespace MatchZy
                         team1_side, team2_side, team1_series_score, team2_series_score,
                         match_config, team1_config, team2_config, valve_backup,
                         terrorist_timeouts, ct_timeouts, match_loaded,
-                        team1_flag, team1_tag, team2_flag, team2_tag)
+                        team1_flag, team1_tag, team2_flag, team2_tag, server_id)
                     VALUES (
                         @matchId, @mapNumber, @roundNumber, {dateTimeExpression}, @mapName,
                         @team1Name, @team1Score, @team2Name, @team2Score,
                         @team1Side, @team2Side, @team1SeriesScore, @team2SeriesScore,
                         @matchConfigJson, @team1ConfigJson, @team2ConfigJson, @valveBackup,
                         @terroristTimeouts, @ctTimeouts, @matchLoaded,
-                        @team1Flag, @team1Tag, @team2Flag, @team2Tag)";
+                        @team1Flag, @team1Tag, @team2Flag, @team2Tag, @serverId)";
 
                 connection.Execute(sql, new
                 {
@@ -625,10 +628,11 @@ namespace MatchZy
                     team1Side, team2Side, team1SeriesScore, team2SeriesScore,
                     matchConfigJson, team1ConfigJson, team2ConfigJson, valveBackup,
                     terroristTimeouts, ctTimeouts, matchLoaded = matchLoaded ? 1 : 0,
-                    team1Flag, team1Tag, team2Flag, team2Tag
+                    team1Flag, team1Tag, team2Flag, team2Tag,
+                    serverId
                 });
 
-                Log($"[SaveRoundBackup] Backup saved: match={matchId} map={mapNumber} round={roundNumber}");
+                Log($"[SaveRoundBackup] Backup saved: match={matchId} map={mapNumber} round={roundNumber} server={serverId}");
             }
             catch (Exception ex)
             {
@@ -636,13 +640,22 @@ namespace MatchZy
             }
         }
 
-        public IEnumerable<BackupRecord> GetRoundBackups(long matchId, int mapNumber, int limit = 20)
+        public IEnumerable<BackupRecord> GetRoundBackups(long matchId, int mapNumber, string? serverId = null, int limit = 20)
         {
             try
             {
-                return connection.Query<BackupRecord>(
-                    "SELECT * FROM matchzy_backups WHERE match_id = @matchId AND map_number = @mapNumber ORDER BY id DESC LIMIT @limit",
-                    new { matchId, mapNumber, limit });
+                if (!string.IsNullOrEmpty(serverId))
+                {
+                    return connection.Query<BackupRecord>(
+                        "SELECT * FROM matchzy_backups WHERE match_id = @matchId AND map_number = @mapNumber AND server_id = @serverId ORDER BY id DESC LIMIT @limit",
+                        new { matchId, mapNumber, serverId, limit });
+                }
+                else
+                {
+                    return connection.Query<BackupRecord>(
+                        "SELECT * FROM matchzy_backups WHERE match_id = @matchId AND map_number = @mapNumber ORDER BY id DESC LIMIT @limit",
+                        new { matchId, mapNumber, limit });
+                }
             }
             catch (Exception ex)
             {
@@ -665,13 +678,22 @@ namespace MatchZy
             }
         }
 
-        public IEnumerable<BackupRecord> GetRecentBackups(int limit = 5)
+        public IEnumerable<BackupRecord> GetRecentBackups(string? serverId = null, int limit = 5)
         {
             try
             {
-                return connection.Query<BackupRecord>(
-                    "SELECT * FROM matchzy_backups ORDER BY id DESC LIMIT @limit",
-                    new { limit });
+                if (!string.IsNullOrEmpty(serverId))
+                {
+                    return connection.Query<BackupRecord>(
+                        "SELECT * FROM matchzy_backups WHERE server_id = @serverId ORDER BY id DESC LIMIT @limit",
+                        new { serverId, limit });
+                }
+                else
+                {
+                    return connection.Query<BackupRecord>(
+                        "SELECT * FROM matchzy_backups ORDER BY id DESC LIMIT @limit",
+                        new { limit });
+                }
             }
             catch (Exception ex)
             {
@@ -794,6 +816,7 @@ namespace MatchZy
         public string team1_tag { get; set; } = "";
         public string team2_flag { get; set; } = "";
         public string team2_tag { get; set; } = "";
+        public string server_id { get; set; } = "";
     }
 
 }

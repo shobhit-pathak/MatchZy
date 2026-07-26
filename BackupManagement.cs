@@ -411,7 +411,8 @@ namespace MatchZy
                     team1Flag: matchzyTeam1.teamFlag,
                     team1Tag: matchzyTeam1.teamTag,
                     team2Flag: matchzyTeam2.teamFlag,
-                    team2Tag: matchzyTeam2.teamTag
+                    team2Tag: matchzyTeam2.teamTag,
+                    serverId: matchzyServerId.Value
                 );
 
                 // Also write legacy file backup for backward compatibility (optional, can be disabled)
@@ -444,7 +445,7 @@ namespace MatchZy
         {
             if (!long.TryParse(matchID, out long mid)) return new List<string>();
 
-            var records = database.GetRoundBackups(mid, matchConfig.CurrentMapNumber, 30);
+            var records = database.GetRoundBackups(mid, matchConfig.CurrentMapNumber, matchzyServerId.Value, 30);
             return records.Select(r => $"ID:{r.id} R{r.round_number} {r.timestamp} {r.team1_name}({r.team1_score}) vs {r.team2_name}({r.team2_score}) {r.map_name}").ToList();
         }
 
@@ -564,7 +565,7 @@ namespace MatchZy
                 command.ReplyToCommand("Invalid match ID.");
                 return;
             }
-            var records = database.GetRoundBackups(mid, matchConfig.CurrentMapNumber, 30);
+            var records = database.GetRoundBackups(mid, matchConfig.CurrentMapNumber, matchzyServerId.Value, 30);
 
             if (!records.Any())
             {
@@ -696,11 +697,12 @@ namespace MatchZy
         {
             long matchIdToUse = isMatchLive ? liveMatchId : restoreVoteMatchId;
             int mapNumToUse = isMatchLive ? matchConfig.CurrentMapNumber : restoreVoteMapNumber;
+            string serverId = matchzyServerId.Value;
 
             if (matchIdToUse <= 0)
             {
-                // No specific match — show recent backups across all matches
-                var recent = database.GetRecentBackups(5);
+                // No specific match — show recent backups for THIS server only
+                var recent = database.GetRecentBackups(serverId, 5);
                 if (!recent.Any())
                 {
                     PrintToAllChat(Localizer["matchzy.vote.nobackups"]);
@@ -715,7 +717,7 @@ namespace MatchZy
             }
             else
             {
-                var backups = database.GetRoundBackups(matchIdToUse, mapNumToUse, 5);
+                var backups = database.GetRoundBackups(matchIdToUse, mapNumToUse, serverId, 5);
                 if (!backups.Any())
                 {
                     PrintToAllChat(Localizer["matchzy.vote.nobackups"]);
