@@ -277,6 +277,8 @@ namespace MatchZy
 
             matchzyTeam1.teamName = RemoveSpecialCharacters(team1["name"]!.ToString());
             matchzyTeam2.teamName = RemoveSpecialCharacters(team2["name"]!.ToString());
+            matchzyTeam1.teamTag = team1["tag"]?.ToString() ?? "";
+            matchzyTeam2.teamTag = team2["tag"]?.ToString() ?? "";
             matchzyTeam1.teamPlayers = team1["players"];
             matchzyTeam2.teamPlayers = team2["players"];
 
@@ -366,6 +368,7 @@ namespace MatchZy
 
             SetTeamNames();
             UpdatePlayersMap();
+            HandleClanTags();
             UpdateHostname();
 
             var seriesStartedEvent = new MatchZySeriesStartedEvent
