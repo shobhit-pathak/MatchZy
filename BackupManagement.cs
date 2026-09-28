@@ -34,8 +34,16 @@ namespace MatchZy
         public void SetupRoundBackupFile()
         {
             string backupFilePrefix = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}";
-            Server.ExecuteCommand($"mp_backup_round_file {backupFilePrefix}");
+            Server.ExecuteCommand($"mp_backup_round_file {BackupPathArg(backupFilePrefix)}");
         }
+
+        // Relative backup paths resolve under csgo/addons/metamod when Metamod is installed.
+        private string BackupPathArg(string csgoRelativePath)
+        {
+            string fullPath = Path.Join(Server.GameDirectory, "csgo", csgoRelativePath).Replace('\\', '/');
+            return fullPath.Contains(' ') ? $"\"{fullPath}\"" : fullPath;
+        }
+
         [ConsoleCommand("css_stop", "Restore the backup of the current round (Both teams need to type .stop to restore the current round)")]
         public void OnStopCommand(CCSPlayerController? player, CommandInfo? command)
         {
@@ -365,9 +373,7 @@ namespace MatchZy
                         SetupLiveFlagsAndCfg();
                     }
                     AddTimer(restoreTimer, () => {
-                        string fileName = Path.GetFileName(tempFilePath);
-
-                        Server.ExecuteCommand($"mp_backup_restore_load_file {fileName}");
+                        Server.ExecuteCommand($"mp_backup_restore_load_file {BackupPathArg(Path.GetFileName(tempFilePath))}");
                         StartDemoRecording();
                     });
                     // AddTimer(5, () => File.Delete(tempFilePath));

@@ -99,7 +99,11 @@ namespace MatchZy
             if (command.ArgCount == 2)
             {
                 string path = command.ArgByIndex(1);
-                if (path[0] == '/' || path[0] == '.' || path[^1] != '/' || path.Contains("//"))
+                if (path == "")
+                {
+                    demoPath = "";
+                }
+                else if (path[0] == '/' || path[0] == '.' || path[^1] != '/' || path.Contains("//"))
                 {
                     Log($"matchzy_demo_path must end with a slash and must not start with a slash or dot. It will be reset to an empty string! Current value: {demoPath}");
                 }
