@@ -70,6 +70,16 @@ This file can be loaded using :
 1. `matchzy_loadmatch astralis_vs_navi_27.json` (if you have `astralis_vs_navi_27.json` in your `csgo` directory)
 2. `matchzy_loadmatch_url "https://<url>/astralis_vs_navi_27.json"`
 
+Other optional fields (Get5 compatible):
+
+- `"skip_veto"`: `false` by default, so a `maplist` with more maps than `num_maps` is vetoed. Set it to `true` to play the first `num_maps` maps of the list in order. A `maplist` with exactly `num_maps` maps is always played in order.
+- `"veto_first"`: `team1` (default), `team2` or `random`: the team that starts the default veto. When `veto_mode` is given, it is used exactly as written.
+- `"side_type"`: `standard` (default), `always_knife`, `never_knife` or `random`: how sides are chosen for maps without an entry in `map_sides`.
+- `"players"` can also be an array of SteamID64s, e.g. `"players": ["76561198264582285", "76561197960265728"]`.
+- `true`/`false` fields also accept `1`/`0`.
+
+Entries in `"cvars"` must be a real convar (like `mp_friendlyfire`) or a MatchZy/Get5 setting (like `matchzy_remote_log_url`), and the value cannot contain `"`, `;` or line breaks. Console commands (e.g. `quit`, `exec`), MatchZy/Get5 commands that perform an action (such as `matchzy_loadmatch_url` or `get5_endmatch`), `rcon_password` and `matchzy_everyone_is_admin` are ignored and logged. `matchzy_demo_path` and `matchzy_demo_name_format` must be relative paths without `..`.
+
 
 ## Current Limitations?
 

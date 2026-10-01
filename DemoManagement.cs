@@ -22,6 +22,43 @@ namespace MatchZy
         public bool isDemoRecording = false;
         public bool isDemoRecordingEnabled = true;
 
+        // Going live runs mp_restartgame, and a recording started before that restart is lost. So the demo is started at the
+        // first round start after the restart (or by a fallback timer if that round start does not come).
+        private DateTime? demoStartNotBefore;
+        private CounterStrikeSharp.API.Modules.Timers.Timer? demoStartFallbackTimer;
+
+        public void StartDemoRecordingAfterRestart(float restartDelaySeconds)
+        {
+            demoStartFallbackTimer?.Kill();
+            // The round start from mp_warmup_end comes right away; the one after the restart comes restartDelaySeconds later.
+            demoStartNotBefore = DateTime.Now.AddSeconds(Math.Max(0, restartDelaySeconds - 0.25));
+            demoStartFallbackTimer = AddTimer(restartDelaySeconds + 5.0f, () =>
+            {
+                demoStartFallbackTimer = null;
+                if (demoStartNotBefore == null) return;
+                Log("[StartDemoRecordingAfterRestart] No round start after the restart, starting the demo now.");
+                demoStartNotBefore = null;
+                if (isMatchLive) StartDemoRecording();
+            });
+        }
+
+        // Called on round start.
+        public void StartPendingDemoRecording()
+        {
+            if (demoStartNotBefore == null || DateTime.Now < demoStartNotBefore) return;
+            demoStartNotBefore = null;
+            demoStartFallbackTimer?.Kill();
+            demoStartFallbackTimer = null;
+            if (isMatchLive) StartDemoRecording();
+        }
+
+        public void CancelPendingDemoRecording()
+        {
+            demoStartNotBefore = null;
+            demoStartFallbackTimer?.Kill();
+            demoStartFallbackTimer = null;
+        }
+
         public void StartDemoRecording()
         {
             if (!isDemoRecordingEnabled)
@@ -47,6 +84,8 @@ namespace MatchZy
                 }
                 string tempDemoPath = demoPath == "" ? demoFileName : demoPath + demoFileName;
                 activeDemoFile = tempDemoPath;
+                // Write the demo while recording (as the fork does), so less of it is lost if the server crashes.
+                if (ConVar.Find("tv_record_immediate") != null) Server.ExecuteCommand("tv_record_immediate 1");
                 Log($"[StartDemoRecoding] Starting demo recording, path: {tempDemoPath}");
                 TvRecord(tempDemoPath);
                 isDemoRecording = true;
@@ -62,12 +101,11 @@ namespace MatchZy
 
         }
 
-        // Relative tv_record paths resolve under csgo/addons/metamod when Metamod is installed.
+        // tv_record with an absolute path (see CsgoPathArg).
         private void TvRecord(string csgoRelativePath)
         {
-            string fullPath = Path.Join(Server.GameDirectory, "csgo", csgoRelativePath).Replace('\\', '/');
-            string arg = fullPath.Contains(' ') ? $"\"{fullPath}\"" : fullPath;
-            Server.ExecuteCommand($"tv_record {arg}");
+            string fullPath = CsgoFullPath(csgoRelativePath);
+            Server.ExecuteCommand($"tv_record {CsgoPathArg(csgoRelativePath)}");
 
             AddTimer(5.0f, () =>
             {
@@ -84,6 +122,10 @@ namespace MatchZy
             string demoPath = Path.Join(Server.GameDirectory + "/csgo/", activeDemoFile);
             (int t1score, int t2score) = GetTeamsScore();
             int roundNumber = t1score + t2score;
+            // Captured now: at series end the match config's upload settings are restored before the upload below runs.
+            string uploadUrl = demoUploadURL;
+            string uploadHeaderKey = demoUploadHeaderKey;
+            string uploadHeaderValue = demoUploadHeaderValue;
             AddTimer(delay, () =>
             {
                 if (isDemoRecording)
@@ -95,7 +137,7 @@ namespace MatchZy
                 {
                     Task.Run(async () =>
                     {
-                        await UploadFileAsync(demoPath, demoUploadURL, demoUploadHeaderKey, demoUploadHeaderValue, liveMatchId, currentMapNumber, roundNumber);
+                        await UploadFileAsync(demoPath, uploadUrl, uploadHeaderKey, uploadHeaderValue, liveMatchId, currentMapNumber, roundNumber);
                     });
                 });
             });

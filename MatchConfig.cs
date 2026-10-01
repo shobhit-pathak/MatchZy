@@ -55,6 +55,10 @@ namespace MatchZy
         [JsonPropertyName("match_side_type")]
         public string MatchSideType { get; set; } = "standard";
 
+        // Team that starts the veto ("team1" or "team2"), from veto_first.
+        [JsonPropertyName("veto_first")]
+        public string VetoFirst { get; set; } = "team1";
+
         [JsonPropertyName("changed_cvars")]
         public Dictionary<string, string> ChangedCvars { get; set; } = new();
 

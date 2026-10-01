@@ -99,13 +99,13 @@ namespace MatchZy
             string headerName = command.ArgCount > 3 ? command.ArgByIndex(2) : "";
             string headerValue = command.ArgCount > 3 ? command.ArgByIndex(3) : "";
 
-            Log($"[LoadMatchDataCommand] Match setup request received with URL: {url} headerName: {headerName} and headerValue: {headerValue}");
+            Log($"[LoadMatchDataCommand] Match setup request received with URL: {MatchZySecurity.RedactUrl(url)} headerName: {headerName} and headerValue: {MatchZySecurity.RedactSecret(headerValue)}");
 
             if (!IsValidUrl(url))
             {
                 // command.ReplyToCommand($"[LoadMatchDataCommand] Invalid URL: {url}. Please provide a valid URL to load the match!");
-                ReplyToUserCommand(player, Localizer["matchzy.mm.invalidurl", url]);
-                Log($"[LoadMatchDataCommand] Invalid URL: {url}. Please provide a valid URL to load the match!");
+                ReplyToUserCommand(player, Localizer["matchzy.mm.invalidurl", MatchZySecurity.RedactUrl(url)]);
+                Log($"[LoadMatchDataCommand] Invalid URL: {MatchZySecurity.RedactUrl(url)}. Please provide a valid URL to load the match!");
                 return;
             }
             try
@@ -120,7 +120,7 @@ namespace MatchZy
                 if (response.IsSuccessStatusCode)
                 {
                     string jsonData = response.Content.ReadAsStringAsync().Result;
-                    Log($"[LoadMatchFromURL] Received following data: {jsonData}");
+                    Log($"[LoadMatchFromURL] Received match config ({jsonData.Length} characters)");
 
                     bool success = LoadMatchFromJSON(jsonData);
                     if (!success)
@@ -165,6 +165,13 @@ namespace MatchZy
                 switch (field)
                 {
                     case "matchid":
+                        // The MySQL tables store matchid as INT.
+                        if (!long.TryParse(jsonData[field]!.ToString(), out long matchIdValue) || matchIdValue < 0 || matchIdValue > int.MaxValue)
+                        {
+                            return $"{field} should be an integer between 0 and {int.MaxValue}!";
+                        }
+                        break;
+
                     case "players_per_team":
                     case "min_players_to_ready":
                     case "min_spectators_to_ready":
@@ -173,7 +180,11 @@ namespace MatchZy
                         if (!int.TryParse(jsonData[field]!.ToString(), out numMaps))
                         {
                             return $"{field} should be an integer!";
-                            
+
+                        }
+                        if (field == "num_maps" && numMaps < 1)
+                        {
+                            return $"{field} should be at least 1!";
                         }
                         if (field == "num_maps" && numMaps > jsonData["maplist"]!.ToObject<List<string>>()!.Count)
                         {
@@ -196,9 +207,17 @@ namespace MatchZy
                         {
                             return $"{field} should be a JSON structure!";
                         }
-                        if ((field != "spectators") && (jsonData[field]!["players"] == null || jsonData[field]!["players"]!.Type != JTokenType.Object)) 
+                        if ((field != "spectators") && !MatchConfigJson.IsValidRoster(jsonData[field]!["players"]))
                         {
-                            return $"{field} should have 'players' JSON!";
+                            return $"{field} should have 'players' as an object of SteamID64s and names, or an array of SteamID64s!";
+                        }
+                        if (field == "spectators" && jsonData[field]!["players"] != null && !MatchConfigJson.IsValidRoster(jsonData[field]!["players"]))
+                        {
+                            return $"{field} 'players' should be an object of SteamID64s and names, or an array of SteamID64s!";
+                        }
+                        if ((field != "spectators") && string.IsNullOrWhiteSpace(jsonData[field]!["name"]?.ToString()))
+                        {
+                            return $"{field} should have a 'name'!";
                         }
                         break;
 
@@ -240,9 +259,23 @@ namespace MatchZy
                     case "skip_veto":
                     case "clinch_series":
                     case "wingman":
-                        if (!bool.TryParse(jsonData[field]!.ToString(), out bool result))
+                        if (!MatchConfigJson.TryParseBool(jsonData[field], out _))
                         {
                             return $"{field} should be a boolean!";
+                        }
+                        break;
+
+                    case "side_type":
+                        if (!MatchConfigJson.SideTypes.Contains(jsonData[field]!.ToString().Trim().ToLowerInvariant()))
+                        {
+                            return $"{field} should be one of: {string.Join(", ", MatchConfigJson.SideTypes)}!";
+                        }
+                        break;
+
+                    case "veto_first":
+                        if (!MatchConfigJson.VetoFirstValues.Contains(jsonData[field]!.ToString().Trim().ToLowerInvariant()))
+                        {
+                            return $"{field} should be one of: {string.Join(", ", MatchConfigJson.VetoFirstValues)}!";
                         }
                         break;
                 }
@@ -277,8 +310,11 @@ namespace MatchZy
 
             matchzyTeam1.teamName = RemoveSpecialCharacters(team1["name"]!.ToString());
             matchzyTeam2.teamName = RemoveSpecialCharacters(team2["name"]!.ToString());
-            matchzyTeam1.teamPlayers = team1["players"];
-            matchzyTeam2.teamPlayers = team2["players"];
+            matchzyTeam1.teamPlayers = MatchConfigJson.NormalizeRoster(team1["players"]);
+            matchzyTeam2.teamPlayers = MatchConfigJson.NormalizeRoster(team2["players"]);
+
+            // The previous match's veto must not decide who starts or picks sides in this one.
+            lastVetoTeam = CsTeam.None;
 
             matchConfig = new()
             {
@@ -286,8 +322,12 @@ namespace MatchZy
                 MapsPool = maplist.ToObject<List<string>>()!,
                 MapsLeftInVetoPool = maplist.ToObject<List<string>>()!,
                 NumMaps = jsonDataObject["num_maps"]!.Value<int>(),
-                MinPlayersToReady = minimumReadyRequired
+                MinPlayersToReady = minimumReadyRequired,
+                // Like Get5, a map pool larger than num_maps is vetoed unless "skip_veto": true is set.
+                SkipVeto = false,
             };
+            // Start from the server's remote log settings (config.cfg); the match config's cvars can override them for this match.
+            ApplyDefaultRemoteLogSettings();
 
             GetOptionalMatchValues(jsonDataObject);
 
@@ -307,6 +347,10 @@ namespace MatchZy
                 if (matchConfig.MapBanOrder.Count != 0)
                 {
                     if (!ValidateMapBanLogic()) return false;
+                    if (matchConfig.VetoFirst == "team2")
+                    {
+                        Log("[LOADMATCH] veto_first only applies to the default veto order; veto_mode is used exactly as written.");
+                    }
                 }
                 else
                 {
@@ -404,6 +448,11 @@ namespace MatchZy
             }
             else if (matchConfig.MapSides[mapNumber] == "knife")
             {
+                // Start the knife round from a known state instead of the sides left over from the previous map or match.
+                teamSides[matchzyTeam1] = "CT";
+                teamSides[matchzyTeam2] = "TERRORIST";
+                reverseTeamSides["CT"] = matchzyTeam1;
+                reverseTeamSides["TERRORIST"] = matchzyTeam2;
                 isKnifeRequired = true;
             }
 
@@ -412,8 +461,8 @@ namespace MatchZy
 
         public void SetTeamNames()
         {
-            Server.ExecuteCommand($"mp_teamname_1 {reverseTeamSides["CT"].teamName}");
-            Server.ExecuteCommand($"mp_teamname_2 {reverseTeamSides["TERRORIST"].teamName}");
+            Server.ExecuteCommand($"mp_teamname_1 \"{reverseTeamSides["CT"].teamName}\"");
+            Server.ExecuteCommand($"mp_teamname_2 \"{reverseTeamSides["TERRORIST"].teamName}\"");
         }
 
         public void GetCvarValues(JObject jsonDataObject)
@@ -427,11 +476,18 @@ namespace MatchZy
                     string cvarName = cvarData.Name;
                     string cvarValue = cvarData.Value.ToString();
 
-                    var cvar = ConVar.Find(cvarName);
-                    matchConfig.ChangedCvars[cvarName] = cvarValue;
-                    if (cvar != null)
+                    if (!IsAllowedMatchCvar(cvarName, cvarValue, out string reason))
                     {
-                        matchConfig.OriginalCvars[cvarName] = GetConvarStringValue(cvar);
+                        Log($"[GetCvarValues] Ignoring cvar {cvarName} from the match config: {reason}");
+                        continue;
+                    }
+
+                    matchConfig.ChangedCvars[cvarName] = cvarValue;
+                    // Remember the value from before the match (convars, and also MatchZy settings) to restore at series end.
+                    if (!matchConfig.OriginalCvars.ContainsKey(cvarName))
+                    {
+                        string? originalValue = GetCurrentSettingValue(cvarName);
+                        if (originalValue != null) matchConfig.OriginalCvars[cvarName] = originalValue;
                     }
                 }
 
@@ -462,25 +518,25 @@ namespace MatchZy
             }
             if (jsonDataObject["spectators"] != null && jsonDataObject["spectators"]!["players"] != null)
             {
-                matchConfig.Spectators = jsonDataObject["spectators"]!["players"]!;
-                if (matchConfig.Spectators is JArray spectatorsArray && spectatorsArray.Count == 0)
-                {
-                    // Convert the empty JArray to an empty JObject
-                    matchConfig.Spectators = new JObject();
-                }
+                matchConfig.Spectators = MatchConfigJson.NormalizeRoster(jsonDataObject["spectators"]!["players"]);
             }
-            if (jsonDataObject["clinch_series"] != null)
+            if (MatchConfigJson.TryParseBool(jsonDataObject["clinch_series"], out bool clinchSeries))
             {
-                matchConfig.SeriesCanClinch = bool.Parse(jsonDataObject["clinch_series"]!.ToString());
+                matchConfig.SeriesCanClinch = clinchSeries;
             }
-            if (jsonDataObject["skip_veto"] != null)
+            if (MatchConfigJson.TryParseBool(jsonDataObject["skip_veto"], out bool skipVeto))
             {
-                matchConfig.SkipVeto = bool.Parse(jsonDataObject["skip_veto"]!.ToString());
+                matchConfig.SkipVeto = skipVeto;
             }
-            if (jsonDataObject["wingman"] != null)
+            if (MatchConfigJson.TryParseBool(jsonDataObject["wingman"], out bool wingman))
             {
-                matchConfig.Wingman = bool.Parse(jsonDataObject["wingman"]!.ToString());
+                matchConfig.Wingman = wingman;
             }
+            if (jsonDataObject["side_type"] != null)
+            {
+                matchConfig.MatchSideType = jsonDataObject["side_type"]!.ToString().Trim().ToLowerInvariant();
+            }
+            matchConfig.VetoFirst = MatchConfigJson.ResolveVetoFirst(jsonDataObject["veto_first"]?.ToString(), new Random());
             if (jsonDataObject["veto_mode"] != null)
             {
                 matchConfig.MapBanOrder = jsonDataObject["veto_mode"]!.ToObject<List<string>>()!;
@@ -502,6 +558,7 @@ namespace MatchZy
             if (teamName == "") {
                 // ReplyToUserCommand(player, $"Usage: !team{teamNum} <name>");
                 ReplyToUserCommand(player, Localizer["matchzy.cc.usage", $"!team{teamNum} <name>"]);
+                return;
             }
 
             if (teamNum == 1) {
@@ -521,7 +578,7 @@ namespace MatchZy
                     coach.Clan = $"[{matchzyTeam2.teamName} COACH]";
                 }
             }
-            Server.ExecuteCommand($"mp_teamname_{teamNum} {teamName};");
+            Server.ExecuteCommand($"mp_teamname_{teamNum} \"{teamName}\";");
         }
 
         public void SwapSidesInTeamData(bool swapTeams) {
@@ -575,11 +632,22 @@ namespace MatchZy
             return playerTeam;
         }
 
-        public void EndSeries(string? winnerName, int restartDelay, int t1score, int t2score)
+        // winner: null for a tie, or when cancelled (the series was ended by an admin without a winner; stored with an empty winner).
+        // restartDelay <= 0 resets the match right away, so that a command run right after (e.g. loading the next match) is not undone.
+        // Set by EndSeries until the match is reset: the series is over and must not be ended (or cancelled) again.
+        public bool seriesEnded = false;
+
+        public void EndSeries(Team? winner, int restartDelay, int t1score, int t2score, bool cancelled = false, bool warmupCfgRequired = false)
         {
+            seriesEnded = true;
             long matchId = liveMatchId;
             (int team1Score, int team2Score) = (matchzyTeam1.seriesScore, matchzyTeam2.seriesScore);
-            if (winnerName == null)
+            string? winnerName = winner?.teamName;
+            if (cancelled)
+            {
+                // The admin who ended the match was already announced.
+            }
+            else if (winner == null)
             {
                 PrintToAllChat($"{ChatColors.Green}{matchzyTeam1.teamName}{ChatColors.Default} and {ChatColors.Green}{matchzyTeam2.teamName}{ChatColors.Default} have tied the match");
             }
@@ -588,29 +656,54 @@ namespace MatchZy
                 Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{winnerName}{ChatColors.Default} has won the match");
             }
 
-            string winnerTeam = (winnerName == null) ? "none" : matchzyTeam1.seriesScore > matchzyTeam2.seriesScore ? "team1" : "team2";
-
             var seriesResultEvent = new MatchZySeriesResultEvent()
             {
                 MatchId = matchId,
-                Winner = new Winner(t1score > t2score && reverseTeamSides["CT"] == matchzyTeam1 ? "3" : "2", winnerTeam),
+                Winner = GetTeamWinner(winner),
                 Team1SeriesScore = team1Score,
                 Team2SeriesScore = team2Score,
                 TimeUntilRestore = 10,
             };
+            // Captured now: the match (and its remote log settings) may be reset before the event is sent.
+            RemoteLogTarget target = CurrentRemoteLogTarget();
 
+            database.SetMatchEndData(matchId, cancelled ? "" : winnerName ?? "Draw", team1Score, team2Score);
             Task.Run(async () => {
-                await database.SetMatchEndData(matchId, winnerName ?? "Draw", team1Score, team2Score);
                 // Making sure that map end event is fired first
                 await Task.Delay(2000);
-                await SendEventAsync(seriesResultEvent);
+                await SendEventAsync(seriesResultEvent, target);
             });
 
             if (resetCvarsOnSeriesEnd) ResetChangedConvars();
             isMatchLive = false;
+            if (restartDelay <= 0)
+            {
+                ResetMatch(warmupCfgRequired);
+                return;
+            }
             AddTimer(restartDelay, () => {
-                ResetMatch(false);
+                ResetMatch(warmupCfgRequired);
             });
+        }
+
+        // get5_endmatch / .forceend: without a team the match is cancelled (no winner), with "team1" or "team2" that team wins
+        // the current map (if one is live) and the series. Either way the series is closed like a normal series end
+        // (map_result / series_end events, database end data, match config cvars restored) and the match is reset right away.
+        public void ForceEndSeries(Team? forcedWinner)
+        {
+            // Between maps of a series (map over, next one not live yet) there is no map to end.
+            bool mapInProgress = isMatchLive && !currentMapFinished;
+            (int t1score, int t2score) = mapInProgress ? GetTeamsScore() : (0, 0);
+
+            if (mapInProgress)
+            {
+                if (forcedWinner != null) forcedWinner.seriesScore++;
+                PublishMapEnd(forcedWinner, forcedWinner?.teamName ?? "", t1score, t2score);
+                // The demo is stopped now (the match is reset right away); it is still uploaded.
+                if (isDemoRecording) StopDemoRecording(0, activeDemoFile, liveMatchId, matchConfig.CurrentMapNumber);
+            }
+
+            EndSeries(forcedWinner, 0, t1score, t2score, cancelled: forcedWinner == null, warmupCfgRequired: true);
         }
 
         public void HandlePlayoutConfig()

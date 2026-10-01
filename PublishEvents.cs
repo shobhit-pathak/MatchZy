@@ -6,40 +6,44 @@ namespace MatchZy
 {
     public partial class MatchZy
     {
-        public async Task SendEventAsync(MatchZyEvent @event)
+        // One client for all events (a new HttpClient per event can exhaust sockets on a busy server). Headers are set per
+        // request because each match can have its own remote log URL and header.
+        private static readonly HttpClient eventHttpClient = new() { Timeout = TimeSpan.FromSeconds(60) };
+
+        // target: where to send the event. Pass CurrentRemoteLogTarget() captured before a match reset, so the event still goes to
+        // the match's URL; by default the current match's settings are used.
+        public async Task SendEventAsync(MatchZyEvent @event, RemoteLogTarget? target = null)
         {
             try
             {
-                if (string.IsNullOrEmpty(matchConfig.RemoteLogURL)) return;
+                target ??= CurrentRemoteLogTarget();
+                if (string.IsNullOrEmpty(target.Url)) return;
 
-                Log($"[SendEventAsync] Sending Event: {@event.EventName} for matchId: {liveMatchId} mapNumber: {matchConfig.CurrentMapNumber} on {matchConfig.RemoteLogURL}");
-
-                using var httpClient = new HttpClient();
-                using var jsonContent = new StringContent(JsonSerializer.Serialize(@event, @event.GetType()), Encoding.UTF8, "application/json");
-
-                string jsonString = await jsonContent.ReadAsStringAsync();
-
-                Log($"[SendEventAsync] SENDING DATA: {jsonString}");
-
-                if (!string.IsNullOrEmpty(matchConfig.RemoteLogHeaderKey) && !string.IsNullOrEmpty(matchConfig.RemoteLogHeaderValue))
+                string jsonString = JsonSerializer.Serialize(@event, @event.GetType());
+                using var request = new HttpRequestMessage(HttpMethod.Post, target.Url)
                 {
-                    httpClient.DefaultRequestHeaders.Add(matchConfig.RemoteLogHeaderKey, matchConfig.RemoteLogHeaderValue);
+                    Content = new StringContent(jsonString, Encoding.UTF8, "application/json")
+                };
+                if (!string.IsNullOrEmpty(target.HeaderKey) && !string.IsNullOrEmpty(target.HeaderValue))
+                {
+                    request.Headers.TryAddWithoutValidation(target.HeaderKey, target.HeaderValue);
                 }
 
-                var httpResponseMessage = await httpClient.PostAsync(matchConfig.RemoteLogURL, jsonContent);
+                using var httpResponseMessage = await eventHttpClient.SendAsync(request);
 
                 if (httpResponseMessage.IsSuccessStatusCode)
                 {
-                    Log($"[SendEventAsync] Sending {@event.EventName} for matchId: {liveMatchId} mapNumber: {matchConfig.CurrentMapNumber} successful with status code: {httpResponseMessage.StatusCode}");
+                    Log($"[SendEventAsync] Sent {@event.EventName} to {MatchZySecurity.RedactUrl(target.Url)} ({(int)httpResponseMessage.StatusCode})");
                 }
                 else
                 {
-                    Log($"[SendEventAsync] Sending {@event.EventName} for matchId: {liveMatchId} mapNumber: {matchConfig.CurrentMapNumber} failed with status code: {httpResponseMessage.StatusCode}, ResponseContent: {await httpResponseMessage.Content.ReadAsStringAsync()}");
+                    // The payload is only logged when sending fails, to help find what the panel rejected.
+                    Log($"[SendEventAsync] Sending {@event.EventName} to {MatchZySecurity.RedactUrl(target.Url)} failed with status code: {httpResponseMessage.StatusCode}, ResponseContent: {await httpResponseMessage.Content.ReadAsStringAsync()}, Data: {jsonString}");
                 }
             }
             catch (Exception e)
             {
-                Log($"[SendEventAsync FATAL] An error occurred: {e.Message}");
+                Log($"[SendEventAsync FATAL] Sending {@event.EventName} failed: {e.Message}");
             }
         }
     }

@@ -11,6 +11,8 @@ using System.Text.RegularExpressions;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using System.Drawing;
+using System.Reflection;
+using System.Globalization;
 
 
 namespace MatchZy
@@ -80,6 +82,10 @@ namespace MatchZy
                     foreach (var kvp in loadedAdmins)
                     {
                         Log($"[ADMIN] Username: {kvp.Key}, Role: {kvp.Value}");
+                        if (!string.IsNullOrWhiteSpace(kvp.Value) && MatchZySecurity.GetAdminFlags(kvp.Value).Count == 0 && kvp.Value.IndexOfAny(new[] { '@', '#', '/' }) >= 0)
+                        {
+                            Log($"[ADMIN WARNING] {kvp.Key}: \"{kvp.Value}\" contains no valid flag (expected e.g. @css/config), so this admin has full MatchZy admin access.");
+                        }
                     }
                 }
                 catch (Exception e)
@@ -131,7 +137,12 @@ namespace MatchZy
             };
             if (attr.CanExecuteCommand(player)) return true; // Admin exists in admins.json of CSSharp
             if (player == null) return true; // Sent via server, hence should be treated as an admin.
-            if (loadedAdmins.ContainsKey(player.SteamID.ToString())) return true; // Admin exists in admins.json of MatchZy
+            if (loadedAdmins.TryGetValue(player.SteamID.ToString(), out string? role)) // Admin exists in admins.json of MatchZy
+            {
+                List<string> flags = MatchZySecurity.GetAdminFlags(role);
+                if (flags.Count == 0) return true; // No flags given (e.g. "" or a name): full MatchZy admin, as before.
+                return MatchZySecurity.AdminFlagsGrant(flags, updatedPermissions);
+            }
             return false;
         }
 
@@ -211,8 +222,53 @@ namespace MatchZy
             }
         }
 
+        // Kicks every bot except the CSTV/GOTV bot. A bare bot_kick also kicks CSTV, which stops GOTV and the demo recording.
+        public void KickBots()
+        {
+            Server.ExecuteCommand("bot_quota 0"); // Otherwise the kicked bots are added again to fill the quota.
+            List<CCSPlayerController> players;
+            try
+            {
+                players = Utilities.GetPlayers();
+            }
+            catch (Exception)
+            {
+                // No map loaded yet (the plugin is loaded at server start and starts warmup): there are no bots to kick.
+                return;
+            }
+            foreach (var bot in players)
+            {
+                if (bot == null || !bot.IsValid || !bot.IsBot || bot.IsHLTV || !bot.UserId.HasValue) continue;
+                Server.ExecuteCommand($"kickid {bot.UserId.Value}");
+            }
+        }
+
+        private static string? launchCommandLine;
+
+        // Checks the server's launch options (e.g. -nobots). Inside CounterStrikeSharp the .NET command line is not the
+        // server's on Linux, so it is read from /proc there.
+        public static bool HasLaunchOption(string option)
+        {
+            if (launchCommandLine == null)
+            {
+                try
+                {
+                    launchCommandLine = OperatingSystem.IsLinux() && File.Exists("/proc/self/cmdline")
+                        ? File.ReadAllText("/proc/self/cmdline").Replace('\0', ' ')
+                        : Environment.CommandLine;
+                }
+                catch (Exception)
+                {
+                    launchCommandLine = Environment.CommandLine;
+                }
+            }
+            return launchCommandLine.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries)
+                .Any(arg => arg.Equals(option, StringComparison.OrdinalIgnoreCase));
+        }
+
         private void ExecWarmupCfg()
         {
+            KickBots();
             var absolutePath = Path.Join(Server.GameDirectory + "/csgo/cfg", warmupCfgPath);
 
             if (File.Exists(Path.Join(Server.GameDirectory + "/csgo/cfg", warmupCfgPath)))
@@ -223,7 +279,7 @@ namespace MatchZy
             else
             {
                 Log($"[StartWarmup] Starting warmup! Warmup CFG not found in {absolutePath}, using default CFG!");
-                Server.ExecuteCommand("bot_kick;bot_quota 0;mp_autokick 0;mp_autoteambalance 0;mp_buy_anywhere 0;mp_buytime 15;mp_death_drop_gun 0;mp_free_armor 0;mp_ignore_round_win_conditions 0;mp_limitteams 0;mp_radar_showall 0;mp_respawn_on_death_ct 0;mp_respawn_on_death_t 0;mp_solid_teammates 0;mp_spectators_max 20;mp_maxmoney 16000;mp_startmoney 16000;mp_timelimit 0;sv_alltalk 0;sv_auto_full_alltalk_during_warmup_half_end 0;sv_deadtalk 1;sv_full_alltalk 0;sv_grenade_trajectory 0;sv_hibernate_when_empty 0;mp_weapons_allow_typecount -1;sv_infinite_ammo 0;sv_showimpacts 0;sv_voiceenable 1;sm_cvar sv_mute_players_with_social_penalties 0;sv_mute_players_with_social_penalties 0;tv_relayvoice 1;sv_cheats 0;mp_ct_default_melee weapon_knife;mp_ct_default_secondary weapon_hkp2000;mp_ct_default_primary \"\";mp_t_default_melee weapon_knife;mp_t_default_secondary weapon_glock;mp_t_default_primary;mp_maxrounds 24;mp_warmup_start;mp_warmup_pausetimer 1;mp_warmuptime 9999;cash_team_bonus_shorthanded 0;");
+                Server.ExecuteCommand("bot_quota 0;mp_autokick 0;mp_autoteambalance 0;mp_buy_anywhere 0;mp_buytime 15;mp_death_drop_gun 0;mp_free_armor 0;mp_ignore_round_win_conditions 0;mp_limitteams 0;mp_radar_showall 0;mp_respawn_on_death_ct 0;mp_respawn_on_death_t 0;mp_solid_teammates 0;mp_spectators_max 20;mp_maxmoney 16000;mp_startmoney 16000;mp_timelimit 0;sv_alltalk 0;sv_auto_full_alltalk_during_warmup_half_end 0;sv_deadtalk 1;sv_full_alltalk 0;sv_grenade_trajectory 0;sv_hibernate_when_empty 0;mp_weapons_allow_typecount -1;sv_infinite_ammo 0;sv_showimpacts 0;sv_voiceenable 1;sm_cvar sv_mute_players_with_social_penalties 0;sv_mute_players_with_social_penalties 0;tv_relayvoice 1;sv_cheats 0;mp_ct_default_melee weapon_knife;mp_ct_default_secondary weapon_hkp2000;mp_ct_default_primary \"\";mp_t_default_melee weapon_knife;mp_t_default_secondary weapon_glock;mp_t_default_primary;mp_maxrounds 24;mp_warmup_start;mp_warmup_pausetimer 1;mp_warmuptime 9999;cash_team_bonus_shorthanded 0;");
             }
         }
 
@@ -295,6 +351,7 @@ namespace MatchZy
             isSideSelectionPhase = false;
             matchStarted = true;
             isMatchLive = true;
+            currentMapFinished = false;
             readyAvailable = false;
             isKnifeRound = false;
         }
@@ -315,7 +372,7 @@ namespace MatchZy
         private void StartLive()
         {
             SetupLiveFlagsAndCfg();
-            StartDemoRecording();
+            StartDemoRecordingAfterRestart(liveRestartDelay);
 
             // Storing 0-0 score backup file as lastBackupFileName, so that .stop functions properly in first round.
             lastBackupFileName = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}_round00.txt";
@@ -373,6 +430,9 @@ namespace MatchZy
         {
             try
             {
+                CancelPendingDemoRecording();
+                seriesEnded = false;
+                currentMapFinished = false;
                 // We stop demo recording if a live match was restarted
                 if (matchStarted && isDemoRecording)
                 {
@@ -417,7 +477,7 @@ namespace MatchZy
                 HandleClanTags();
 
                 // Reset unpause data
-                Dictionary<string, object> unpauseData = new()
+                unpauseData = new()
                 {
                     { "ct", false },
                     { "t", false },
@@ -429,6 +489,7 @@ namespace MatchZy
                 stopData["t"] = false;
 
                 // Reset owned bots data
+                CancelBotRequests();
                 pracUsedBots = new Dictionary<int, Dictionary<string, object>>();
                 noFlashList = new();
                 lastGrenadesData = new();
@@ -458,21 +519,17 @@ namespace MatchZy
                 matchzyTeam1.seriesScore = 0;
                 matchzyTeam2.seriesScore = 0;
 
-                Server.ExecuteCommand($"mp_teamname_1 {matchzyTeam1.teamName}");
-                Server.ExecuteCommand($"mp_teamname_2 {matchzyTeam2.teamName}");
+                Server.ExecuteCommand($"mp_teamname_1 \"{matchzyTeam1.teamName}\"");
+                Server.ExecuteCommand($"mp_teamname_2 \"{matchzyTeam2.teamName}\"");
 
                 teamSides[matchzyTeam1] = "CT";
                 teamSides[matchzyTeam2] = "TERRORIST";
                 reverseTeamSides["CT"] = matchzyTeam1;
                 reverseTeamSides["TERRORIST"] = matchzyTeam2;
 
-                // Keeping the log URLs to avoid their reset on match start.
-                matchConfig = new()
-                {
-                    RemoteLogURL = matchConfig.RemoteLogURL,
-                    RemoteLogHeaderKey = matchConfig.RemoteLogHeaderKey,
-                    RemoteLogHeaderValue = matchConfig.RemoteLogHeaderValue
-                };
+                // Back to the server's remote log settings (config.cfg), dropping any set by the match config.
+                matchConfig = new();
+                ApplyDefaultRemoteLogSettings();
 
                 KillPhaseTimers();
                 UpdatePlayersMap();
@@ -521,7 +578,7 @@ namespace MatchZy
 
                     // A player controller still exists after a player disconnects
                     // Hence checking whether the player is actually in the server or not
-                    if (player.Connected != PlayerConnectedState.PlayerConnected) continue;
+                    if (player.Connected != PlayerConnectedState.Connected) continue;
 
                     if (player.UserId.HasValue)
                     {
@@ -634,12 +691,12 @@ namespace MatchZy
 
             if (long.TryParse(mapName, out _))
             { // Check if mapName is a long for workshop map ids
-                Server.ExecuteCommand($"bot_kick");
+                KickBots();
                 Server.ExecuteCommand($"host_workshop_map \"{mapName}\"");
             }
             else if (Server.IsMapValid(mapName))
             {
-                Server.ExecuteCommand($"bot_kick");
+                KickBots();
                 Server.ExecuteCommand($"changelevel \"{mapName}\"");
             }
             else
@@ -717,10 +774,11 @@ namespace MatchZy
             isDryRun = false;
             if (isRoundRestorePending)
             {
-                RestoreRoundBackup(null, pendingRestoreFileName);
+                bool restoreStarted = RestoreRoundBackup(null, pendingRestoreFileName);
                 isRoundRestorePending = false;
                 pendingRestoreFileName = "";
-                return;
+                // A refused restore (e.g. incomplete round data) must not leave everyone ready in warmup: start normally.
+                if (restoreStarted) return;
             }
             // If default names, we pick a player and use their name as their team name
             if (matchzyTeam1.teamName == "COUNTER-TERRORISTS")
@@ -739,7 +797,7 @@ namespace MatchZy
                         break;
                     }
                 }
-                // Server.ExecuteCommand($"mp_teamname_1 {matchzyTeam1.teamName}");
+                // Server.ExecuteCommand($"mp_teamname_1 \"{matchzyTeam1.teamName}\"");
             }
 
             if (matchzyTeam2.teamName == "TERRORISTS")
@@ -758,11 +816,11 @@ namespace MatchZy
                         break;
                     }
                 }
-                // Server.ExecuteCommand($"mp_teamname_2 {matchzyTeam2.teamName}");
+                // Server.ExecuteCommand($"mp_teamname_2 \"{matchzyTeam2.teamName}\"");
             }
 
-            Server.ExecuteCommand($"mp_teamname_1 {reverseTeamSides["CT"].teamName}");
-            Server.ExecuteCommand($"mp_teamname_2 {reverseTeamSides["TERRORIST"].teamName}");
+            Server.ExecuteCommand($"mp_teamname_1 \"{reverseTeamSides["CT"].teamName}\"");
+            Server.ExecuteCommand($"mp_teamname_2 \"{reverseTeamSides["TERRORIST"].teamName}\"");
 
             HandleClanTags();
 
@@ -782,7 +840,6 @@ namespace MatchZy
             }
             else
             {
-                StartDemoRecording();
                 StartLive();
             }
             if (showCreditsOnMatchStart.Value)
@@ -837,9 +894,13 @@ namespace MatchZy
             }
         }
 
+        // True from the end of a map until the next map goes live.
+        private bool currentMapFinished = false;
+
         private void HandleMatchEnd()
         {
             if (!isMatchLive) return;
+            currentMapFinished = true;
 
             // This ensures that the mp_match_restart_delay is not shorter than what is required for the GOTV recording to finish.
             // Ref: Get5
@@ -862,61 +923,29 @@ namespace MatchZy
 
             StopDemoRecording(tvFlushDelay - 0.5f, activeDemoFile, liveMatchId, currentMapNumber);
 
-            string winnerName = GetMatchWinnerName();
             (int t1score, int t2score) = GetTeamsScore();
-            int team1SeriesScore = matchzyTeam1.seriesScore;
-            int team2SeriesScore = matchzyTeam2.seriesScore;
-
-            string statsPath = Server.GameDirectory + "/csgo/MatchZy_Stats/" + liveMatchId.ToString();
-
-            var mapResultEvent = new MapResultEvent
-            {
-                MatchId = liveMatchId,
-                MapNumber = currentMapNumber,
-                Winner = new Winner(t1score > t2score && reverseTeamSides["CT"] == matchzyTeam1 ? "3" : "2", t1score > t2score ? "team1" : "team2"),
-                StatsTeam1 = new MatchZyStatsTeam(matchzyTeam1.id, matchzyTeam1.teamName, team1SeriesScore, t1score, 0, 0, new List<StatsPlayer>()),
-                StatsTeam2 = new MatchZyStatsTeam(matchzyTeam2.id, matchzyTeam2.teamName, team2SeriesScore, t2score, 0, 0, new List<StatsPlayer>())
-            };
-
-            Task.Run(async () =>
-            {
-                await SendEventAsync(mapResultEvent);
-                await database.SetMapEndData(liveMatchId, currentMapNumber, winnerName, t1score, t2score, team1SeriesScore, team2SeriesScore);
-                await database.WritePlayerStatsToCsv(statsPath, liveMatchId, currentMapNumber);
-            });
+            Team? mapWinner = t1score > t2score ? matchzyTeam1 : t2score > t1score ? matchzyTeam2 : null;
+            if (mapWinner != null) mapWinner.seriesScore++;
+            PublishMapEnd(mapWinner, mapWinner?.teamName ?? "Draw", t1score, t2score);
 
             // If a match is not setup, it was supposed to be a pug/scrim with 1 map
             // Hence we reset the match once it is over
             // Todo: Support BO3/BO5 in pugs as well
             if (!isMatchSetup)
             {
-                EndSeries(winnerName, restartDelay - 1, t1score, t2score);
+                EndSeries(mapWinner, restartDelay - 1, t1score, t2score);
                 return;
             }
 
-            int remainingMaps = matchConfig.NumMaps - matchzyTeam1.seriesScore - matchzyTeam2.seriesScore;
-            Log($"[HandleMatchEnd] MATCH ENDED, remainingMaps: {remainingMaps}, NumMaps: {matchConfig.NumMaps}, Team1SeriesScore: {matchzyTeam1.seriesScore}, Team2SeriesScore: {matchzyTeam2.seriesScore}");
-            if (matchzyTeam1.seriesScore == matchzyTeam2.seriesScore && remainingMaps <= 0)
+            // Count maps played rather than maps won, so that a drawn map is counted too.
+            int mapsPlayed = currentMapNumber + 1;
+            SeriesOutcome outcome = SeriesLogic.GetOutcomeAfterMap(matchConfig.NumMaps, matchConfig.Maplist.Count, mapsPlayed,
+                matchzyTeam1.seriesScore, matchzyTeam2.seriesScore, matchConfig.SeriesCanClinch);
+            Log($"[HandleMatchEnd] MATCH ENDED, outcome: {outcome}, mapsPlayed: {mapsPlayed}, NumMaps: {matchConfig.NumMaps}, Team1SeriesScore: {matchzyTeam1.seriesScore}, Team2SeriesScore: {matchzyTeam2.seriesScore}");
+            if (outcome != SeriesOutcome.Continue)
             {
-                EndSeries(null, restartDelay - 1, t1score, t2score);
-            }
-            else if (matchConfig.SeriesCanClinch)
-            {
-                int mapsToWinSeries = (matchConfig.NumMaps / 2) + 1;
-                if (matchzyTeam1.seriesScore == mapsToWinSeries)
-                {
-                    EndSeries(winnerName, restartDelay - 1, t1score, t2score);
-                    return;
-                }
-                else if (matchzyTeam2.seriesScore == mapsToWinSeries)
-                {
-                    EndSeries(winnerName, restartDelay - 1, t1score, t2score);
-                    return;
-                }
-            }
-            else if (remainingMaps <= 0)
-            {
-                EndSeries(winnerName, restartDelay - 1, t1score, t2score);
+                // A tie ends the series without a winner.
+                EndSeries(GetSeriesLeader(), restartDelay - 1, t1score, t2score);
                 return;
             }
             if (matchzyTeam1.seriesScore > matchzyTeam2.seriesScore)
@@ -970,34 +999,69 @@ namespace MatchZy
             {
                 if (long.TryParse(mapName, out _))
                 {
-                    Server.ExecuteCommand($"bot_kick");
+                    KickBots();
                     Server.ExecuteCommand($"host_workshop_map \"{mapName}\"");
                 }
                 else if (Server.IsMapValid(mapName))
                 {
-                    Server.ExecuteCommand($"bot_kick");
+                    KickBots();
                     Server.ExecuteCommand($"changelevel \"{mapName}\"");
                 }
             });
         }
 
-        private string GetMatchWinnerName()
+        // Winner.side uses the game's team numbers ("3" = CT, "2" = T); "0" / "none" means a draw.
+        private Winner GetTeamWinner(Team? winner)
         {
-            (int t1score, int t2score) = GetTeamsScore();
-            if (t1score > t2score)
+            if (winner == null) return new Winner("0", "none");
+            string side = teamSides.TryGetValue(winner, out string? teamSide) && teamSide == "CT" ? "3" : "2";
+            return new Winner(side, winner == matchzyTeam1 ? "team1" : "team2");
+        }
+
+        // eventWinner is the side that won the round (EventRoundEnd.Winner: 2 = T, 3 = CT).
+        private Winner GetRoundWinner(int eventWinner)
+        {
+            Team? winner = eventWinner switch
             {
-                matchzyTeam1.seriesScore++;
-                return matchzyTeam1.teamName;
-            }
-            else if (t2score > t1score)
+                (int)CsTeam.CounterTerrorist => reverseTeamSides["CT"],
+                (int)CsTeam.Terrorist => reverseTeamSides["TERRORIST"],
+                _ => null,
+            };
+            if (winner == null) return new Winner(eventWinner.ToString(), "none");
+            return new Winner(eventWinner.ToString(), winner == matchzyTeam1 ? "team1" : "team2");
+        }
+
+        private Team? GetSeriesLeader()
+        {
+            if (matchzyTeam1.seriesScore > matchzyTeam2.seriesScore) return matchzyTeam1;
+            if (matchzyTeam2.seriesScore > matchzyTeam1.seriesScore) return matchzyTeam2;
+            return null;
+        }
+
+        // Sends map_result and writes the map's end data and stats CSV. Series scores must already include this map.
+        // winnerName is stored in the database: a team name, "Draw", or "" for a map ended by an admin without a winner.
+        public void PublishMapEnd(Team? winner, string winnerName, int t1score, int t2score)
+        {
+            long matchId = liveMatchId;
+            int mapNumber = matchConfig.CurrentMapNumber;
+            int team1SeriesScore = matchzyTeam1.seriesScore;
+            int team2SeriesScore = matchzyTeam2.seriesScore;
+            string statsPath = Server.GameDirectory + "/csgo/MatchZy_Stats/" + matchId.ToString();
+            RemoteLogTarget target = CurrentRemoteLogTarget();
+
+            var mapResultEvent = new MapResultEvent
             {
-                matchzyTeam2.seriesScore++;
-                return matchzyTeam2.teamName;
-            }
-            else
-            {
-                return "Draw";
-            }
+                MatchId = matchId,
+                MapNumber = mapNumber,
+                Winner = GetTeamWinner(winner),
+                StatsTeam1 = new MatchZyStatsTeam(matchzyTeam1.id, matchzyTeam1.teamName, team1SeriesScore, t1score, 0, 0, new List<StatsPlayer>()),
+                StatsTeam2 = new MatchZyStatsTeam(matchzyTeam2.id, matchzyTeam2.teamName, team2SeriesScore, t2score, 0, 0, new List<StatsPlayer>())
+            };
+
+            Task.Run(async () => await SendEventAsync(mapResultEvent, target));
+            // Queued after the last round's player stats, so the CSV includes them.
+            database.SetMapEndData(matchId, mapNumber, winnerName, t1score, t2score, team1SeriesScore, team2SeriesScore);
+            database.WritePlayerStatsToCsv(statsPath, matchId, mapNumber);
         }
 
         private (int t1score, int t2score) GetTeamsScore()
@@ -1056,7 +1120,7 @@ namespace MatchZy
                     long matchId = liveMatchId;
                     int ctTeamNum = reverseTeamSides["CT"] == matchzyTeam1 ? 1 : 2;
                     int tTeamNum = reverseTeamSides["TERRORIST"] == matchzyTeam1 ? 1 : 2;
-                    Winner winner = new(@event.Winner.ToString(), t1score > t2score ? "team1" : "team2");
+                    Winner winner = GetRoundWinner(@event.Winner);
 
                     var roundEndEvent = new MatchZyRoundEndedEvent
                     {
@@ -1070,12 +1134,10 @@ namespace MatchZy
                         StatsTeam2 = new MatchZyStatsTeam(matchzyTeam2.id, matchzyTeam2.teamName, 0, t2score, 0, 0, playerStatsListTeam2),
                     };
 
-                    Task.Run(async () =>
-                    {
-                        await SendEventAsync(roundEndEvent);
-                        await database.UpdatePlayerStatsAsync(matchId, currentMapNumber, playerStatsDictionary);
-                        await database.UpdateMapStatsAsync(matchId, currentMapNumber, t1score, t2score);
-                    });
+                    Task.Run(async () => await SendEventAsync(roundEndEvent));
+                    // Queued here (not after the event is sent) so they are written before the map end data and CSV.
+                    database.UpdatePlayerStatsAsync(matchId, currentMapNumber, playerStatsDictionary);
+                    database.UpdateMapStatsAsync(matchId, currentMapNumber, t1score, t2score);
 
                     string round = GetRoundNumer().ToString("D2");
                     lastBackupFileName = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}_round{round}.txt";
@@ -1304,6 +1366,9 @@ namespace MatchZy
             Server.PrintToChatAll($"{chatPrefix} Match mode loaded!");
         }
 
+        // Seconds until the mp_restartgame run by ExecLiveCFG restarts the game.
+        private float liveRestartDelay = 1;
+
         private void ExecLiveCFG()
         {
             int gameMode = GetGameMode();
@@ -1323,6 +1388,7 @@ namespace MatchZy
                 Log($"[StartLive] Starting Live! Executing Live CFG from {cfgPath}");
                 Server.ExecuteCommand($"exec {cfgPath}");
                 Server.ExecuteCommand("mp_restartgame 1;mp_warmup_end;");
+                liveRestartDelay = 1;
             }
             else
             {
@@ -1336,6 +1402,7 @@ namespace MatchZy
                 {
                     Server.ExecuteCommand("ammo_grenade_limit_default 1;ammo_grenade_limit_flashbang 2;ammo_grenade_limit_total 4;bot_quota 0;cash_player_bomb_defused 300;cash_player_bomb_planted 300;cash_player_damage_hostage -30;cash_player_interact_with_hostage 300;cash_player_killed_enemy_default 300;cash_player_killed_enemy_factor 1;cash_player_killed_hostage -1000;cash_player_killed_teammate -300;cash_player_rescued_hostage 1000;cash_team_elimination_bomb_map 3250;cash_team_elimination_hostage_map_ct 3000;cash_team_elimination_hostage_map_t 3000;cash_team_hostage_alive 0;cash_team_hostage_interaction 600;cash_team_loser_bonus 1400;cash_team_loser_bonus_consecutive_rounds 500;cash_team_planted_bomb_but_defused 600;cash_team_rescued_hostage 600;cash_team_terrorist_win_bomb 3500;cash_team_win_by_defusing_bomb 3500;");
                     Server.ExecuteCommand("cash_team_win_by_hostage_rescue 2900;cash_team_win_by_time_running_out_bomb 3250;cash_team_win_by_time_running_out_hostage 3250;ff_damage_reduction_bullets 0.33;ff_damage_reduction_grenade 0.85;ff_damage_reduction_grenade_self 1;ff_damage_reduction_other 0.4;mp_afterroundmoney 0;mp_autokick 0;mp_autoteambalance 0;mp_backup_restore_load_autopause 1;mp_backup_round_auto 1;mp_buy_anywhere 0;mp_buy_during_immunity 0;mp_buytime 20;mp_c4timer 40;mp_ct_default_melee weapon_knife;mp_ct_default_primary \"\";mp_ct_default_secondary weapon_hkp2000;mp_death_drop_defuser 1;mp_death_drop_grenade 2;mp_death_drop_gun 1;mp_defuser_allocation 0;mp_display_kill_assists 1;mp_endmatch_votenextmap 0;mp_forcecamera 1;mp_free_armor 0;mp_freezetime 18;mp_friendlyfire 1;mp_give_player_c4 1;mp_halftime 1;mp_halftime_duration 15;mp_halftime_pausetimer 0;mp_ignore_round_win_conditions 0;mp_limitteams 0;mp_match_can_clinch 1;mp_match_end_restart 0;mp_maxmoney 16000;mp_maxrounds 24;mp_overtime_enable 1;mp_overtime_halftime_pausetimer 0;mp_overtime_maxrounds 6;mp_overtime_startmoney 10000;mp_playercashawards 1;mp_randomspawn 0;mp_respawn_immunitytime 0;mp_respawn_on_death_ct 0;mp_respawn_on_death_t 0;mp_round_restart_delay 5;mp_roundtime 1.92;mp_roundtime_defuse 1.92;mp_roundtime_hostage 1.92;mp_solid_teammates 1;mp_starting_losses 1;mp_startmoney 800;mp_t_default_melee weapon_knife;mp_t_default_primary \"\";mp_t_default_secondary weapon_glock;mp_teamcashawards 1;mp_timelimit 0;mp_weapons_allow_map_placed 1;mp_weapons_allow_zeus 1;mp_win_panel_display_time 3;spec_freeze_deathanim_time 0;spec_freeze_time 2;spec_freeze_time_lock 2;spec_replay_enable 0;sv_allow_votes 1;sv_auto_full_alltalk_during_warmup_half_end 0;sv_damage_print_enable 0;sv_deadtalk 1;sv_hibernate_postgame_delay 300;sv_ignoregrenaderadio 0;sv_infinite_ammo 0;sv_talk_enemy_dead 0;sv_talk_enemy_living 0;sv_voiceenable 1;tv_relayvoice 1;mp_team_timeout_max 3;mp_team_timeout_ot_max 1;mp_team_timeout_ot_add_each 1;mp_team_timeout_time 30;sv_vote_command_delay 0;cash_team_bonus_shorthanded 0;mp_spectators_max 20;mp_team_intro_time 0;mp_restartgame 3;mp_warmup_end;");
+                    liveRestartDelay = 3;
                 }
             }
         }
@@ -1458,8 +1525,10 @@ namespace MatchZy
                 if (cvar == null) return "";
                 string convarValue = cvar.Type switch
                 {
-                    ConVarType.Bool => cvar.GetPrimitiveValue<bool>().ToString(),
-                    ConVarType.Float32 or ConVarType.Float64 => cvar.GetPrimitiveValue<float>().ToString(),
+                    // "1"/"0" and invariant-culture numbers, so the value can be executed as a console command on any server locale.
+                    ConVarType.Bool => cvar.GetPrimitiveValue<bool>() ? "1" : "0",
+                    ConVarType.Float32 => cvar.GetPrimitiveValue<float>().ToString(CultureInfo.InvariantCulture),
+                    ConVarType.Float64 => cvar.GetPrimitiveValue<double>().ToString(CultureInfo.InvariantCulture),
                     ConVarType.UInt16 => cvar.GetPrimitiveValue<ushort>().ToString(),
                     ConVarType.Int16 => cvar.GetPrimitiveValue<short>().ToString(),
                     ConVarType.UInt32 => cvar.GetPrimitiveValue<uint>().ToString(),
@@ -1484,9 +1553,9 @@ namespace MatchZy
             if (cvar == null) return;
             Dictionary<ConVarType, Action<string>> conversionMap = new()
             {
-                { ConVarType.Bool, v => cvar.SetValue(int.TryParse(v, out int intValue) && intValue >= 1 || Convert.ToBoolean(v) ) },
-                { ConVarType.Float32, v => cvar.SetValue(Convert.ToSingle(v)) },
-                { ConVarType.Float64, v => cvar.SetValue(Convert.ToSingle(v)) },
+                { ConVarType.Bool, v => cvar.SetValue(int.TryParse(v, out int intValue) ? intValue >= 1 : Convert.ToBoolean(v)) },
+                { ConVarType.Float32, v => cvar.SetValue(Convert.ToSingle(v, CultureInfo.InvariantCulture)) },
+                { ConVarType.Float64, v => cvar.SetValue(Convert.ToDouble(v, CultureInfo.InvariantCulture)) },
                 { ConVarType.UInt16, v => cvar.SetValue(Convert.ToUInt16(v)) },
                 { ConVarType.Int16, v => cvar.SetValue(Convert.ToInt16(v)) },
                 { ConVarType.UInt32, v => cvar.SetValue(Convert.ToUInt32(v)) },
@@ -1509,12 +1578,37 @@ namespace MatchZy
             }
         }
 
+        private HashSet<string>? matchZyFakeConVarNames;
+
+        // Names of every FakeConVar setting this plugin registers (e.g. matchzy_enable_damage_report).
+        private HashSet<string> GetMatchZyFakeConVarNames()
+        {
+            return matchZyFakeConVarNames ??= new HashSet<string>(GetFakeConVarsByName().Keys, StringComparer.OrdinalIgnoreCase);
+        }
+
+        public bool IsAllowedMatchCvar(string name, string value, out string reason)
+        {
+            return MatchZySecurity.IsAllowedMatchCvar(name, value, cvarName => ConVar.Find(cvarName) != null, GetMatchZyFakeConVarNames(), out reason);
+        }
+
         public void ExecuteChangedConvars()
         {
             foreach (string key in matchConfig.ChangedCvars.Keys)
             {
                 string value = matchConfig.ChangedCvars[key];
-                Log($"[ExecuteChangedConvars] Execing: {key} \"{value}\"");
+                // Checked again here because matchConfig can also come from a backup file.
+                if (!IsAllowedMatchCvar(key, value, out string reason))
+                {
+                    Log($"[ExecuteChangedConvars] Ignoring cvar {key}: {reason}");
+                    continue;
+                }
+                if (remoteLogCvars.Contains(key))
+                {
+                    // Applied to this match only, so the next match does not inherit it.
+                    ApplyMatchRemoteLogCvar(key, value);
+                    continue;
+                }
+                Log($"[ExecuteChangedConvars] Execing: {key} \"{(MatchZySecurity.IsSecretCvar(key) ? "<redacted>" : value)}\"");
                 Server.ExecuteCommand($"{key} \"{value}\"");
             }
         }
@@ -1523,9 +1617,39 @@ namespace MatchZy
         {
             foreach (string key in matchConfig.OriginalCvars.Keys)
             {
+                // Original values were read from the server itself, but the keys may come from a backup file: only the names a
+                // match config may set are accepted (the value is checked below, it may legitimately contain ';').
+                if (!IsAllowedMatchCvar(key, "", out string reason))
+                {
+                    Log($"[ResetChangedConvars] Ignoring cvar {key}: {reason}");
+                    continue;
+                }
                 string value = matchConfig.OriginalCvars[key];
-                Log($"[ResetChangedConvars] Execing: {key} \"{value}\"");
-                Server.ExecuteCommand($"{key} {value}");
+                string loggedValue = MatchZySecurity.IsSecretCvar(key) ? "<redacted>" : value;
+                if (GetPluginSettings().TryGetValue(key, out var pluginSetting))
+                {
+                    // MatchZy setting: written back directly (their commands cannot set some values, e.g. an empty URL).
+                    // The value can come from a backup file, so it is checked like a value from a match config.
+                    if (!MatchZySecurity.IsQuotableValue(value) || (pluginSetting.IsValid != null && !pluginSetting.IsValid(value)))
+                    {
+                        Log($"[ResetChangedConvars] Ignoring {key}: invalid value");
+                        continue;
+                    }
+                    Log($"[ResetChangedConvars] Restoring {key} to \"{loggedValue}\"");
+                    pluginSetting.Set(value);
+                    continue;
+                }
+                if (MatchZySecurity.IsQuotableValue(value))
+                {
+                    Log($"[ResetChangedConvars] Execing: {key} \"{loggedValue}\"");
+                    Server.ExecuteCommand($"{key} \"{value}\"");
+                }
+                else
+                {
+                    // A value that cannot be quoted safely is set directly instead of through the console.
+                    Log($"[ResetChangedConvars] Setting {key} to {loggedValue} directly");
+                    SetConvarValue(ConVar.Find(key), value);
+                }
             }
         }
 
@@ -1857,14 +1981,15 @@ namespace MatchZy
         {
             if (filePath == null || fileUploadURL == "")
             {
-                Log($"[UploadFileAsync] Not able to upload the file, either filePath or fileUploadURL is not set. filePath: {filePath} fileUploadURL: {fileUploadURL}");
+                Log($"[UploadFileAsync] Not able to upload the file, either filePath or fileUploadURL is not set. filePath: {filePath} fileUploadURL: {MatchZySecurity.RedactUrl(fileUploadURL)}");
                 return;
             }
 
             try
             {
-                using var httpClient = new HttpClient();
-                Log($"[UploadFileAsync] Going to upload the file on {fileUploadURL}. Complete path: {filePath}");
+                // Demos can be large and uploads slow: the default 100s timeout was too short.
+                using var httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(30) };
+                Log($"[UploadFileAsync] Going to upload the file on {MatchZySecurity.RedactUrl(fileUploadURL)}. Complete path: {filePath}");
 
                 if (!File.Exists(filePath))
                 {
@@ -1872,12 +1997,9 @@ namespace MatchZy
                     return;
                 }
 
+                // Streamed from disk instead of read into memory (which also failed for files over 2 GB).
                 using FileStream fileStream = File.OpenRead(filePath);
-
-                byte[] fileContent = new byte[fileStream.Length];
-                await fileStream.ReadAsync(fileContent, 0, (int)fileStream.Length);
-
-                using ByteArrayContent content = new(fileContent);
+                using StreamContent content = new(fileStream);
                 content.Headers.Add("Content-Type", "application/octet-stream");
 
                 content.Headers.Add("MatchZy-FileName", Path.GetFileName(filePath));
@@ -1944,14 +2066,31 @@ namespace MatchZy
             return false;
         }
 
+        // team is the player's team in the loaded match (GetPlayerTeam). A player who is not in the match (CsTeam.None) is moved
+        // to spectator: SwitchTeam(None) can crash the server.
         public void SwitchPlayerTeam(CCSPlayerController player, CsTeam team)
         {
+            if (team == CsTeam.None) team = CsTeam.Spectator;
             if (player.Team == team) return;
 
             Server.NextFrame(() =>
             {
+                // The player may have left, or moved again, by the next frame.
+                if (player == null || !player.IsValid || player.Connected != PlayerConnectedState.Connected || player.Team == team) return;
                 if (team == CsTeam.Spectator)
                 {
+                    // ChangeTeam on a live player strips its weapons inline, where other plugins' weapon hooks can crash the
+                    // server; a dead player has nothing to strip.
+                    CCSPlayerPawn? pawn = player.PlayerPawn.Value;
+                    if (pawn != null && pawn.IsValid && player.PawnIsAlive)
+                    {
+                        pawn.CommitSuicide(false, true);
+                        Server.NextFrame(() =>
+                        {
+                            if (player != null && player.IsValid && player.Connected == PlayerConnectedState.Connected) player.ChangeTeam(team);
+                        });
+                        return;
+                    }
                     player.ChangeTeam(team);
                 }
                 else

@@ -23,7 +23,10 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0'
+          dotnet-version: '10.0'
+
+      - name: Run unit tests
+        run: dotnet test tests/MatchZy.Tests -c Release
 
       - name: Get MatchZy Version
         id: MATCHZY_VERSION
@@ -36,6 +39,10 @@ jobs:
           echo "Creating MatchZy base package with version: $MATCHZY_VERSION"
           dotnet publish -o package/addons/counterstrikesharp/plugins/MatchZy
           cp -r cfg package 
+          # Server data files are created by the plugin when missing; shipping them made updates overwrite admins, the
+          # database settings, saved lineups and the whitelist.
+          rm -f package/cfg/MatchZy/admins.json package/cfg/MatchZy/database.json package/cfg/MatchZy/savednades.json package/cfg/MatchZy/whitelist.cfg
+          mkdir -p package/addons/counterstrikesharp/gamedata && cp gamedata/matchzy.json package/addons/counterstrikesharp/gamedata/
           cd package && zip -q -r ../MatchZy-$MATCHZY_VERSION.zip * && cd ..
     
           echo "Creating package with CounterStrikeSharp (CSSharp) v$CSSHARP_VERSION for Linux"
@@ -54,12 +61,16 @@ jobs:
 
           dotnet publish -o package/addons/counterstrikesharp/plugins/MatchZy
 
+          mkdir -p package/addons/counterstrikesharp/gamedata && cp gamedata/matchzy.json package/addons/counterstrikesharp/gamedata/
           cd package && zip -q -r ../MatchZy-$MATCHZY_VERSION-with-cssharp-linux.zip * && cd ..
 
           rm -r package/*
 
           echo "Creating package with CounterStrikeSharp (CSSharp) v$CSSHARP_VERSION for Windows"
           cp -r cfg package
+          # Server data files are created by the plugin when missing; shipping them made updates overwrite admins, the
+          # database settings, saved lineups and the whitelist.
+          rm -f package/cfg/MatchZy/admins.json package/cfg/MatchZy/database.json package/cfg/MatchZy/savednades.json package/cfg/MatchZy/whitelist.cfg
           cd package/
           echo "Installing CounterStrikeSharp (CSSharp) v$CSSHARP_VERSION"
           [ -e addons/counterstrikesharp ] && rm -rf addons/counterstrikesharp && echo "CounterStrikeSharp removed" || echo "old CounterStrikeSharp not found"
@@ -75,6 +86,7 @@ jobs:
 
           dotnet publish -o package/addons/counterstrikesharp/plugins/MatchZy
 
+          mkdir -p package/addons/counterstrikesharp/gamedata && cp gamedata/matchzy.json package/addons/counterstrikesharp/gamedata/
           cd package && zip -q -r ../MatchZy-$MATCHZY_VERSION-with-cssharp-windows.zip * && cd ..
 
       - name: Create Release
