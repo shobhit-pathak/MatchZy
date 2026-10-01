@@ -153,6 +153,16 @@ namespace MatchZy
             demoUploadURL = url;
         }
 
+        [ConsoleCommand("get5_demo_upload_s3", "If true, demo upload uses HTTP PUT to matchzy_demo_upload_url (e.g. S3 presigned URL) with raw .dem body. Default value: false")]
+        [ConsoleCommand("matchzy_demo_upload_s3", "If true, demo upload uses HTTP PUT to matchzy_demo_upload_url (e.g. S3 presigned URL) with raw .dem body. Default value: false")]
+        public void MatchZyDemoUploadS3(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+            string args = command.ArgString;
+
+            isDemoUploadS3Enabled = bool.TryParse(args, out bool isDemoUploadS3EnabledValue) ? isDemoUploadS3EnabledValue : args != "0" && isDemoUploadS3Enabled;
+        }
+
         [ConsoleCommand("matchzy_stop_command_available", "Whether .stop command is enabled or not (to restore the current round). Default value: false")]
         public void MatchZyStopCommandEnabled(CCSPlayerController? player, CommandInfo command)
         {

@@ -1853,7 +1853,7 @@ namespace MatchZy
             return value;
         }
 
-        public async Task UploadFileAsync(string? filePath, string fileUploadURL, string headerKey, string headerValue, long matchId, int mapNumber, int roundNumber)
+        public async Task UploadFileAsync(string? filePath, string fileUploadURL, string headerKey, string headerValue, long matchId, int mapNumber, int roundNumber, bool useS3PresignedPut = false)
         {
             if (filePath == null || fileUploadURL == "")
             {
@@ -1864,11 +1864,43 @@ namespace MatchZy
             try
             {
                 using var httpClient = new HttpClient();
-                Log($"[UploadFileAsync] Going to upload the file on {fileUploadURL}. Complete path: {filePath}");
+                if (useS3PresignedPut)
+                {
+                    httpClient.Timeout = TimeSpan.FromHours(2);
+                }
+
+                Log($"[UploadFileAsync] Going to upload the file on {fileUploadURL}. Complete path: {filePath}" + (useS3PresignedPut ? " (HTTP PUT, S3-compatible)" : ""));
 
                 if (!File.Exists(filePath))
                 {
                     Log($"[UploadFileAsync ERROR] File not found: {filePath}");
+                    return;
+                }
+
+                if (useS3PresignedPut)
+                {
+                    using FileStream s3FileStream = File.OpenRead(filePath);
+                    using StreamContent s3Content = new(s3FileStream);
+                    s3Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+
+                    using HttpRequestMessage request = new(HttpMethod.Put, fileUploadURL) { Content = s3Content };
+
+                    if (!string.IsNullOrEmpty(headerKey) && !string.IsNullOrEmpty(headerValue))
+                    {
+                        request.Headers.TryAddWithoutValidation(headerKey, headerValue);
+                    }
+
+                    HttpResponseMessage s3Response = await httpClient.SendAsync(request);
+
+                    if (s3Response.IsSuccessStatusCode)
+                    {
+                        Log($"[UploadFileAsync] File upload successful for matchId: {matchId} mapNumber: {mapNumber} fileName: {Path.GetFileName(filePath)}.");
+                    }
+                    else
+                    {
+                        Log($"[UploadFileAsync ERROR] Failed to upload file. Status code: {s3Response.StatusCode} Response: {await s3Response.Content.ReadAsStringAsync()}");
+                    }
+
                     return;
                 }
 

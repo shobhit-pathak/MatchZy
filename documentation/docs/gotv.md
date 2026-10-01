@@ -32,6 +32,15 @@ read the [headers](#headers) for file metadata.
 
 Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"`
 
+### S3-compatible direct upload (presigned URL)
+
+Large demos are often uploaded straight to object storage using a **presigned URL** so the game server performs an **HTTP PUT** of the raw `.dem` file instead of posting through your application (which may hit body size limits).
+
+1. Set `matchzy_demo_upload_url` to the presigned PUT URL your backend issues for that map (or configure it the same way you already set the upload URL).
+2. Set `matchzy_demo_upload_s3 1` so MatchZy uses **HTTP PUT** with `Content-Type: application/octet-stream` and the raw demo bytes. MatchZy-specific metadata headers are **not** sent on this path, so they do not break AWS Signature Version 4 signing.
+
+Generate the presigned URL with the same `Content-Type` (`application/octet-stream`) you intend to send, or adjust your signing parameters accordingly for S3-compatible providers.
+
 ### Headers
 
 MatchZy will add these HTTP headers to its demo upload request:

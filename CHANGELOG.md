@@ -1,5 +1,9 @@
 # MatchZy Changelog
 
+## Unreleased
+
+- Added `matchzy_demo_upload_s3` / `get5_demo_upload_s3` to upload demos with HTTP PUT to `matchzy_demo_upload_url` for S3-compatible presigned URLs (see documentation).
+
 # 0.8.15
 
 #### October 26, 2025
