@@ -48,17 +48,34 @@ namespace MatchZy
                 string tempDemoPath = demoPath == "" ? demoFileName : demoPath + demoFileName;
                 activeDemoFile = tempDemoPath;
                 Log($"[StartDemoRecoding] Starting demo recording, path: {tempDemoPath}");
-                Server.ExecuteCommand($"tv_record {tempDemoPath}");
+                TvRecord(tempDemoPath);
                 isDemoRecording = true;
             }
             catch (Exception ex)
             {
                 Log($"[StartDemoRecording - FATAL] Error: {ex.Message}. Starting demo recording with path. Name: {demoFileName}");
                 // This is to avoid demo loss in any case of exception
-                Server.ExecuteCommand($"tv_record {demoFileName}");
+                activeDemoFile = demoFileName;
+                TvRecord(demoFileName);
                 isDemoRecording = true;
             }
 
+        }
+
+        // Relative tv_record paths resolve under csgo/addons/metamod when Metamod is installed.
+        private void TvRecord(string csgoRelativePath)
+        {
+            string fullPath = Path.Join(Server.GameDirectory, "csgo", csgoRelativePath).Replace('\\', '/');
+            string arg = fullPath.Contains(' ') ? $"\"{fullPath}\"" : fullPath;
+            Server.ExecuteCommand($"tv_record {arg}");
+
+            AddTimer(5.0f, () =>
+            {
+                if (isDemoRecording && !File.Exists(fullPath))
+                {
+                    Log($"[StartDemoRecording] Demo file was not created: {fullPath}. Check the console for CDemoFile errors.");
+                }
+            });
         }
 
         public void StopDemoRecording(float delay, string activeDemoFile, long liveMatchId, int currentMapNumber)
