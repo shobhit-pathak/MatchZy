@@ -22,6 +22,7 @@ There are 2 commands available which can be used to load a match:
   "matchid": 27,
   "team1": {
     "name": "Astralis",
+    "tag": "AST",
     "players": {
       "76561197990682262": "Xyp9x",
       "76561198010511021": "gla1ve",
@@ -32,6 +33,7 @@ There are 2 commands available which can be used to load a match:
   },
   "team2": {
     "name": "NaVi",
+    "tag": "NAVI",
     "players": {
       "76561198034202275": "s1mple",
       "76561198044045107": "electronic",
@@ -70,6 +72,7 @@ This file can be loaded using :
 1. `matchzy_loadmatch astralis_vs_navi_27.json` (if you have `astralis_vs_navi_27.json` in your `csgo` directory)
 2. `matchzy_loadmatch_url "https://<url>/astralis_vs_navi_27.json"`
 
+The optional `tag` fields appear as player clan tags during live play when `matchzy_clan_tags_enabled true` is set in `cfg/MatchZy/config.cfg`. MatchZy shows readiness tags during warmup with that setting enabled.
 
 ## Current Limitations?
 

@@ -12,6 +12,7 @@ namespace MatchZy
     {
 
         public FakeConVar<bool> smokeColorEnabled = new("matchzy_smoke_color_enabled", "Whether player-specific smoke color is enabled or not. Default: false", false);
+        public FakeConVar<bool> clanTagsEnabled = new("matchzy_clan_tags_enabled", "Show ready status and configured team tags in the scoreboard. Default: false", false);
         public FakeConVar<bool> techPauseEnabled = new("matchzy_enable_tech_pause", "Whether .tech command is enabled or not. Default: true", true);
         public FakeConVar<string> techPausePermission  = new("matchzy_tech_pause_flag", "Flag required to use tech pause", "");
         public FakeConVar<int> techPauseDuration  = new("matchzy_tech_pause_duration", "Tech pause duration in seconds. Default value: 300", 300);

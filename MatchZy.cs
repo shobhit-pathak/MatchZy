@@ -206,6 +206,14 @@ namespace MatchZy
             };
 
             RegisterEventHandler<EventPlayerConnectFull>(EventPlayerConnectFullHandler);
+            RegisterEventHandler<EventPlayerSpawn>((gameEvent, _) => {
+                ScheduleClanTag(gameEvent.Userid);
+                return HookResult.Continue;
+            });
+            RegisterEventHandler<EventPlayerTeam>((gameEvent, _) => {
+                ScheduleClanTag(gameEvent.Userid);
+                return HookResult.Continue;
+            });
             RegisterEventHandler<EventPlayerDisconnect>(EventPlayerDisconnectHandler);
             RegisterEventHandler<EventCsWinPanelRound>(EventCsWinPanelRoundHandler, hookMode: HookMode.Pre);
             RegisterEventHandler<EventCsWinPanelMatch>(EventCsWinPanelMatchHandler);
