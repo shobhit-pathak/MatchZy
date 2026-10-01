@@ -101,6 +101,7 @@ namespace MatchZy
                 string path = command.ArgByIndex(1);
                 if (path == "")
                 {
+                    // Empty string means the csgo root, as documented.
                     demoPath = "";
                 }
                 else if (path[0] == '/' || path[0] == '.' || path[^1] != '/' || path.Contains("//"))
