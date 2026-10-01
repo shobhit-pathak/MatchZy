@@ -135,6 +135,13 @@ namespace MatchZy
         public Dictionary<int, Dictionary<string, object>> pracUsedBots = new Dictionary<int, Dictionary<string, object>>();
 
         private CounterStrikeSharp.API.Modules.Timers.Timer? collisionGroupTimer;
+        private CounterStrikeSharp.API.Modules.Timers.Timer? fastForwardTimer;
+        // Players killed by a practice team switch (.t/.ct/.spec), with their score and deaths from before the kill, which are put
+        // back so the switch does not count on the scoreboard.
+        private readonly Dictionary<int, (int Score, int Deaths)> practiceSwitchNoDeath = new();
+        private Dictionary<int, MoveType_t> preFastForwardMoveTypes = new();
+        // Molotov/incendiary projectile index -> throw time and thrower, for the burn time message (molotov_detonate has no entity id).
+        private Dictionary<int, (DateTime ThrownTime, int UserId)> molotovThrows = new();
 
         public bool isSpawningBot;
 
@@ -171,7 +178,7 @@ namespace MatchZy
                 Log($"[StartWarmup] Starting Practice Mode! Practice CFG not found in {absolutePath}, using default CFG!");
                 Server.ExecuteCommand("""sv_cheats "true"; mp_force_pick_time "0"; bot_quota "0"; sv_showimpacts "1"; mp_limitteams "0"; sv_deadtalk "true"; sv_full_alltalk "true"; sv_ignoregrenaderadio "false"; mp_forcecamera "0"; sv_grenade_trajectory_prac_pipreview "true"; sv_grenade_trajectory_prac_trailtime "3"; sv_infinite_ammo "1"; weapon_auto_cleanup_time "15"; weapon_max_before_cleanup "30"; mp_buy_anywhere "1"; mp_maxmoney "9999999"; mp_startmoney "9999999";""");
                 Server.ExecuteCommand("""mp_weapons_allow_typecount "-1"; mp_death_drop_breachcharge "false"; mp_death_drop_defuser "false"; mp_death_drop_taser "false"; mp_drop_knife_enable "true"; mp_death_drop_grenade "0"; ammo_grenade_limit_total "5"; mp_defuser_allocation "2"; mp_free_armor "2"; mp_ct_default_grenades "weapon_incgrenade weapon_hegrenade weapon_smokegrenade weapon_flashbang weapon_decoy"; mp_ct_default_primary "weapon_m4a1";""");
-                Server.ExecuteCommand("""mp_t_default_grenades "weapon_molotov weapon_hegrenade weapon_smokegrenade weapon_flashbang weapon_decoy"; mp_t_default_primary "weapon_ak47"; mp_warmup_online_enabled "true"; mp_warmup_pausetimer "1"; mp_warmup_start; bot_quota_mode fill; mp_solid_teammates 2; mp_autoteambalance false; mp_teammates_are_enemies false; buddha 1; buddha_ignore_bots 1; buddha_reset_hp 100;""");
+                Server.ExecuteCommand("""mp_t_default_grenades "weapon_molotov weapon_hegrenade weapon_smokegrenade weapon_flashbang weapon_decoy"; mp_t_default_primary "weapon_ak47"; mp_warmup_online_enabled "true"; mp_warmup_pausetimer "1"; mp_warmup_start; bot_quota_mode normal;mp_solid_teammates 2; mp_autoteambalance false; mp_teammates_are_enemies false; buddha 1; buddha_ignore_bots 1; buddha_reset_hp 100; mp_autokick 0; mp_tkpunish 0;""");
             }
             GetSpawns();
             PrintToAllChat($"Practice mode loaded!");
@@ -311,7 +318,7 @@ namespace MatchZy
                 try
                 {
                     // Read existing JSON content
-                    string existingJson = File.ReadAllText(savednadesPath);
+                    string existingJson = ReadSavedNadesJson(savednadesPath);
 
                     // Deserialize the existing JSON content
                     var savedNadesDict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, Dictionary<string, string>>>>(existingJson)
@@ -338,8 +345,8 @@ namespace MatchZy
 
                     savedNadesDict[playerSteamID][lineupName] = new Dictionary<string, string>
                     {
-                        { "LineupPos", $"{playerPos.X} {playerPos.Y} {playerPos.Z+4}" },
-                        { "LineupAng", $"{playerAngle.X} {playerAngle.Y} {playerAngle.Z}" },
+                        { "LineupPos", LineupFormat.Format(playerPos.X, playerPos.Y, playerPos.Z) },
+                        { "LineupAng", LineupFormat.Format(playerAngle.X, playerAngle.Y, playerAngle.Z) },
                         { "Desc", lineupDesc },
                         { "Map", currentMapName },
                         { "Type", nadeType }
@@ -390,7 +397,7 @@ namespace MatchZy
                 try
                 {
                     // Read existing JSON content
-                    string existingJson = File.ReadAllText(savednadesPath);
+                    string existingJson = ReadSavedNadesJson(savednadesPath);
 
                     //Console.WriteLine($"Existing JSON Content: {existingJson}");
 
@@ -458,7 +465,15 @@ namespace MatchZy
                     {
                         // Extract name, pos, and ang from the parts
                         string lineupName = parts[0].Trim();
-                        string[] posAng = parts.Skip(1).Select(p => p.Replace(",", "")).ToArray(); // Replace ',' with '' for proper parsing
+                        // Codes separate the numbers with ", " so only a trailing ',' is removed: a ',' inside a number (a ',' decimal
+                        // separator) makes it invalid instead of a different number.
+                        string[] posAng = parts.Skip(1).Select(p => p.TrimEnd(',')).ToArray();
+                        if (!posAng.All(LineupFormat.IsValidNumber))
+                        {
+                            // Saved as is, an invalid number would make the lineup fail every time it is loaded.
+                            ReplyToUserCommand(player, Localizer["matchzy.pm.importnadeinvalid"]);
+                            return;
+                        }
 
                         // Get player info: steamid
                         string playerSteamID = player.SteamID.ToString();
@@ -469,7 +484,7 @@ namespace MatchZy
                         string savednadesPath = Path.Join(Server.GameDirectory + "/csgo/cfg", savednadesfileName);
 
                         // Read existing JSON content
-                        string existingJson = File.ReadAllText(savednadesPath);
+                        string existingJson = ReadSavedNadesJson(savednadesPath);
 
                         //Console.WriteLine($"Existing JSON Content: {existingJson}");
 
@@ -542,7 +557,7 @@ namespace MatchZy
             try
             {
                 // Read existing JSON content
-                string existingJson = File.ReadAllText(savednadesPath);
+                string existingJson = ReadSavedNadesJson(savednadesPath);
 
                 //Console.WriteLine($"Existing JSON Content: {existingJson}");
 
@@ -604,7 +619,7 @@ namespace MatchZy
                 try
                 {
                     // Read existing JSON content
-                    string existingJson = File.ReadAllText(savednadesPath);
+                    string existingJson = ReadSavedNadesJson(savednadesPath);
 
                     //Console.WriteLine($"Existing JSON Content: {existingJson}");
 
@@ -637,18 +652,21 @@ namespace MatchZy
                                 if (lineupInfo.ContainsKey("Map") && lineupInfo["Map"] == Server.MapName)
                                 {
                                     // Extract position and angle from the lineup information
-                                    string[] posArray = lineupInfo["LineupPos"].Split(' ');
-                                    string[] angArray = lineupInfo["LineupAng"].Split(' ');
-
-                                    // Parse position and angle
-                                    Vector loadedPlayerPos = new Vector(float.Parse(posArray[0]), float.Parse(posArray[1]), float.Parse(posArray[2]));
-                                    QAngle loadedPlayerAngle = new QAngle(float.Parse(angArray[0]), float.Parse(angArray[1]), float.Parse(angArray[2]));
+                                    if (!LineupFormat.TryParse(lineupInfo["LineupPos"], out float posX, out float posY, out float posZ)
+                                        || !LineupFormat.TryParse(lineupInfo["LineupAng"], out float angX, out float angY, out float angZ))
+                                    {
+                                        Log($"[LoadNade] Lineup {nearestName} has an invalid position or angle: {lineupInfo["LineupPos"]} / {lineupInfo["LineupAng"]}");
+                                        ReplyToUserCommand(player, Localizer["matchzy.pm.lineupinvalid", nearestName]);
+                                        return;
+                                    }
+                                    Vector loadedPlayerPos = new Vector(posX, posY, posZ);
+                                    QAngle loadedPlayerAngle = new QAngle(angX, angY, angZ);
 
                                     // Teleport player
-                                    player!.PlayerPawn!.Value!.Teleport(loadedPlayerPos, loadedPlayerAngle, new Vector(0, 0, 0));
+                                    PlayerTeleport.TeleportUpright(player, loadedPlayerPos, loadedPlayerAngle);
 
-                                    // Change player inv slot
-                                    switch (lineupInfo["Type"])
+                                    // Change player inv slot (imported lineups have no type)
+                                    switch (lineupInfo.GetValueOrDefault("Type", ""))
                                     {
                                         case "Flash":
                                             player.ExecuteClientCommand("slot7");
@@ -817,7 +835,7 @@ namespace MatchZy
                 return;
             }
 
-            Server.ExecuteCommand("bot_kick");
+            KickBots();
             pracUsedBots = new Dictionary<int, Dictionary<string, object>>();
             noFlashList = new();
 
@@ -904,112 +922,271 @@ namespace MatchZy
         public void OnBoostBotCommand(CCSPlayerController? player, CommandInfo? command)
         {
             if (!isPractice) return;
-            AddBot(player, false);
-            AddTimer(0.2f, () => ElevatePlayer(player));
+            AddBot(player, false, boost: true);
         }
 
         [ConsoleCommand("css_crouchboost", "Spawns a crouched bot at the player's position and boost the player on it")]
         public void OnCrouchBoostBotCommand(CCSPlayerController? player, CommandInfo? command)
         {
             if (!isPractice) return;
-            AddBot(player, true);
-            AddTimer(0.2f, () => ElevatePlayer(player));
+            AddBot(player, true, boost: true);
         }
 
-        private void AddBot(CCSPlayerController? player, bool crouch)
+        // A .bot waiting to be added. Spot is where the owner stood when the command was typed.
+        private record BotRequest(CCSPlayerController Owner, bool Crouch, bool Boost, CsTeam Team, Position Spot);
+
+        // Bots are added one at a time: while a bot_add is being claimed, any other new bot would look like its extra and be
+        // kicked, so .bot typed in quick succession is queued.
+        private readonly Queue<BotRequest> pendingBotRequests = new();
+
+        // Incremented by CancelBotRequests, so a claim that is still waiting for its bot gives up (e.g. after .nobots).
+        private int botRequestGeneration;
+
+        // How many times ClaimBot looks for the new bot (0.1s after bot_add, then every 0.15s).
+        private const int BotClaimAttempts = 5;
+
+        // How practice bots are added:
+        // - bot_quota_mode is normal (prac.cfg): with fill, humans count towards the quota, so bots were added and removed
+        //   whenever a player joined or changed team.
+        // - Only bot_add_t / bot_add_ct: a bot_join_team before it spawned a second bot.
+        // - bot_quota is set to the tracked bots + 1 right after bot_add and to the tracked bots after the claim, so the
+        //   quota never adds or refills extra bots.
+        // - One bot_add can still spawn a bot on each team, and the requested one can arrive a tick later, so the claim
+        //   prefers the requested team, retries briefly, and only then kicks the extras. A sweep afterwards catches late ones.
+        // Returns false when no bot will be added.
+        private bool AddBot(CCSPlayerController? player, bool crouch, bool boost = false)
         {
             try
             {
-                if (!isPractice || player == null || !player.IsValid || !player.PlayerPawn.IsValid || player.PlayerPawn.Value == null) return;
-                CCSPlayer_MovementServices movementService = new(player.PlayerPawn.Value.MovementServices!.Handle);
+                if (!isPractice || player == null || !player.IsValid || !player.PlayerPawn.IsValid || player.PlayerPawn.Value == null) return false;
+                if (HasLaunchOption("-nobots"))
+                {
+                    // The engine would still create a bot, but without a player model: an invisible bot that can be shot.
+                    PrintToPlayerChat(player, Localizer["matchzy.pm.botsdisabled"]);
+                    return false;
+                }
+                CsTeam team = (CsTeam)player.TeamNum switch
+                {
+                    CsTeam.CounterTerrorist => CsTeam.Terrorist,
+                    CsTeam.Terrorist => CsTeam.CounterTerrorist,
+                    _ => CsTeam.None,
+                };
+                if (team == CsTeam.None) return false; // Spectators get no bot, as before.
+                if (!HasFreeSlotForBot())
+                {
+                    PrintToPlayerChat(player, Localizer["matchzy.pm.botserverfull"]);
+                    return false;
+                }
+                var sceneNode = player.PlayerPawn.Value.CBodyComponent?.SceneNode;
+                if (sceneNode == null) return false;
+                if (player.PlayerPawn.Value.MovementServices != null)
+                {
+                    CCSPlayer_MovementServices movementService = new(player.PlayerPawn.Value.MovementServices.Handle);
+                    if ((int)movementService.DuckAmount == 1)
+                    {
+                        // Player was crouching while using .bot command
+                        crouch = true;
+                    }
+                }
 
-                if ((int)movementService.DuckAmount == 1)
-                {
-                    // Player was crouching while using .bot command
-                    crouch = true;
-                }
-                isSpawningBot = true;
-                // !bot/.bot command is made using a lot of workarounds, as there is no direct way to create a bot entity and spawn it in CSSharp
-                // Hence there can be some issues with this approach. This will be revamped when we will be able to fake clients.
-                if (player.TeamNum == (byte)CsTeam.CounterTerrorist)
-                {
-                    Server.ExecuteCommand("bot_join_team T");
-                    Server.ExecuteCommand("bot_add_t");
-                }
-                else if (player.TeamNum == (byte)CsTeam.Terrorist)
-                {
-                    Server.ExecuteCommand("bot_join_team CT");
-                    Server.ExecuteCommand("bot_add_ct");
-                }
-                
-                // Once bot is added, we teleport it to the requested position
-                AddTimer(0.1f, () => SpawnBot(player, crouch));
-                Server.ExecuteCommand("bot_stop 1");
-                Server.ExecuteCommand("bot_freeze 1");
-                Server.ExecuteCommand("bot_zombie 1");
+                pendingBotRequests.Enqueue(new BotRequest(player, crouch, boost, team, new Position(sceneNode.AbsOrigin, sceneNode.AbsRotation)));
+                if (!isSpawningBot) StartNextBotRequest();
+                return true;
             }
-            catch (JsonException ex)
+            catch (Exception ex)
             {
                 Log($"[AddBot - FATAL] Error: {ex.Message}");
+                return false;
             }
         }
 
-        private void SpawnBot(CCSPlayerController botOwner, bool crouch)
+        // Drops queued .bot requests and makes a claim in progress give up.
+        public void CancelBotRequests()
         {
-            try 
+            pendingBotRequests.Clear();
+            botRequestGeneration++;
+            isSpawningBot = false;
+        }
+
+        // bot_add on a full server frees a slot by kicking the CSTV bot, which stops GOTV and the demo recording.
+        private bool HasFreeSlotForBot()
+        {
+            var occupied = GetControllers(includeConnecting: true);
+            if (!occupied.Any(p => p.IsHLTV)) return true; // Nothing to protect (and listen servers can report a wrong max).
+            // Two slots per bot: one bot_add can bring an extra bot before it is kicked.
+            int neededSlots = 2 * (pendingBotRequests.Count + 1);
+            return occupied.Count + neededSlots <= Server.MaxPlayers;
+        }
+
+        private void StartNextBotRequest()
+        {
+            while (pendingBotRequests.Count > 0)
             {
-                if (!IsPlayerValid(botOwner)) return;
-                var playerEntities = Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller");
-                bool unusedBotFound = false;
-                foreach (var tempPlayer in playerEntities)
+                BotRequest request = pendingBotRequests.Dequeue();
+                if (!isPractice || !IsPlayerValid(request.Owner)) continue;
+
+                isSpawningBot = true;
+                int trackedBots = GetTrackedBotCount();
+                Server.ExecuteCommand("bot_quota_mode normal");
+                Server.ExecuteCommand(request.Team == CsTeam.Terrorist ? "bot_add_t" : "bot_add_ct");
+                // Set after bot_add (whether or not bot_add raises the quota itself), before the quota manager runs again.
+                Server.ExecuteCommand($"bot_quota {trackedBots + 1}");
+                Server.ExecuteCommand("bot_stop 1");
+                Server.ExecuteCommand("bot_freeze 1");
+                Server.ExecuteCommand("bot_zombie 1");
+                int generation = botRequestGeneration;
+                // Once bot is added, we teleport it to the requested position
+                AddTimer(0.1f, () => ClaimBot(request, generation, 1));
+                return;
+            }
+            isSpawningBot = false;
+        }
+
+        private void ClaimBot(BotRequest request, int generation, int attempt)
+        {
+            if (generation != botRequestGeneration) return; // Cancelled (.nobots, practice ended).
+
+            bool retry = false;
+            try
+            {
+                if (!isPractice) return;
+                List<CCSPlayerController> untrackedBots = GetUntrackedBots();
+                bool lastAttempt = attempt >= BotClaimAttempts;
+                var newBots = untrackedBots
+                    .Select(bot => new BotClaimLogic.NewBot(bot.UserId!.Value, bot.TeamNum, bot.PlayerPawn.IsValid && bot.PlayerPawn.Value != null))
+                    .ToList();
+                int? claimedUserId = BotClaimLogic.SelectBotToClaim(newBots, (int)request.Team, lastAttempt);
+                CCSPlayerController? claimedBot = untrackedBots.FirstOrDefault(bot => bot.UserId == claimedUserId);
+
+                if (claimedBot == null && !lastAttempt)
                 {
-                    if (!IsPlayerValid(tempPlayer)) continue;
-                    if (!tempPlayer.IsBot || tempPlayer.IsHLTV) continue;
-                    if (tempPlayer.UserId.HasValue)
+                    // The requested bot may still be on its way: kick nothing yet.
+                    retry = true;
+                    AddTimer(0.15f, () => ClaimBot(request, generation, attempt + 1));
+                    return;
+                }
+
+                ConVar? quota = ConVar.Find("bot_quota");
+                Log($"[ClaimBot] Attempt {attempt}: {untrackedBots.Count} new bot(s), bot_quota {(quota != null ? GetConvarStringValue(quota) : "?")}, tracked {pracUsedBots.Count}");
+
+                foreach (var extra in untrackedBots)
+                {
+                    if (extra == claimedBot) continue;
+                    Log($"[ClaimBot] Kicking extra bot {extra.PlayerName} (team {extra.TeamNum}, wanted {(byte)request.Team})");
+                    Server.ExecuteCommand($"kickid {extra.UserId!.Value}");
+                }
+
+                if (claimedBot == null)
+                {
+                    Log("[ClaimBot] No bot arrived for the .bot request");
+                    PrintToAllChat(Localizer["matchzy.pm.botlimit"]);
+                    return;
+                }
+
+                int botUserId = claimedBot.UserId!.Value;
+                pracUsedBots[botUserId] = new Dictionary<string, object>
+                {
+                    ["controller"] = claimedBot,
+                    ["position"] = request.Spot,
+                    ["owner"] = request.Owner,
+                    ["crouchstate"] = request.Crouch
+                };
+
+                if (request.Crouch) CrouchBotLater(botUserId);
+                claimedBot.PlayerPawn.Value!.Teleport(request.Spot.PlayerPosition, request.Spot.PlayerAngle, new Vector(0, 0, 0));
+                if (IsPlayerValid(request.Owner))
+                {
+                    TemporarilyDisableCollisions(request.Owner, claimedBot);
+                    if (request.Boost) AddTimer(0.1f, () => ElevatePlayer(request.Owner));
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"[ClaimBot - FATAL] Error: {ex.Message}");
+            }
+            finally
+            {
+                // The claim is decided (success, failure or error) unless a retry was scheduled.
+                if (!retry && generation == botRequestGeneration)
+                {
+                    isSpawningBot = false;
+                    if (isPractice)
                     {
-                        if (!pracUsedBots.ContainsKey(tempPlayer.UserId.Value) && unusedBotFound)
-                        {
-                            Log($"UNUSED BOT FOUND: {tempPlayer.UserId.Value} EXECUTING: kickid {tempPlayer.UserId.Value}");
-                            // Kicking the unused bot. We have to do this because bot_add_t/bot_add_ct may add multiple bots but we need only 1, so we kick the remaining unused ones
-                            Server.ExecuteCommand($"kickid {tempPlayer.UserId.Value}");
-                            continue;
-                        }
-                        if (pracUsedBots.ContainsKey(tempPlayer.UserId.Value))
-                        {
-                            continue;
-                        }
-                        pracUsedBots[tempPlayer.UserId.Value] = new Dictionary<string, object>();
-
-                        Position botOwnerPosition = new Position(botOwner.PlayerPawn.Value!.CBodyComponent?.SceneNode?.AbsOrigin!, botOwner.PlayerPawn.Value!.CBodyComponent?.SceneNode?.AbsRotation!);
-                        // Add key-value pairs to the inner dictionary
-                        pracUsedBots[tempPlayer.UserId.Value]["controller"] = tempPlayer;
-                        pracUsedBots[tempPlayer.UserId.Value]["position"] = botOwnerPosition;
-                        pracUsedBots[tempPlayer.UserId.Value]["owner"] = botOwner;
-                        pracUsedBots[tempPlayer.UserId.Value]["crouchstate"] = crouch;
-
-                        if (crouch)
-                        {
-                            CCSPlayer_MovementServices movementService = new(tempPlayer.PlayerPawn.Value!.MovementServices!.Handle);
-                            AddTimer(0.1f, () => movementService.DuckAmount = 1);
-                            AddTimer(0.2f, () => tempPlayer.PlayerPawn.Value!.Bot!.IsCrouching = true);
-                        }
-
-                        tempPlayer.PlayerPawn.Value!.Teleport(botOwnerPosition.PlayerPosition, botOwnerPosition.PlayerAngle, new Vector(0, 0, 0));
-                        TemporarilyDisableCollisions(botOwner, tempPlayer);
-                        unusedBotFound = true;
+                        Server.ExecuteCommand($"bot_quota {GetTrackedBotCount()}");
+                        AddTimer(0.6f, EnforcePracticeBots);
+                        StartNextBotRequest();
+                    }
+                    else
+                    {
+                        pendingBotRequests.Clear();
                     }
                 }
-                if (!unusedBotFound) {
-                    // Server.PrintToChatAll($"{chatPrefix} Cannot add bots, the team is full! Use .nobots to remove the current bots.");
-                    PrintToAllChat(Localizer["matchzy.pm.botlimit"]);
-                }
+            }
+        }
 
-                isSpawningBot = false;
-            }
-            catch (JsonException ex)
+        // Player controllers on the server (connected, or also connecting), including bots and the CSTV bot.
+        private static List<CCSPlayerController> GetControllers(bool includeConnecting = false)
+        {
+            return Utilities.FindAllEntitiesByDesignerName<CCSPlayerController>("cs_player_controller")
+                .Where(p => p != null && p.IsValid
+                    && (p.Connected == PlayerConnectedState.Connected || (includeConnecting && p.Connected == PlayerConnectedState.Connecting)))
+                .ToList();
+        }
+
+        // Bots that are not tracked practice bots (and not the CSTV bot), also ones that have not spawned yet.
+        private List<CCSPlayerController> GetUntrackedBots()
+        {
+            return GetControllers()
+                .Where(bot => bot.IsBot && !bot.IsHLTV && bot.UserId.HasValue && !pracUsedBots.ContainsKey(bot.UserId.Value))
+                .ToList();
+        }
+
+        // Tracked bots that are still on the server (stale entries are dropped, so the quota is never set too high).
+        private int GetTrackedBotCount()
+        {
+            foreach (int userId in pracUsedBots.Keys.ToList())
             {
-                Log($"[SpawnBot - FATAL] Error: {ex.Message}");
+                CCSPlayerController? bot = Utilities.GetPlayerFromUserid(userId);
+                if (bot == null || !bot.IsValid || !bot.IsBot) pracUsedBots.Remove(userId);
             }
+            return pracUsedBots.Count;
+        }
+
+        // Keeps exactly the tracked practice bots: pins the quota first (so nothing refills), then kicks every other bot.
+        private void EnforcePracticeBots()
+        {
+            try
+            {
+                if (!isPractice || isSpawningBot) return;
+                Server.ExecuteCommand($"bot_quota {GetTrackedBotCount()}");
+                foreach (var bot in GetUntrackedBots())
+                {
+                    Log($"[EnforcePracticeBots] Kicking untracked bot {bot.PlayerName}");
+                    Server.ExecuteCommand($"kickid {bot.UserId!.Value}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"[EnforcePracticeBots - FATAL] Error: {ex.Message}");
+            }
+        }
+
+        // The bot is looked up again when each timer fires: it may have been kicked in the meantime, and writing to its old
+        // pawn or movement services could crash the server.
+        private void CrouchBotLater(int botUserId)
+        {
+            AddTimer(0.1f, () =>
+            {
+                CCSPlayerController? bot = Utilities.GetPlayerFromUserid(botUserId);
+                if (!IsPlayerValid(bot) || bot!.PlayerPawn.Value!.MovementServices == null) return;
+                new CCSPlayer_MovementServices(bot.PlayerPawn.Value.MovementServices.Handle).DuckAmount = 1;
+            });
+            AddTimer(0.2f, () =>
+            {
+                CCSPlayerController? bot = Utilities.GetPlayerFromUserid(botUserId);
+                if (!IsPlayerValid(bot) || bot!.PlayerPawn.Value!.Bot == null) return;
+                bot.PlayerPawn.Value.Bot.IsCrouching = true;
+            });
         }
 
         public void TemporarilyDisableCollisions(CCSPlayerController p1, CCSPlayerController p2)
@@ -1106,27 +1283,26 @@ namespace MatchZy
                         if (isCrouched)
                         {
                             player.PlayerPawn.Value!.Flags |= (uint)PlayerFlags.FL_DUCKING;
-                            CCSPlayer_MovementServices movementService = new(player.PlayerPawn.Value.MovementServices!.Handle);
-                            AddTimer(0.1f, () => movementService.DuckAmount = 1);
-                            AddTimer(0.2f, () => player.PlayerPawn.Value.Bot!.IsCrouching = true);
+                            CrouchBotLater(player.UserId.Value);
                         }
                         CCSPlayerController? botOwner = (CCSPlayerController)pracUsedBots[player.UserId.Value]["owner"];
                         if (botOwner != null && botOwner.IsValid && botOwner.PlayerPawn != null && botOwner.PlayerPawn.IsValid) {
-                            AddTimer(0.2f, () => TemporarilyDisableCollisions(botOwner, player));
-                        } 
+                            // Either player may leave before the timer fires.
+                            AddTimer(0.2f, () =>
+                            {
+                                if (IsPlayerValid(botOwner) && IsPlayerValid(player)) TemporarilyDisableCollisions(botOwner, player);
+                            });
+                        }
                     }
                 }
                 else if (!isSpawningBot && !player.IsHLTV)
                 {
-                    // Bot has been spawned, but we didn't spawn it, so kick it.
-                    // This most often happens when a player changes team with bot_quota_mode set to fill
-                    // Extra bots from bot_add are already handled in SpawnBot
+                    // Bot has been spawned, but we didn't spawn it, so kick it (e.g. a bot_quota refill).
+                    // Extra bots from bot_add are already handled in ClaimBot
                     // Delay this for a few seconds to prevent crashes
                     Log($"Kicking bot {player.PlayerName} due to erroneous spawning");
-                    AddTimer(2.5f, () =>
-                    {
-                        Server.ExecuteCommand($"bot_kick {player.PlayerName}");
-                    });
+                    // Bots claimed by a .bot in the meantime are kept; kicks are by user id.
+                    AddTimer(2.5f, EnforcePracticeBots);
                 }
             }
 
@@ -1137,7 +1313,8 @@ namespace MatchZy
         public void OnNoBotsCommand(CCSPlayerController? player, CommandInfo? command)
         {
             if (!isPractice || player == null) return;
-            Server.ExecuteCommand("bot_kick");
+            CancelBotRequests();
+            KickBots();
             pracUsedBots = new Dictionary<int, Dictionary<string, object>>();
         }
 
@@ -1145,8 +1322,14 @@ namespace MatchZy
         public void OnFFCommand(CCSPlayerController? player, CommandInfo? command)
         {
             if (!isPractice || player == null) return;
+            if (fastForwardTimer != null)
+            {
+                // A second .ff would save the frozen move types of the first one and never unfreeze the players.
+                PrintToPlayerChat(player, "Already fastforwarding!");
+                return;
+            }
 
-            Dictionary<int, MoveType_t> preFastForwardMoveTypes = new();
+            preFastForwardMoveTypes = new();
 
             foreach (var key in playerData.Keys) {
                 if(!IsPlayerValid(playerData[key])) continue;
@@ -1156,9 +1339,7 @@ namespace MatchZy
 
             Server.PrintToChatAll($"{chatPrefix} Fastforwarding 20 seconds!");
             Server.ExecuteCommand("host_timescale 10");
-            AddTimer(20.0f, () => {
-                ResetFastForward(preFastForwardMoveTypes);
-            });
+            fastForwardTimer = AddTimer(20.0f, ResetFastForward);
 
         }
 
@@ -1168,13 +1349,30 @@ namespace MatchZy
             OnFFCommand(player, command);
         }
 
-        public void ResetFastForward(Dictionary<int, MoveType_t> preFastForwardMoveTypes) {
-            if (!isPractice) return;
+        // Always restores the timescale, also when practice has ended in the meantime.
+        public void ResetFastForward() {
+            fastForwardTimer = null;
             Server.ExecuteCommand("host_timescale 1");
-            foreach (var key in playerData.Keys) {
-                if(!IsPlayerValid(playerData[key])) continue;
-                playerData[key].PlayerPawn.Value!.MoveType = preFastForwardMoveTypes[key];
+            foreach (var (key, moveType) in preFastForwardMoveTypes) {
+                if (!playerData.TryGetValue(key, out var ffPlayer) || !IsPlayerValid(ffPlayer)) continue;
+                ffPlayer.PlayerPawn.Value!.MoveType = moveType;
             }
+            preFastForwardMoveTypes = new();
+        }
+
+        // Ends a running .ff and .timer; called when practice mode ends.
+        public void StopPracticeTimers()
+        {
+            if (fastForwardTimer != null)
+            {
+                fastForwardTimer.Kill();
+                ResetFastForward();
+            }
+            foreach (var timer in playerTimers.Values)
+            {
+                timer.KillTimer();
+            }
+            playerTimers.Clear();
         }
 
         [ConsoleCommand("css_clear", "Removes all the available granades")]
@@ -1239,19 +1437,83 @@ namespace MatchZy
         // CsTeam.None is a special value to mean force all other players to spectator
         private void SideSwitchCommand(CCSPlayerController player, CsTeam team) {
           if (team > CsTeam.None) {
-            if(player.TeamNum == (byte)CsTeam.Spectator) {
+            if(player.TeamNum == (byte)CsTeam.Spectator && team != CsTeam.Spectator) {
               // ReplyToUserCommand(player, "Switching to a team from spectator is currently broken, use the team menu.");
               ReplyToUserCommand(player, Localizer["matchzy.pm.spectatorbroken"]);
               return;
             }
-            player.ChangeTeam(team);
+            MovePlayerToTeamSafely(player, team);
             return;
           }
-          Utilities.GetPlayers().ForEach((x) => { 
+          Utilities.GetPlayers().ForEach((x) => {
               if(x.IsValid && !x.IsBot && x.UserId != player.UserId) {
-                x.ChangeTeam(CsTeam.Spectator);
+                MovePlayerToTeamSafely(x, CsTeam.Spectator);
               }
             });
+        }
+
+        // Registered as a post handler, so the engine has already counted the death: take it back (and the point a suicide costs).
+        public HookResult OnPracticeSwitchDeath(EventPlayerDeath @event, GameEventInfo info)
+        {
+            var victim = @event.Userid;
+            if (victim == null || !victim.IsValid || !victim.UserId.HasValue) return HookResult.Continue;
+            if (!practiceSwitchNoDeath.Remove(victim.UserId.Value, out var before)) return HookResult.Continue;
+            var matchStats = victim.ActionTrackingServices?.MatchStats;
+            if (matchStats != null) matchStats.Deaths = before.Deaths;
+            victim.Score = before.Score;
+            Utilities.SetStateChanged(victim, "CCSPlayerController", "m_iScore");
+            Utilities.SetStateChanged(victim, "CCSPlayerController", "m_pActionTrackingServices");
+            return HookResult.Continue;
+        }
+
+        // Changing the team of a live player makes the engine strip its weapons inline, and weapon hooks of other plugins can
+        // crash the server there. So the player is killed first (a death only drops the weapons) and moved on the next frame.
+        // Runs outside the chat/console command that triggered it.
+        private void MovePlayerToTeamSafely(CCSPlayerController player, CsTeam team)
+        {
+            Server.NextFrame(() =>
+            {
+                if (player == null || !player.IsValid) return;
+                bool playTeam = team == CsTeam.Terrorist || team == CsTeam.CounterTerrorist;
+                if (player.TeamNum == (byte)team)
+                {
+                    // Already on that team: nothing to switch, just bring a dead player back.
+                    if (playTeam && !player.PawnIsAlive) player.Respawn();
+                    return;
+                }
+
+                CCSPlayerPawn? pawn = player.PlayerPawn.Value;
+                if (pawn != null && pawn.IsValid && player.PawnIsAlive)
+                {
+                    // Only flagged when a suicide really happens; OnPracticeSwitchDeath restores the scoreboard.
+                    if (player.UserId.HasValue)
+                    {
+                        int userId = player.UserId.Value;
+                        practiceSwitchNoDeath[userId] = (player.Score, player.ActionTrackingServices?.MatchStats?.Deaths ?? 0);
+                        // If no death event comes for this kill, the flag must not swallow a later real death.
+                        AddTimer(1.0f, () => practiceSwitchNoDeath.Remove(userId));
+                    }
+                    pawn.CommitSuicide(false, true);
+                }
+
+                Server.NextFrame(() =>
+                {
+                    if (player == null || !player.IsValid) return;
+                    if (!playTeam)
+                    {
+                        player.ChangeTeam(team);
+                        return;
+                    }
+                    player.SwitchTeam(team);
+                    player.Respawn();
+                });
+            });
+        }
+
+        // savednades.json only exists once a lineup has been saved.
+        private static string ReadSavedNadesJson(string path)
+        {
+            return File.Exists(path) ? File.ReadAllText(path) : "{}";
         }
 
         public void RemoveGrenadeEntities()
@@ -1262,6 +1524,7 @@ namespace MatchZy
             {
                 entity?.Remove();
             }
+            molotovThrows.Clear();
             var mollys = Utilities.FindAllEntitiesByDesignerName<CSmokeGrenadeProjectile>("molotov_projectile");
             foreach (var entity in mollys)
             {
@@ -1291,6 +1554,9 @@ namespace MatchZy
         }
 
         public void ExecUnpracCommands() {
+            StopPracticeTimers();
+            practiceSwitchNoDeath.Clear();
+            CancelBotRequests();
             Server.ExecuteCommand("sv_cheats false;sv_grenade_trajectory_prac_pipreview false;sv_grenade_trajectory_prac_trailtime 0; mp_ct_default_grenades \"\"; mp_ct_default_primary \"\"; mp_t_default_grenades\"\"; mp_t_default_primary\"\"; mp_teammates_are_enemies false;");
             Server.ExecuteCommand("mp_death_drop_breachcharge true; mp_death_drop_defuser true; mp_death_drop_taser true; mp_drop_knife_enable false; mp_death_drop_grenade 2; ammo_grenade_limit_total 4; mp_defuser_allocation 0; sv_infinite_ammo 0; mp_force_pick_time 15");
         }
@@ -1340,9 +1606,11 @@ namespace MatchZy
                     if (IsValidPositionForLastGrenade(player, positionNumber))
                     {
                         positionNumber -= 1;
-                        lastGrenadesData[userId][positionNumber].LoadPosition(player);
-                        // PrintToPlayerChat(player, $"Teleported to grenade of history position: {positionNumber+1}/{lastGrenadesData[userId].Count}");
-                        PrintToPlayerChat(player, Localizer["matchzy.pm.tptogrenade", $"{positionNumber + 1}/{lastGrenadesData[userId].Count}"]);
+                        if (lastGrenadesData[userId][positionNumber].LoadPosition(player))
+                        {
+                            // PrintToPlayerChat(player, $"Teleported to grenade of history position: {positionNumber+1}/{lastGrenadesData[userId].Count}");
+                            PrintToPlayerChat(player, Localizer["matchzy.pm.tptogrenade", $"{positionNumber + 1}/{lastGrenadesData[userId].Count}"]);
+                        }
                     }
                 }
                 else
@@ -1409,7 +1677,7 @@ namespace MatchZy
                 return;
             }
             
-            if (float.TryParse(delay, out float delayInSeconds) && delayInSeconds > 0)
+            if (float.TryParse(delay, out float delayInSeconds) && delayInSeconds >= 0)
             {
                 if (IsValidPositionForLastGrenade(player, 0))
                 {
@@ -1421,7 +1689,8 @@ namespace MatchZy
             else
             {
                 // PrintToPlayerChat(player, $"Delay of {delayInSeconds:0.00}s set for grenade of index: {lastGrenadesData[userId].Count}.);
-                PrintToPlayerChat(player, Localizer["matchzy.pm.delayvalidnumber", $"{delayInSeconds:0.00}", $"{lastGrenadesData[userId].Count}"]);
+                int thrownCount = lastGrenadesData.TryGetValue(userId, out var thrownGrenades) ? thrownGrenades.Count : 0;
+                PrintToPlayerChat(player, Localizer["matchzy.pm.delayvalidnumber", $"{delayInSeconds:0.00}", $"{thrownCount}"]);
                 return;
             }
         }
@@ -1778,7 +2047,12 @@ namespace MatchZy
 
         public void TeleportPlayerToBestSpawn(CCSPlayerController player, byte teamNum)
         {
-            if (!spawnsData.TryGetValue(teamNum, out List<Position>? teamSpawns)) return;
+            if (spawnsData.Values.Any(list => list.Count == 0)) GetSpawns();
+            if (!spawnsData.TryGetValue(teamNum, out List<Position>? teamSpawns) || teamSpawns.Count == 0)
+            {
+                PrintToPlayerChat(player, Localizer["matchzy.pm.nospawns"]);
+                return;
+            }
             Vector playerPosition = player!.PlayerPawn!.Value!.CBodyComponent!.SceneNode!.AbsOrigin;
             int closestIndex = -1;
             double minDistance = double.MaxValue;
@@ -1798,7 +2072,12 @@ namespace MatchZy
 
         public void TeleportPlayerToWorstSpawn(CCSPlayerController player, byte teamNum)
         {
-            if (!spawnsData.TryGetValue(teamNum, out List<Position>? teamSpawns)) return;
+            if (spawnsData.Values.Any(list => list.Count == 0)) GetSpawns();
+            if (!spawnsData.TryGetValue(teamNum, out List<Position>? teamSpawns) || teamSpawns.Count == 0)
+            {
+                PrintToPlayerChat(player, Localizer["matchzy.pm.nospawns"]);
+                return;
+            }
             Vector playerPosition = player!.PlayerPawn!.Value!.CBodyComponent!.SceneNode!.AbsOrigin;
             int farthestIndex = -1;
             double maxDistance = double.MinValue;

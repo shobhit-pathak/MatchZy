@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <!-- Plugin code without CounterStrikeSharp dependencies, compiled directly into the tests -->
+  <ItemGroup>
+    <Compile Include="..\..\MatchZySecurity.cs" Link="Plugin\MatchZySecurity.cs" />
+    <Compile Include="..\..\MatchConfigJson.cs" Link="Plugin\MatchConfigJson.cs" />
+    <Compile Include="..\..\SeriesLogic.cs" Link="Plugin\SeriesLogic.cs" />
+    <Compile Include="..\..\BotClaimLogic.cs" Link="Plugin\BotClaimLogic.cs" />
+    <Compile Include="..\..\BackupLogic.cs" Link="Plugin\BackupLogic.cs" />
+    <Compile Include="..\..\LineupFormat.cs" Link="Plugin\LineupFormat.cs" />
+  </ItemGroup>
+
+</Project>

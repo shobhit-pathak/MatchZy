@@ -186,13 +186,16 @@ namespace MatchZy
                 if (team is null) continue;
                 if (team is JObject jObjectTeam)
                 {
-                    jObjectTeam.Remove(steamId);
-                    return true;
+                    if (jObjectTeam.Remove(steamId)) return true;
                 }
                 else if (team is JArray jArrayTeam)
                 {
-                    jArrayTeam.Remove(steamId);
-                    return true;
+                    JToken? entry = jArrayTeam.FirstOrDefault(item => item.ToString() == steamId);
+                    if (entry != null)
+                    {
+                        entry.Remove();
+                        return true;
+                    }
                 }
             }
             return false;

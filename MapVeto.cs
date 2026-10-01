@@ -57,10 +57,10 @@ namespace MatchZy
             }
             if (warningsPrinted >= vetoCountdownTime)
             {
-                int team1Captain = vetoCaptains["team1"];
-                int team2Captain = vetoCaptains["team2"];
                 warningsPrinted = 0;
-                if (!playerData.ContainsKey(team1Captain) || !playerData.ContainsKey(team2Captain) || !playerData[team1Captain].IsValid || !playerData[team2Captain].IsValid)
+                int team1Captain = EnsureVetoCaptain("team1");
+                int team2Captain = EnsureVetoCaptain("team2");
+                if (team1Captain == -1 || team2Captain == -1)
                 {
                     AbortVeto();
                     vetoStateTimer?.Kill();
@@ -147,9 +147,17 @@ namespace MatchZy
                     stepMessage = $"Use .pick <map> to pick a map.";
                     break;
             }
-            if (!playerData.ContainsKey(client) || !playerData[client].IsValid)
+            if (option == "invalid")
             {
-                Log($"[PromptForMapSelectionInChat] Invalid captain found with ID: {client}");
+                Log("[PromptForMapSelectionInChat] The veto order has no step left.");
+                return;
+            }
+            string captainTeam = option.StartsWith("team1") ? "team1" : "team2";
+            client = EnsureVetoCaptain(captainTeam);
+            if (client == -1)
+            {
+                Log($"[PromptForMapSelectionInChat] No player left on {captainTeam} to continue the veto, aborting it.");
+                AbortVeto();
                 return;
             }
             Server.PrintToChatAll($"{chatPrefix} {action}");
@@ -180,7 +188,6 @@ namespace MatchZy
         {
             if (!isVeto || SidePickPending() || player == null || map == null) return;
 
-            int playerTeam = player.TeamNum;
             string currentTeamToBan;
             switch (GetCurrentMapSelectionOption()) {
                 case "team1_ban":
@@ -196,9 +203,9 @@ namespace MatchZy
                     return;
             }
 
-            if (player.UserId != vetoCaptains[currentTeamToBan]) return;
+            if (player.UserId != EnsureVetoCaptain(currentTeamToBan)) return;
 
-            if (!BanMap(map, playerTeam)) {
+            if (!BanMap(map, GetTeamSideNumber(currentTeamToBan))) {
                 PrintToPlayerChat(player, $"{map} is not a valid map.");
             } else {
                 HandleVetoStep();
@@ -209,7 +216,6 @@ namespace MatchZy
         {
             if (!isVeto || SidePickPending() || player == null || map == null) return;
 
-            int playerTeam = player.TeamNum;
             string currentTeamToPick;
             switch (GetCurrentMapSelectionOption()) 
             {
@@ -226,9 +232,9 @@ namespace MatchZy
                     return;
             }
 
-            if (player.UserId != vetoCaptains[currentTeamToPick]) return;
+            if (player.UserId != EnsureVetoCaptain(currentTeamToPick)) return;
 
-            if (!PickMap(map, playerTeam)) {
+            if (!PickMap(map, GetTeamSideNumber(currentTeamToPick))) {
                 PrintToPlayerChat(player, $"{map} is not a valid map.");
             } else {
                 HandleVetoStep();
@@ -254,7 +260,7 @@ namespace MatchZy
             {
                 MatchId = liveMatchId,
                 MapName = mapRemovedName,
-                MapNumber = matchConfig.Maplist.Count,
+                MapNumber = matchConfig.Maplist.Count - 1,
                 Team = (matchzyTeam == matchzyTeam1) ? "team1" : "team2",
             };
 
@@ -381,12 +387,68 @@ namespace MatchZy
             return -1;
         }
 
+        // Returns the team's veto captain, choosing a teammate if the current captain has left or changed team. -1 if the team has nobody left.
+        public int EnsureVetoCaptain(string team)
+        {
+            Team matchzyTeam = team == "team1" ? matchzyTeam1 : matchzyTeam2;
+            int teamSide = teamSides[matchzyTeam] == "CT" ? 3 : 2;
+            int captain = vetoCaptains[team];
+            if (playerData.TryGetValue(captain, out var current) && current.IsValid && current.TeamNum == teamSide) return captain;
+
+            int newCaptain = GetTeamCaptain(team);
+            vetoCaptains[team] = newCaptain;
+            if (newCaptain != -1)
+            {
+                Server.PrintToChatAll($"{chatPrefix} New captain for {ChatColors.Green}{matchzyTeam.teamName}{ChatColors.Default}: {ChatColors.Green}{playerData[newCaptain].PlayerName}{ChatColors.Default}");
+            }
+            return newCaptain;
+        }
+
+        // Called when a player leaves: if a captain left during the veto, repeat the current step so a teammate can take over.
+        public void HandleVetoCaptainLeft(int userId)
+        {
+            if (!isVeto || vetoStateTimer != null) return; // Countdown still running: captains are checked when it ends.
+            string? leftTeam = vetoCaptains["team1"] == userId ? "team1" : vetoCaptains["team2"] == userId ? "team2" : null;
+            if (leftTeam == null) return;
+            // The other team's captain is replaced when it is their turn.
+            if (GetActingVetoTeam() != leftTeam) return;
+            Server.NextFrame(() =>
+            {
+                if (!isVeto) return;
+                HandleVetoStep();
+            });
+        }
+
+        // The team whose captain has to act now ("team1" / "team2"), or null.
+        public string? GetActingVetoTeam()
+        {
+            if (SidePickPending())
+            {
+                Team team = matchzyTeam1;
+                if (lastVetoTeam == CsTeam.Terrorist) team = reverseTeamSides["CT"];
+                else if (lastVetoTeam == CsTeam.CounterTerrorist) team = reverseTeamSides["TERRORIST"];
+                return team == matchzyTeam1 ? "team1" : "team2";
+            }
+            string option = GetCurrentMapSelectionOption();
+            if (option.StartsWith("team1")) return "team1";
+            if (option.StartsWith("team2")) return "team2";
+            return null;
+        }
+
+        // Game team number (3 = CT, 2 = T) of "team1" / "team2".
+        public int GetTeamSideNumber(string team)
+        {
+            Team matchzyTeam = team == "team1" ? matchzyTeam1 : matchzyTeam2;
+            return teamSides[matchzyTeam] == "CT" ? (int)CsTeam.CounterTerrorist : (int)CsTeam.Terrorist;
+        }
+
         public void SwapPlayersToTeams()
         {
             foreach (var key in playerData.Keys)
             {
                 if (!playerData[key].IsValid || playerData[key].IsBot) continue;
-                playerData[key].SwitchTeam(GetPlayerTeam(playerData[key]));
+                // Handles players who are not on T/CT in the match (SwitchTeam only accepts T/CT).
+                SwitchPlayerTeam(playerData[key], GetPlayerTeam(playerData[key]));
             }
         }
 
@@ -459,8 +521,13 @@ namespace MatchZy
             
             Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{matchzyTeam.teamName}{ChatColors.Default} must now pick a side to play on {ChatColors.Green}{mapName}{ChatColors.Default}");
 
-            int client = vetoCaptains[teamString];
-            if (!playerData.ContainsKey(client) || !playerData[client].IsValid) return;
+            int client = EnsureVetoCaptain(teamString);
+            if (client == -1)
+            {
+                Log($"[PromptForSideSelectionInChat] No player left on {teamString} to continue the veto, aborting it.");
+                AbortVeto();
+                return;
+            }
 
             playerData[client].PrintToChat($"{chatPrefix} Use .ct or .t to pick a side");
         }
@@ -506,7 +573,7 @@ namespace MatchZy
 
             string pickingTeam = (team == matchzyTeam1) ? "team1" : "team2";
 
-            if (client != vetoCaptains[pickingTeam]) {
+            if (client != EnsureVetoCaptain(pickingTeam)) {
                 // Only captain can select a side.
                 return;
             }
@@ -535,7 +602,7 @@ namespace MatchZy
             {
                 MatchId = liveMatchId,
                 MapName = mapName,
-                MapNumber = matchConfig.Maplist.Count,
+                MapNumber = mapNumber,
                 Team = (matchzyTeam == matchzyTeam1) ? "team1" : "team2",
                 Side = sideFormatted.ToLower()
             };
@@ -546,17 +613,8 @@ namespace MatchZy
 
         public void GenerateDefaultVetoSetup()
         {
-            Team startingVetoTeam = matchzyTeam1;
-            if (lastVetoTeam == CsTeam.CounterTerrorist)
-            {
-                if (reverseTeamSides["CT"] == matchzyTeam1) startingVetoTeam = matchzyTeam2;
-                if (reverseTeamSides["CT"] == matchzyTeam2) startingVetoTeam = matchzyTeam1;
-            }
-            else if (lastVetoTeam == CsTeam.Terrorist)
-            {
-                if (reverseTeamSides["TERRORIST"] == matchzyTeam1) startingVetoTeam = matchzyTeam2;
-                if (reverseTeamSides["TERRORIST"] == matchzyTeam2) startingVetoTeam = matchzyTeam1;
-            }
+            // veto_first from the match config (Get5), team1 by default.
+            Team startingVetoTeam = matchConfig.VetoFirst == "team2" ? matchzyTeam2 : matchzyTeam1;
             switch (matchConfig.NumMaps)
             {
                 case 1:

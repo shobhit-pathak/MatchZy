@@ -64,7 +64,8 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 # Admin Commands
 
 - `.start` Force starts a match.
-- `.restart` Force restarts/resets a match. (Alias: `.endmatch`, `.forceend`)
+- `.restart` Force restarts/resets a match. (Alias: `.rr`)
+- `.endmatch` Ends the current match without a winner: `series_end` is sent, the match gets an end time in the database and the match config cvars are restored. (Alias: `.forceend`). `.endmatch team1` / `.endmatch team2` (or `get5_endmatch team1|team2` from the server console) ends a loaded or running match with that team as the winner.
 - `.forcepause` Pauses the match as an admin (Players cannot unpause the admin-paused match). (Alias: `.fp`)
 - `.forceunpause` Force unpauses the match. (Alias: `.fup`)
 - `.restore <round>` Restores the backup of provided round number.
