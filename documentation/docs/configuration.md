@@ -43,9 +43,14 @@ There are two ways to create an admin for MatchZy; you can choose the most conve
     ```json
     {
         "76561198154367261": "",
-        "<another_steam_id>": ""
+        "<another_steam_id>": "@css/config @css/map",
+        "<third_steam_id>": "@css/chat"
     }
     ```
+
+    An empty value (or any text without flags, such as a name) gives access to all MatchZy admin commands, including `!rcon`. To limit an admin, list the flags from above in the value, separated by spaces or commas; `@css/root` grants everything. A flag must look like `@domain/name` (e.g. `@css/config`); a value with a mistyped flag counts as having no flags, and a warning is written to the log when the admins are loaded.
+
+    Note that `!rcon` gives full server console access, so only give admins without flags (or `matchzy_everyone_is_admin`) to people you trust with the server. An admin with flags needs `@css/rcon` or `@css/root` for it.
 
 ### Configuring MatchZy Settings (ConVars)
 Again, inside `csgo/cfg/MatchZy`, a file named `config.cfg` should be present. This file is executed whenever the plugin is loaded. If you make any changes in this file and want to reload the config, simply execute `exec MatchZy/config.cfg` command on the server.

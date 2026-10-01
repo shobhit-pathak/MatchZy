@@ -34,8 +34,22 @@ namespace MatchZy
         public void SetupRoundBackupFile()
         {
             string backupFilePrefix = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}";
-            Server.ExecuteCommand($"mp_backup_round_file {backupFilePrefix}");
+            Server.ExecuteCommand($"mp_backup_round_file {CsgoPathArg(backupFilePrefix)}");
         }
+
+        // Relative paths in tv_record / mp_backup_* resolve under csgo/addons/metamod when Metamod is installed, so files are
+        // passed as absolute csgo paths (forward slashes, quoted).
+        private static string CsgoFullPath(string csgoRelativePath)
+        {
+            return Path.Join(Server.GameDirectory, "csgo", csgoRelativePath).Replace('\\', '/');
+        }
+
+        private static string CsgoPathArg(string csgoRelativePath)
+        {
+            // Always quoted: the console splits arguments at spaces and at ':', which every Windows path has (C:/...).
+            return $"\"{CsgoFullPath(csgoRelativePath)}\"";
+        }
+
         [ConsoleCommand("css_stop", "Restore the backup of the current round (Both teams need to type .stop to restore the current round)")]
         public void OnStopCommand(CCSPlayerController? player, CommandInfo? command)
         {
@@ -203,7 +217,8 @@ namespace MatchZy
 
 
 
-        private void RestoreRoundBackup(CCSPlayerController? player, string fileName)
+        // Returns true when the restore was started or queued (map change, warmup), false when it was refused.
+        private bool RestoreRoundBackup(CCSPlayerController? player, string fileName)
         {
 
  
@@ -211,17 +226,17 @@ namespace MatchZy
             if (IsHalfTimePhase())
             {
                 ReplyToUserCommand(player, Localizer["matchzy.backup.restoreduringhalftime"]);
-                return;
+                return false;
             }
             if (IsPostGamePhase())
             {
                 ReplyToUserCommand(player, Localizer["matchzy.backup.restorematchended"]);
-                return;
+                return false;
             }
             if (IsTacticalTimeoutActive())
             {
                 ReplyToUserCommand(player, Localizer["matchzy.backup.restoretacticaltimeout"]);
-                return;
+                return false;
             }
             string backupFolder = Path.Combine(Server.GameDirectory, "csgo", "MatchZyDataBackup");
      
@@ -231,7 +246,7 @@ namespace MatchZy
             {
                 ReplyToUserCommand(player, Localizer["matchzy.backup.restoredoesntexist", fileName]);
                 Log($"[RestoreRoundBackup FATAL] Required backup data file does not exist! File: {filePath}");
-                return;
+                return false;
             }
 
             var gameRules = GetGameRules();
@@ -264,6 +279,30 @@ namespace MatchZy
                     }
                 }
 
+                // Checked before anything is changed: a refused restore must leave the running match as it is.
+                backupData.TryGetValue("round", out var roundNumber);
+                backupData.TryGetValue("matchid", out var backupMatchId);
+                backupData.TryGetValue("mapnumber", out var backupMapNumber);
+                // The server's own round file for this round (it may be missing, or left over from an earlier match with the same id).
+                string serverRoundFile = Path.Combine(Server.GameDirectory, "csgo", $"matchzy_{backupMatchId}_{backupMapNumber}_round{roundNumber}.txt");
+                string? valveBackupContent = null;
+                if (backupData.TryGetValue("valve_backup", out var valveBackup) && BackupLogic.IsCompleteValveBackup(valveBackup))
+                {
+                    valveBackupContent = valveBackup;
+                }
+                else if (roundNumber != null && File.Exists(serverRoundFile) && BackupLogic.IsCompleteValveBackup(File.ReadAllText(serverRoundFile)))
+                {
+                    // The copy in the backup was taken while the server was still writing the file.
+                    Log($"[RestoreRoundBackup] The round data in {fileName} is incomplete, using {Path.GetFileName(serverRoundFile)}");
+                    valveBackupContent = File.ReadAllText(serverRoundFile);
+                }
+                if (valveBackupContent == null)
+                {
+                    Log($"[RestoreRoundBackup] {fileName} has no complete round data, nothing restored.");
+                    ReplyToUserCommand(player, Localizer["matchzy.restore.incomplete", fileName]);
+                    return false;
+                }
+
                 isRoundRestoring = true;
 
                 // MatchID is set first to avoid generating a new one.
@@ -280,13 +319,21 @@ namespace MatchZy
                     matchConfig = Newtonsoft.Json.JsonConvert.DeserializeObject<MatchConfig>(matchConfigValue)!;
                     SetupRoundBackupFile();
                 }
+                // Coaches are not stored in the backup; keep the current ones.
+                var team1Coaches = matchzyTeam1.coach;
+                var team2Coaches = matchzyTeam2.coach;
                 if (backupData.TryGetValue("team1", out var team1config))
                 {
                     matchzyTeam1 = Newtonsoft.Json.JsonConvert.DeserializeObject<Team>(team1config)!;
+                    matchzyTeam1.coach = team1Coaches;
+                    // Backup files can come from a URL, so sanitize the name the same way as a match config (it is used in server commands).
+                    matchzyTeam1.teamName = RemoveSpecialCharacters(matchzyTeam1.teamName ?? "");
                 }
                 if (backupData.TryGetValue("team2", out var team2config))
                 {
                     matchzyTeam2 = Newtonsoft.Json.JsonConvert.DeserializeObject<Team>(team2config)!;
+                    matchzyTeam2.coach = team2Coaches;
+                    matchzyTeam2.teamName = RemoveSpecialCharacters(matchzyTeam2.teamName ?? "");
                 }
                 if (backupData.TryGetValue("team1_side", out var team1Side))
                 {
@@ -316,7 +363,7 @@ namespace MatchZy
                         isRoundRestorePending = true;
                         pendingRestoreFileName = fileName;
                         // Returning from here, backup will be restored again once the map is changed.
-                        return;
+                        return true;
                     }
                 }
 
@@ -327,8 +374,9 @@ namespace MatchZy
                     {
                         isRoundRestorePending = true;
                         pendingRestoreFileName = fileName;
-                        PrintToAllChat(Localizer["matchzy.restore.loadedsuccessfully", fileName]);
-                        return;
+                        // Nothing is restored yet: it happens when the match goes live (or when the command is run again).
+                        PrintToAllChat(Localizer["matchzy.restore.queued", fileName]);
+                        return true;
                     }
                     else
                     {
@@ -344,51 +392,40 @@ namespace MatchZy
                 {
                     gameRules.CTTimeOuts = int.Parse(ctTimeouts);
                 }
-                if (backupData.TryGetValue("valve_backup", out var valveBackup))
+                // Always writtento MatchZy's own file: an existing file of the same name may be from another match.
+                string restoreFileName = $"matchzy_restore_{liveMatchId}_{matchConfig.CurrentMapNumber}_round{roundNumber}.txt";
+                File.WriteAllText(Path.Combine(Server.GameDirectory, "csgo", restoreFileName), valveBackupContent);
+
+                int restoreTimer = liveSetupRequired ? 2 : 0;
+                if (liveSetupRequired)
                 {
-                    string tempFileName = fileName.Replace(".json", ".txt");
-                    if (backupData.TryGetValue("round", out var roundNumber))
-                    {
-                        tempFileName = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}_round{roundNumber}.txt";
-                    }
-                    string tempFilePath = Path.Combine(Server.GameDirectory, "csgo", tempFileName);
-
-
-                    if (!File.Exists(tempFilePath))
-                    {
-                        File.WriteAllText(tempFilePath, valveBackup);
-                    }
-                    int restoreTimer = liveSetupRequired ? 2 : 0;
-                    if (liveSetupRequired)
-                    {
-                        Log($"Game was in warmup, setting up Live!");
-                        SetupLiveFlagsAndCfg();
-                    }
-                    AddTimer(restoreTimer, () => {
-                        string fileName = Path.GetFileName(tempFilePath);
-
-                        Server.ExecuteCommand($"mp_backup_restore_load_file {fileName}");
-                        StartDemoRecording();
-                    });
-                    // AddTimer(5, () => File.Delete(tempFilePath));
+                    Log($"Game was in warmup, setting up Live!");
+                    SetupLiveFlagsAndCfg();
                 }
+                string restoredFileName = fileName;
+                AddTimer(restoreTimer, () => {
+                    Server.ExecuteCommand($"mp_backup_restore_load_file {CsgoPathArg(restoreFileName)}");
+                    StartDemoRecording();
+
+                    // Announced (and paused) once the load has been issued, not before.
+                    PrintToAllChat(Localizer["matchzy.restore.restoredsuccessfully", restoredFileName]);
+                    if (pauseAfterRoundRestore)
+                    {
+                        Server.ExecuteCommand("mp_pause_match;");
+                        stopData["ct"] = false;
+                        stopData["t"] = false;
+                        isPaused = true;
+                        unpauseData["pauseTeam"] = "RoundRestore";
+                        pausedStateTimer ??= AddTimer(chatTimerDelay, SendPausedStateMessage, TimerFlags.REPEAT);
+                    }
+                });
             }
             catch (Exception e)
             {
                 Log($"[RestoreRoundBackup FATAL] An error occurred: {e.Message}");
-                return;
+                return false;
             }
-
-            PrintToAllChat(Localizer["matchzy.restore.restoredsuccessfully", fileName]);
-            if (pauseAfterRoundRestore)
-            {
-                Server.ExecuteCommand("mp_pause_match;");
-                stopData["ct"] = false;
-                stopData["t"] = false;
-                isPaused = true;
-                unpauseData["pauseTeam"] = "RoundRestore";
-                pausedStateTimer ??= AddTimer(chatTimerDelay, SendPausedStateMessage, TimerFlags.REPEAT);
-            }
+            return true;
         }
 
         public void CreateMatchZyRoundDataBackup()
@@ -415,6 +452,9 @@ namespace MatchZy
                 lastBackupFilePath = Path.Combine(Server.GameDirectory, "csgo", lastBackupFilePath);
 
                 string valveBackupContent = lastBackupExists ? File.ReadAllText(lastBackupFilePath) : "";
+                // The server writes its round file at round start too, so it may still be incomplete here.
+                bool valveBackupComplete = BackupLogic.IsCompleteValveBackup(valveBackupContent);
+                if (!valveBackupComplete) valveBackupContent = "";
 
                 Dictionary<string, string> roundData = new()
                     {
@@ -451,8 +491,42 @@ namespace MatchZy
 
                 File.WriteAllText(filePath, defaultJson);
 
-                Task.Run(async () => {
-                    await UploadFileAsync(filePath, backupUploadURL, backupUploadHeaderKey, backupUploadHeaderValue, liveMatchId, matchConfig.CurrentMapNumber, roundNumber);
+                long matchId = liveMatchId;
+                int mapNumber = matchConfig.CurrentMapNumber;
+                string uploadUrl = backupUploadURL;
+                string uploadHeaderKey = backupUploadHeaderKey;
+                string uploadHeaderValue = backupUploadHeaderValue;
+                if (valveBackupComplete)
+                {
+                    Task.Run(async () => {
+                        await UploadFileAsync(filePath, uploadUrl, uploadHeaderKey, uploadHeaderValue, matchId, mapNumber, roundNumber);
+                    });
+                    return;
+                }
+
+                // Fill in the round data once the server has finished writing it, then upload the complete backup.
+                AddTimer(2.0f, () =>
+                {
+                    try
+                    {
+                        string content = File.Exists(lastBackupFilePath) ? File.ReadAllText(lastBackupFilePath) : "";
+                        if (BackupLogic.IsCompleteValveBackup(content))
+                        {
+                            roundData["valve_backup"] = content;
+                            File.WriteAllText(filePath, JsonSerializer.Serialize(roundData, options));
+                        }
+                        else
+                        {
+                            Log($"[CreateMatchZyRoundDataBackup] Round file {lastBackupFilePath} is missing or incomplete; {matchZyBackupFileName} has no round data.");
+                        }
+                        Task.Run(async () => {
+                            await UploadFileAsync(filePath, uploadUrl, uploadHeaderKey, uploadHeaderValue, matchId, mapNumber, roundNumber);
+                        });
+                    }
+                    catch (Exception e)
+                    {
+                        Log($"[CreateMatchZyRoundDataBackup FATAL] Error completing the JSON file: {e.Message}");
+                    }
                 });
 
             }
@@ -572,12 +646,12 @@ namespace MatchZy
             string headerName = command.ArgCount > 3 ? command.ArgByIndex(2) : "";
             string headerValue = command.ArgCount > 3 ? command.ArgByIndex(3) : "";
 
-            Log($"[LoadBackupFromURL] Backup Restore request received with URL: {url} headerName: {headerName} and headerValue: {headerValue}");
+            Log($"[LoadBackupFromURL] Backup Restore request received with URL: {MatchZySecurity.RedactUrl(url)} headerName: {headerName} and headerValue: {MatchZySecurity.RedactSecret(headerValue)}");
 
             if (!IsValidUrl(url))
             {
-                ReplyToUserCommand(player, Localizer["matchzy.mm.invalidurl", url]);
-                Log($"[LoadBackupFromURL] Invalid URL: {url}. Please provide a valid URL to load the backup!");
+                ReplyToUserCommand(player, Localizer["matchzy.mm.invalidurl", MatchZySecurity.RedactUrl(url)]);
+                Log($"[LoadBackupFromURL] Invalid URL: {MatchZySecurity.RedactUrl(url)}. Please provide a valid URL to load the backup!");
                 return;
             }
             try
@@ -592,7 +666,7 @@ namespace MatchZy
                 if (response.IsSuccessStatusCode)
                 {
                     string jsonData = response.Content.ReadAsStringAsync().Result;
-                    Log($"[LoadBackupFromURL] Received following data: {jsonData}");
+                    Log($"[LoadBackupFromURL] Received backup ({jsonData.Length} characters)");
                     string fileName = Guid.NewGuid().ToString() + ".json";
                     string filePath = Path.Combine(Server.GameDirectory, "csgo", "MatchZyDataBackup", fileName);
 
