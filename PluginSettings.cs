@@ -51,9 +51,16 @@ namespace MatchZy
                 ["matchzy_remote_backup_url"] = Url(() => backupUploadURL, v => backupUploadURL = v),
                 ["matchzy_remote_backup_header_key"] = Text(() => backupUploadHeaderKey, v => backupUploadHeaderKey = v),
                 ["matchzy_remote_backup_header_value"] = Text(() => backupUploadHeaderValue, v => backupUploadHeaderValue = v),
+                ["matchzy_time_to_start"] = Int(() => timeToStart, v => timeToStart = Math.Max(0, v)),
+                ["matchzy_time_to_start_veto"] = Int(() => timeToStartVeto, v => timeToStartVeto = Math.Max(0, v)),
+                ["matchzy_ready_mode"] = Int(() => readyMode, v => readyMode = v == 1 ? 1 : 0),
+                ["matchzy_join_start_delay"] = Int(() => joinStartDelay, v => joinStartDelay = Math.Max(0, v)),
+                ["matchzy_max_tech_pauses"] = Int(() => maxTechPauses, v => maxTechPauses = Math.Max(0, v)),
+                ["matchzy_tech_pause_time"] = Int(() => techPauseTime, v => techPauseTime = Math.Max(0, v)),
+                ["get5_allow_technical_pause"] = Bool(() => techPauseEnabled.Value, v => techPauseEnabled.Value = v),
             };
             // Get5 names of the same settings
-            foreach (string name in new[] { "demo_upload_url", "demo_upload_header_key", "demo_upload_header_value", "allow_force_ready",
+            foreach (string name in new[] { "demo_upload_url", "demo_upload_header_key", "demo_upload_header_value", "allow_force_ready", "time_to_start", "time_to_start_veto", "max_tech_pauses", "tech_pause_time",
                 "remote_backup_url", "remote_backup_header_key", "remote_backup_header_value" })
             {
                 settings["get5_" + name] = settings["matchzy_" + name];

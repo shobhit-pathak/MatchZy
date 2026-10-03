@@ -1,5 +1,15 @@
 # MatchZy Changelog
 
+# 0.9.1
+
+#### October 3, 2026
+
+- Added `matchzy_ready_mode` (default 0 = players type `.ready`). With `1`, joining is ready in a loaded match: a team is ready once `min_players_to_ready` of its players have joined their side, and the match starts on its own `matchzy_join_start_delay` (default 10) seconds after everyone has joined. Together with `matchzy_time_to_start`, a team that does not join in time forfeits, or the series ends in a tie.
+- Added `matchzy_time_to_start` and `matchzy_time_to_start_veto` (Get5's `get5_time_to_start` / `get5_time_to_start_veto`, which also work): in a loaded match, teams have this many seconds to ready up. When the time runs out, a team that is not ready forfeits the series, or the series ends in a tie if neither team is ready. Reminders are printed as in Get5. Admins can add time with `.addreadytime <seconds>` / `get5_add_ready_time`. Off by default.
+- Added technical pause limits as in Get5: `matchzy_max_tech_pauses` (`get5_max_tech_pauses`) technical pauses per team per map, and after `matchzy_tech_pause_time` (`get5_tech_pause_time`) seconds any one team can `.unpause` (until then both teams have to; the pause does not end on its own). A pause counts once it takes effect in freeze time, and the pausing team can cancel it before that. Players see a countdown. Both default to 0, which keeps the current behaviour. **Removed** `matchzy_max_tech_pauses_allowed` and `matchzy_tech_pause_duration`, which never had an effect. If your `config.cfg` still has them, delete those lines; until then the server logs them as unknown commands, which is harmless. `get5_allow_technical_pause` works as `matchzy_enable_tech_pause`. Round backups store the technical pauses used. As in Get5, they are only restored from a backup of another match or map, or when the match is not live (e.g. after a server restart). Restoring a round of the live map keeps the current counts, so restoring doesn't give pauses back.
+- Added the Get5 events `game_paused` / `game_unpaused` (team1 / team2 / none, pause type technical / admin / backup), so G5API records pauses.
+- A series won by forfeit (the time to start running out, or `get5_endmatch team1|team2`) reports the winner with the series score needed to win (e.g. 1-0 in a BO1, 2-x in a BO3), in `series_end` and the database. With an unchanged score such as 0-0, G5V showed the forfeit as a tie.
+
 # 0.9.0
 
 #### October 1, 2026

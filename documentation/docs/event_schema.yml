@@ -252,6 +252,72 @@ webhooks:
                     success:
                       type: boolean
                       description: Whether the upload was successful.
+  "MatchZyOnPauseBegan":
+    post:
+      tags:
+        - Live
+      summary: MatchZyOnPauseBegan
+      description: |
+        Fired when the match is paused: by a team (`.tech`, or `.pause` unless it is used for tactical pauses), by an admin
+        (`.forcepause`) or after a round restore.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              title: MatchZyPauseEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyMapEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - game_paused
+                    team:
+                      type: string
+                      enum:
+                        - team1
+                        - team2
+                        - none
+                      description: The team that paused the match, `none` for admin and backup pauses.
+                    pause_type:
+                      type: string
+                      enum:
+                        - technical
+                        - admin
+                        - backup
+  "MatchZyOnMatchUnpaused":
+    post:
+      tags:
+        - Live
+      summary: MatchZyOnMatchUnpaused
+      description: |
+        Fired when the match is unpaused. `team` and `pause_type` are those of the pause that ended.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              title: MatchZyPauseEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyMapEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - game_unpaused
+                    team:
+                      type: string
+                      enum:
+                        - team1
+                        - team2
+                        - none
+                    pause_type:
+                      type: string
+                      enum:
+                        - technical
+                        - admin
+                        - backup
 
 components:
   schemas:

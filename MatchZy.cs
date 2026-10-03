@@ -5,6 +5,7 @@ using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
+using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Core.Attributes;
 using CounterStrikeSharp.API.Modules.Events;
 
@@ -17,7 +18,7 @@ namespace MatchZy
 
         public override string ModuleName => "MatchZy";
 
-        public override string ModuleVersion => "0.9.0";
+        public override string ModuleVersion => "0.9.1";
 
         public override string ModuleAuthor => "WD- (https://github.com/shobhit-pathak/)";
 
@@ -134,6 +135,9 @@ namespace MatchZy
             LoadAdmins();
 
             database.InitializeDatabase(ModuleDirectory);
+
+            // Ready-up time limit (get5_time_to_start), checked every second like Get5's Timer_CheckReady. Not tied to a map.
+            AddTimer(1.0f, CheckReadyTime, TimerFlags.REPEAT);
 
             // This sets default config ConVars
             Server.ExecuteCommand("execifexists MatchZy/config.cfg");
@@ -362,6 +366,12 @@ namespace MatchZy
                 // A map change (also one made by another plugin) ends any GOTV recording, so it must not block the next one.
                 isDemoRecording = false;
                 CancelPendingDemoRecording();
+                // The map change the veto waited for is done; the next ready-up phase gets the full time.
+                mapChangePending = false;
+                readyTimeWaitingUsed = 0;
+                ResetTechPauses();
+                // A pause does not carry over to another map.
+                StopPauseTracking(false);
                 AddTimer(1.0f, () => {
                     if (!isMatchSetup)
                     {
@@ -575,6 +585,10 @@ namespace MatchZy
                 if (commandName == ".throwidx")
                 {
                     HandleThrowIndexCommand(player, messageCommandArg);
+                }
+                if (commandName == ".addreadytime")
+                {
+                    HandleAddReadyTimeCommand(player, messageCommandArg);
                 }
 
                 return HookResult.Continue;

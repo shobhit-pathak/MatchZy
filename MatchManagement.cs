@@ -315,6 +315,7 @@ namespace MatchZy
 
             // The previous match's veto must not decide who starts or picks sides in this one.
             lastVetoTeam = CsTeam.None;
+            readyTimeWaitingUsed = 0;
 
             matchConfig = new()
             {
@@ -701,6 +702,15 @@ namespace MatchZy
                 PublishMapEnd(forcedWinner, forcedWinner?.teamName ?? "", t1score, t2score);
                 // The demo is stopped now (the match is reset right away); it is still uploaded.
                 if (isDemoRecording) StopDemoRecording(0, activeDemoFile, liveMatchId, matchConfig.CurrentMapNumber);
+            }
+
+            if (forcedWinner != null)
+            {
+                // A forfeit awards the series: the winner's series score is raised to the maps needed to win (e.g. 1-0 in a
+                // BO1, 2-x in a BO3). Get5 keeps the score as it is, but panels that judge the result by the score (G5V
+                // shows 0:0 as a tie) would then not show the win; G5API's own forfeit also writes a winning score.
+                Team loser = forcedWinner == matchzyTeam1 ? matchzyTeam2 : matchzyTeam1;
+                forcedWinner.seriesScore = SeriesLogic.ForfeitWinnerSeriesScore(matchConfig.NumMaps, forcedWinner.seriesScore, loser.seriesScore);
             }
 
             EndSeries(forcedWinner, 0, t1score, t2score, cancelled: forcedWinner == null, warmupCfgRequired: true);

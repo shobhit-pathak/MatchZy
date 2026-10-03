@@ -119,6 +119,20 @@ public class MatchZySeriesStartedEvent : MatchZyMatchEvent
     }
 }
 
+// game_paused / game_unpaused, as in Get5.
+public class MatchZyPauseEvent : MatchZyMapEvent
+{
+    [JsonPropertyName("team")]
+    public required string Team { get; init; }
+
+    [JsonPropertyName("pause_type")]
+    public required string PauseType { get; init; }
+
+    public MatchZyPauseEvent(string eventName) : base(eventName)
+    {
+    }
+}
+
 public class MatchZySeriesResultEvent : MatchZyMatchEvent
 {
     [JsonPropertyName("time_until_restore")]

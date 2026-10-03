@@ -23,5 +23,18 @@ namespace MatchZy
             if (seriesCanClinch && Math.Abs(lead) > remainingMaps) return leader;
             return SeriesOutcome.Continue;
         }
+
+        // Maps a team needs to win the series (BO1: 1, BO2: 2, BO3: 2, BO5: 3).
+        public static int MapsToWin(int numMaps)
+        {
+            return Math.Max(1, numMaps / 2 + 1);
+        }
+
+        // The winner's series score when a series is won by forfeit: raised to the maps needed to win the series and always
+        // above the loser's, so panels that judge the result by the score (G5V shows equal scores as a tie) show the win.
+        public static int ForfeitWinnerSeriesScore(int numMaps, int winnerSeriesScore, int loserSeriesScore)
+        {
+            return Math.Max(winnerSeriesScore, Math.Max(MapsToWin(numMaps), loserSeriesScore + 1));
+        }
     }
 }
