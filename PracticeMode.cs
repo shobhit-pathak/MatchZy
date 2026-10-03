@@ -782,7 +782,7 @@ namespace MatchZy
 			}
 			else
 			{
-				player.PlayerPawn.Value.Health = 2147483647; // max 32bit int
+				player.PlayerPawn.Value.Health = int.MaxValue - 100; // max 32bit int
 				// ReplyToUserCommand(player, $"God mode enabled!");
                 		ReplyToUserCommand(player, "God is " + Localizer["matchzy.cc.enabled"]);
 				return;
