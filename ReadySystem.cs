@@ -36,6 +36,14 @@ public partial class MatchZy
 
         if (log) Log($"[IsTeamReady] team: {team} minPlayers:{minPlayers} minReady:{minReady} playerCount:{playerCount} readyCount:{readyCount}");
 
+        if (IsJoinReadyMode())
+        {
+            // Join mode: joining is ready, no .ready needed.
+            if (team == (int)CsTeam.Spectator && minReady == 0) return true;
+            if (IsTeamForcedReady((CsTeam)team)) return true;
+            return ReadyTimeLogic.IsTeamComplete(GetJoinedPlayerCount(team), minReady);
+        }
+
         if (team == (int)CsTeam.Spectator && minReady == 0)
         {
             return true;

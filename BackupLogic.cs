@@ -31,5 +31,23 @@ namespace MatchZy
             }
             return opened && depth == 0 && !inQuotes && content.TrimEnd().EndsWith('}');
         }
+
+        // Get5 (RestoreFromBackup): pause counts stored in a backup are only used when the backup is for another match or map, or
+        // the match is not live (e.g. after a server restart). Restoring a round of the live map keeps the current counts, so
+        // a team does not get its pauses back.
+        public static bool IsForDifferentMatch(bool isLive, long currentMatchId, int currentMapNumber, string currentMap,
+            string? backupMatchId, string? backupMapNumber, string? backupMap)
+        {
+            return !isLive
+                || backupMapNumber != currentMapNumber.ToString()
+                || !string.Equals(backupMap, currentMap, StringComparison.OrdinalIgnoreCase)
+                || backupMatchId != currentMatchId.ToString();
+        }
+
+        // A count stored in a backup; missing or invalid values (e.g. backups from older versions) are 0.
+        public static int ParseCount(string? value)
+        {
+            return int.TryParse(value, out int count) && count > 0 ? count : 0;
+        }
     }
 }

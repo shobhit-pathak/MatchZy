@@ -5,8 +5,8 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.unready` Marks the player unready (Alias: `.ur`, `.notready`)
 - `.forceready` Force-readies the player's team (Only works when using Match setup using JSON/Get5)
 - `.pause` Pauses the match in freezetime (Tactical or normal pause, depends on `matchzy_use_pause_command_for_tactical_pause`).
-- `.tech` Pauses the match in freezetime.
-- `.unpause` Request for unpausing the match. Both teams need to type .unpause to unpause the match
+- `.tech` Pauses the match in freezetime (technical pause, limited by `matchzy_max_tech_pauses`).
+- `.unpause` Request for unpausing the match. Both teams need to type .unpause to unpause the match. In a technical pause, the pausing team can cancel it before it takes effect, and any one team can unpause once `matchzy_tech_pause_time` has passed.
 - `.stay` Stays on the same side (For knife winner, after the knife round)
 - `.switch`/`.swap` Switches the side (For knife winner, after the knife round)
 - `.stop` Restore the backup of the current round (Both teams need to type .stop to restore the current round)
@@ -65,7 +65,7 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 
 - `.start` Force starts a match.
 - `.restart` Force restarts/resets a match. (Alias: `.rr`)
-- `.endmatch` Ends the current match without a winner: `series_end` is sent, the match gets an end time in the database and the match config cvars are restored. (Alias: `.forceend`). `.endmatch team1` / `.endmatch team2` (or `get5_endmatch team1|team2` from the server console) ends a loaded or running match with that team as the winner.
+- `.endmatch` Ends the current match without a winner: `series_end` is sent, the match gets an end time in the database and the match config cvars are restored. (Alias: `.forceend`). `.endmatch team1` / `.endmatch team2` (or `get5_endmatch team1|team2` from the server console) ends a loaded or running match with that team as the winner (reported with the series score needed to win, e.g. 1-0 in a BO1).
 - `.forcepause` Pauses the match as an admin (Players cannot unpause the admin-paused match). (Alias: `.fp`)
 - `.forceunpause` Force unpauses the match. (Alias: `.fup`)
 - `.restore <round>` Restores the backup of provided round number.
@@ -74,6 +74,7 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.playout` Toggles playout (If playout is enabled, all rounds would be played irrespective of winner. Useful in scrims!)
 - `.whitelist` Toggles whitelisting of players. To whitelist a player, add the steam64id in `cfg/MatchZy/whitelist.cfg`
 - `.readyrequired <number>` Sets the number of ready players required to start the match. If set to 0, all connected players will have to ready-up to start the match.
+- `.addreadytime <seconds>` Gives the teams more time to ready up when `matchzy_time_to_start` is set (console: `matchzy_add_ready_time` / `get5_add_ready_time`).
 - `.settings` Displays the current setting, like whether knife is enabled or not, value of readyrequired  players, etc.
 - `.map <mapname>` Changes the map
 - `.asay <message>` Say as an admin in all chat

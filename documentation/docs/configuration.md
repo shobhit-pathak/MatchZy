@@ -61,6 +61,18 @@ Again, inside `csgo/cfg/MatchZy`, a file named `config.cfg` should be present. T
 ####`matchzy_minimum_ready_required`
 :   Minimum ready players required to start the match. If set to 0, all connected players have to ready-up to start the match.<br>**`Default: 2`**
 
+####`matchzy_time_to_start`
+:   Time (in seconds) teams have to ready up for the knife round / going live in a loaded match (Get5's `get5_time_to_start`, which also works). Reminders are printed every minute, every 30 seconds in the last 5 minutes and at 10 seconds. When the time runs out, a team that is not ready forfeits the series (the ready team wins, reported with the series score needed to win, e.g. 1-0 in a BO1); if neither team is ready, the series ends in a tie (`series_end` with winner `none`). Each map of a series gets the full time. Admins can give more time with `.addreadytime <seconds>` / `matchzy_add_ready_time` / `get5_add_ready_time`. Set to 0 for no limit.<br>**`Default: 0`**
+
+####`matchzy_time_to_start_veto`
+:   Same as [`matchzy_time_to_start`](#matchzy_time_to_start), for readying up for map selection (Get5's `get5_time_to_start_veto`). Set to 0 for no limit.<br>**`Default: 0`**
+
+####`matchzy_ready_mode`
+:   How teams get ready in a loaded match. `0`: players type `.ready`. `1`: joining is ready: a team is ready once `min_players_to_ready` of its players (coaches do not count) have joined their side, and the match (or the map selection, or a pending backup restore) starts on its own [`matchzy_join_start_delay`](#matchzy_join_start_delay) seconds after everyone has joined. A player leaving during that countdown stops it. `.ready` / `.unready` are not needed and say so. Works together with [`matchzy_time_to_start`](#matchzy_time_to_start): teams that have not joined in time forfeit, or the series ends in a tie.<br>**`Default: 0`**
+
+####`matchzy_join_start_delay`
+:   With `matchzy_ready_mode 1`: seconds between all players having joined and the match starting. Set to 0 to start right away.<br>**`Default: 10`**
+
 ####`matchzy_stop_command_available`
 :   Whether !stop/.stop command to restore the backup of the current round is enabled by default or not.<br>**`Default: false`**
 
@@ -106,6 +118,12 @@ Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <b
 
 ####`matchzy_use_pause_command_for_tactical_pause`
 :   Whether to use !pause/.pause command for tactical pause or normal pause (unpauses only when both teams use unpause command, for admin force-unpauses the game).<br>**`Default: false`**
+
+####`matchzy_max_tech_pauses`
+:   Number of technical pauses (`.tech`, and `.pause` unless [`matchzy_use_pause_command_for_tactical_pause`](#matchzy_use_pause_command_for_tactical_pause) is set) each team can call per map (Get5's `get5_max_tech_pauses`, which also works). A pause is counted once it takes effect in freeze time; until then the pausing team can cancel it with `.unpause`. Set to 0 for unlimited. Replaces `matchzy_max_tech_pauses_allowed`, which never had an effect and has been removed.<br>**`Default: 0`**
+
+####`matchzy_tech_pause_time`
+:   Seconds a technical pause has to last before any one team can `.unpause` it; until then both teams have to (Get5's `get5_tech_pause_time`, which also works). The pause does not end on its own. A countdown is shown to all players. Set to 0 so that both teams always have to unpause. Replaces `matchzy_tech_pause_duration`, which never had an effect and has been removed.<br>**`Default: 0`**
 
 ####`matchzy_autostart_mode`
 :   Whether the plugin will load the match mode, the practice moder or neither by startup. 0 for neither, 1 for match mode, 2 for practice mode.<br>**`Default: 1`**

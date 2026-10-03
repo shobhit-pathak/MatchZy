@@ -290,6 +290,7 @@ namespace MatchZy
             JObject jsonDataObject = JObject.Parse(jsonData);
 
             string validationError = ValidateMatchJsonStructure(jsonDataObject);
+            bool mapChangesOnLoad = false;
 
             if (validationError != "")
             {
@@ -315,6 +316,12 @@ namespace MatchZy
 
             // The previous match's veto must not decide who starts or picks sides in this one.
             lastVetoTeam = CsTeam.None;
+            readyTimeWaitingUsed = 0;
+
+            // As in Get5: nobody is ready in a newly loaded match (players may have typed .ready before it was loaded, and they
+            // only reconnect, which resets it, when the map changes), and the game is not left paused.
+            ResetReadyStatus();
+            UnpauseIfPaused();
 
             matchConfig = new()
             {
@@ -390,6 +397,7 @@ namespace MatchZy
                 {
                     SetCorrectGameMode();
                     ChangeMap(mapName, 0);
+                    mapChangesOnLoad = true;
                 }
             }
             else
@@ -411,6 +419,10 @@ namespace MatchZy
             SetTeamNames();
             UpdatePlayersMap();
             UpdateHostname();
+            // Players are put on their teams when they join a team, which they do again after a map change. When the map does
+            // not change (the match is on the current map, or the maps are vetoed first), move those already here (Get5:
+            // CheckTeamsPostMatchConfigLoad).
+            if (!mapChangesOnLoad) PlacePlayersOnMatchTeams();
 
             var seriesStartedEvent = new MatchZySeriesStartedEvent
             {
@@ -426,6 +438,50 @@ namespace MatchZy
 
             Log($"[LoadMatchFromJSON] Success with matchid: {liveMatchId}!");
             return true;
+        }
+
+        private void ResetReadyStatus()
+        {
+            foreach (var key in playerReadyStatus.Keys.ToList())
+            {
+                playerReadyStatus[key] = false;
+            }
+            teamReadyOverride = new()
+            {
+                {CsTeam.Terrorist, false},
+                {CsTeam.CounterTerrorist, false},
+                {CsTeam.Spectator, false}
+            };
+        }
+
+        private void UnpauseIfPaused()
+        {
+            if (isPaused)
+            {
+                UnpauseMatch();
+                return;
+            }
+            try
+            {
+                // Paused outside MatchZy (e.g. mp_pause_match from the console).
+                if (GetGameRules().GamePaused) Server.ExecuteCommand("mp_unpause_match;");
+            }
+            catch (Exception e)
+            {
+                Log($"[UnpauseIfPaused] {e.Message}");
+            }
+        }
+
+        // Moves the players on the server to their match team. Players who have not picked a team yet are left alone: they are
+        // put on their team when they pick one.
+        private void PlacePlayersOnMatchTeams()
+        {
+            foreach (var player in playerData.Values)
+            {
+                if (!player.IsValid || player.IsBot || player.IsHLTV || player.Connected != PlayerConnectedState.Connected) continue;
+                if (player.Team == CsTeam.None) continue;
+                SwitchPlayerTeam(player, GetPlayerTeam(player));
+            }
         }
 
         public void SetMapSides() {
@@ -701,6 +757,15 @@ namespace MatchZy
                 PublishMapEnd(forcedWinner, forcedWinner?.teamName ?? "", t1score, t2score);
                 // The demo is stopped now (the match is reset right away); it is still uploaded.
                 if (isDemoRecording) StopDemoRecording(0, activeDemoFile, liveMatchId, matchConfig.CurrentMapNumber);
+            }
+
+            if (forcedWinner != null)
+            {
+                // A forfeit awards the series: the winner's series score is raised to the maps needed to win (e.g. 1-0 in a
+                // BO1, 2-x in a BO3). Get5 keeps the score as it is, but panels that judge the result by the score (G5V
+                // shows 0:0 as a tie) would then not show the win; G5API's own forfeit also writes a winning score.
+                Team loser = forcedWinner == matchzyTeam1 ? matchzyTeam2 : matchzyTeam1;
+                forcedWinner.seriesScore = SeriesLogic.ForfeitWinnerSeriesScore(matchConfig.NumMaps, forcedWinner.seriesScore, loser.seriesScore);
             }
 
             EndSeries(forcedWinner, 0, t1score, t2score, cancelled: forcedWinner == null, warmupCfgRequired: true);

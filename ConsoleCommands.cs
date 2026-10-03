@@ -66,6 +66,11 @@ namespace MatchZy
         {
             if (player == null) return;
             Log($"[!ready command] Sent by: {player.UserId} readyAvailable: {readyAvailable} matchStarted: {matchStarted}");
+            if (IsJoinReadyMode() && readyAvailable && !matchStarted)
+            {
+                PrintToPlayerChat(player, Localizer["matchzy.ready.joinmode"]);
+                return;
+            }
             if (readyAvailable && !matchStarted)
             {
                 if (player.UserId.HasValue)
@@ -97,6 +102,11 @@ namespace MatchZy
         {
             if (player == null) return;
             Log($"[!unready command] {player.UserId}");
+            if (IsJoinReadyMode() && readyAvailable && !matchStarted)
+            {
+                PrintToPlayerChat(player, Localizer["matchzy.ready.joinmode"]);
+                return;
+            }
             if (readyAvailable && !matchStarted)
             {
                 if (player.UserId.HasValue)
@@ -241,6 +251,13 @@ namespace MatchZy
                     return;
                 }
 
+                // Technical pause: the pausing team can cancel it before it takes effect, and after the time limit any team can unpause.
+                if (player != null && (player.TeamNum == 2 || player.TeamNum == 3))
+                {
+                    Team unpausingTeam = player.TeamNum == 2 ? reverseTeamSides["TERRORIST"] : reverseTeamSides["CT"];
+                    if (HandleTechPauseUnpause(player, unpausingTeam == matchzyTeam1 ? 1 : 2)) return;
+                }
+
                 string unpauseTeamName = "Admin";
                 string remainingUnpauseTeam = "Admin";
                 if (player?.TeamNum == 2)
@@ -269,18 +286,12 @@ namespace MatchZy
                 if ((bool)unpauseData["t"] && (bool)unpauseData["ct"])
                 {
                     PrintToAllChat(Localizer["matchzy.pause.teamsunpausedthematch"]);
-                    Server.ExecuteCommand("mp_unpause_match;");
-                    isPaused = false;
-                    unpauseData["ct"] = false;
-                    unpauseData["t"] = false;
+                    UnpauseMatch();
                 }
                 else if (unpauseTeamName == "Admin")
                 {
                     PrintToAllChat(Localizer["matchzy.pause.adminunpausedthematch"]);
-                    Server.ExecuteCommand("mp_unpause_match;");
-                    isPaused = false;
-                    unpauseData["ct"] = false;
-                    unpauseData["t"] = false;
+                    UnpauseMatch();
                 }
                 else
                 {

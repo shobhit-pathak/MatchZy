@@ -154,6 +154,17 @@ namespace MatchZy
         private void SendUnreadyPlayersMessage()
         {
             if (!isWarmup || matchStarted) return;
+            if (IsJoinReadyMode())
+            {
+                // Join mode: nobody needs to type .ready; say how many players each team still needs (or that it is starting).
+                if (joinStartSecondsLeft != null) return;
+                int team1Side = GetTeamSideNumber("team1");
+                int team2Side = GetTeamSideNumber("team2");
+                PrintToAllChat(Localizer["matchzy.ready.waitingforplayers",
+                    matchzyTeam1.teamName, GetJoinedPlayerCount(team1Side), GetTeamMinReady(team1Side),
+                    matchzyTeam2.teamName, GetJoinedPlayerCount(team2Side), GetTeamMinReady(team2Side)]);
+                return;
+            }
             List<string> unreadyPlayers = new();
 
             foreach (var key in playerReadyStatus.Keys)
@@ -431,6 +442,10 @@ namespace MatchZy
             try
             {
                 CancelPendingDemoRecording();
+                ResetTechPauses();
+                bombStats.Clear();
+                pendingRestoreTechPauses = null;
+                StopPauseTracking(false);
                 seriesEnded = false;
                 currentMapFinished = false;
                 // We stop demo recording if a live match was restarted
@@ -737,9 +752,12 @@ namespace MatchZy
             }
         }
 
-        private void CheckLiveRequired()
+        // fromJoinCountdown: in join mode (matchzy_ready_mode 1) only the start countdown starts the match, so that .forceready
+        // or other ready changes cannot skip it.
+        private void CheckLiveRequired(bool fromJoinCountdown = false)
         {
             if (!readyAvailable || matchStarted) return;
+            if (IsJoinReadyMode() && !fromJoinCountdown) return;
 
             // Todo: Implement a same ready system for both pug and match
             int countOfReadyPlayers = playerReadyStatus.Count(kv => kv.Value == true);
@@ -980,6 +998,7 @@ namespace MatchZy
                 matchStarted = false;
                 readyAvailable = true;
                 isPaused = false;
+                StopPauseTracking(false);
 
                 isWarmup = true;
                 isKnifeRound = false;
@@ -1126,9 +1145,11 @@ namespace MatchZy
                     {
                         MatchId = liveMatchId,
                         MapNumber = matchConfig.CurrentMapNumber,
-                        RoundNumber = GetRoundNumer(),
+                        // As in Get5: the rounds played when this round started (0 for the first round), the same as the
+                        // round's player_death and bomb events, and milliseconds since freeze time ended.
+                        RoundNumber = liveRoundNumber,
                         Reason = @event.Reason,
-                        RoundTime = 0,
+                        RoundTime = GetRoundTime(),
                         Winner = winner,
                         StatsTeam1 = new MatchZyStatsTeam(matchzyTeam1.id, matchzyTeam1.teamName, 0, t1score, 0, 0, playerStatsListTeam1),
                         StatsTeam2 = new MatchZyStatsTeam(matchzyTeam2.id, matchzyTeam2.teamName, 0, t2score, 0, 0, playerStatsListTeam2),
@@ -1248,27 +1269,40 @@ namespace MatchZy
             if (isMatchLive && !isPaused)
             {
 
-                string pauseTeamName = "Admin";
-                unpauseData["pauseTeam"] = "Admin";
+                Team pausingTeam;
                 if (player?.TeamNum == 2)
                 {
-
-                    pauseTeamName = reverseTeamSides["TERRORIST"].teamName;
-                    unpauseData["pauseTeam"] = reverseTeamSides["TERRORIST"].teamName;
+                    pausingTeam = reverseTeamSides["TERRORIST"];
                 }
                 else if (player?.TeamNum == 3)
                 {
-                    pauseTeamName = reverseTeamSides["CT"].teamName;
-                    unpauseData["pauseTeam"] = reverseTeamSides["CT"].teamName;
+                    pausingTeam = reverseTeamSides["CT"];
                 }
                 else
                 {
                     return;
                 }
-                PrintToAllChat(Localizer["matchzy.pause.pausedthematch", pauseTeamName]);
+                int teamNumber = pausingTeam == matchzyTeam1 ? 1 : 2;
+                if (!PauseLogic.CanCallTechPause(techPausesUsed[teamNumber], maxTechPauses))
+                {
+                    PrintToAllChat(Localizer["matchzy.pause.notechpauseleft", pausingTeam.teamName]);
+                    return;
+                }
+                string pauseTeamName = pausingTeam.teamName;
+                unpauseData["pauseTeam"] = pauseTeamName;
+                if (maxTechPauses > 0)
+                {
+                    // With a limit, say which of the team's technical pauses this is.
+                    PrintToAllChat(Localizer["matchzy.pause.techpausecalled", pauseTeamName, techPausesUsed[teamNumber] + 1, maxTechPauses]);
+                }
+                else
+                {
+                    PrintToAllChat(Localizer["matchzy.pause.pausedthematch", pauseTeamName]);
+                }
                 // Server.PrintToChatAll($"{chatPrefix} {ChatColors.Green}{pauseTeamName}{ChatColors.Default} has paused the match. Type .unpause to unpause the match");
 
                 SetMatchPausedFlags();
+                StartPauseTracking(PauseType.Technical, teamNumber);
             }
         }
 
@@ -1312,6 +1346,7 @@ namespace MatchZy
                 Server.PrintToConsole($"[MatchZy] {Localizer["matchzy.pause.adminpausedthematch"]}");
             }
             SetMatchPausedFlags();
+            StartPauseTracking(PauseType.Admin, 0);
         }
 
         private void ForceUnpauseMatch(CCSPlayerController? player, CommandInfo? command)
@@ -1337,6 +1372,7 @@ namespace MatchZy
         {
             Server.ExecuteCommand("mp_unpause_match;");
             isPaused = false;
+            StopPauseTracking();
             unpauseData["ct"] = false;
             unpauseData["t"] = false;
             if (!isPaused && pausedStateTimer != null)
@@ -1809,8 +1845,8 @@ namespace MatchZy
                         KnifeKills = 0,
                         HeadshotKills = playerStats.HeadShotKills,
                         RoundsPlayed = roundsPlayed,
-                        BombDefuses = 0,
-                        BombPlants = 0,
+                        BombDefuses = bombStats.Defuses(steamid64),
+                        BombPlants = bombStats.Plants(steamid64),
                         Kills1 = 0,
                         Kills2 = playerStats.Enemy2Ks,
                         Kills3 = playerStats.Enemy3Ks,

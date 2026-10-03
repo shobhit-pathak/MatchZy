@@ -4,6 +4,7 @@ on:
   push:
     paths-ignore:
         - "documentation/**"
+        - ".github/workflows/ci.yml"
     branches:
       - main
   workflow_dispatch:

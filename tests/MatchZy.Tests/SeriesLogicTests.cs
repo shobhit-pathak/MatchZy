@@ -53,4 +53,28 @@ public class SeriesLogicTests
         // Never index past the maps that were actually picked.
         Assert.Equal(SeriesOutcome.Tie, After(3, 2, 1, 1, maplistCount: 2));
     }
+
+    [Theory]
+    [InlineData(1, 0, 0, 1)]   // BO1 no-show: 1-0
+    [InlineData(3, 1, 0, 2)]   // BO3, loser no-shows map 2 at 1-0: 2-0
+    [InlineData(3, 0, 1, 2)]   // BO3, the team that forfeits led 1-0: 2-1
+    [InlineData(3, 0, 0, 2)]
+    [InlineData(5, 2, 2, 3)]   // BO5 at 2-2: 3-2
+    [InlineData(2, 1, 1, 2)]   // BO2 at 1-1: 2-1
+    [InlineData(1, 1, 0, 1)]   // already counted (forfeit during the live map gave +1)
+    [InlineData(1, 0, 1, 2)]   // never equal to or below the loser, even in odd states
+    public void ForfeitWinnerScore(int numMaps, int winner, int loser, int expected)
+    {
+        int score = SeriesLogic.ForfeitWinnerSeriesScore(numMaps, winner, loser);
+        Assert.Equal(expected, score);
+        Assert.True(score > loser);
+    }
+
+    [Theory]
+    [InlineData(1, 1)]
+    [InlineData(2, 2)]
+    [InlineData(3, 2)]
+    [InlineData(5, 3)]
+    [InlineData(0, 1)]
+    public void MapsToWin(int numMaps, int expected) => Assert.Equal(expected, SeriesLogic.MapsToWin(numMaps));
 }

@@ -252,6 +252,233 @@ webhooks:
                     success:
                       type: boolean
                       description: Whether the upload was successful.
+  "MatchZyOnPauseBegan":
+    post:
+      tags:
+        - Live
+      summary: MatchZyOnPauseBegan
+      description: |
+        Fired when the match is paused: by a team (`.tech`, or `.pause` unless it is used for tactical pauses), by an admin
+        (`.forcepause`) or after a round restore.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              title: MatchZyPauseEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyMapEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - game_paused
+                    team:
+                      type: string
+                      enum:
+                        - team1
+                        - team2
+                        - none
+                      description: The team that paused the match, `none` for admin and backup pauses.
+                    pause_type:
+                      type: string
+                      enum:
+                        - technical
+                        - admin
+                        - backup
+  "MatchZyOnMatchUnpaused":
+    post:
+      tags:
+        - Live
+      summary: MatchZyOnMatchUnpaused
+      description: |
+        Fired when the match is unpaused. `team` and `pause_type` are those of the pause that ended.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              title: MatchZyPauseEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyMapEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - game_unpaused
+                    team:
+                      type: string
+                      enum:
+                        - team1
+                        - team2
+                        - none
+                    pause_type:
+                      type: string
+                      enum:
+                        - technical
+                        - admin
+                        - backup
+
+  "MatchZyOnRoundStart":
+    post:
+      tags:
+        - Live
+      summary: MatchZyOnRoundStart
+      description: |
+        Fired when a round starts (when freeze time begins) while the match is live. After a round restore it is sent
+        right after `backup_loaded`, with the restored round.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              title: MatchZyRoundStartedEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyRoundEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - round_start
+  "MatchZyOnPlayerDeath":
+    post:
+      tags:
+        - Live
+      summary: MatchZyOnPlayerDeath
+      description: |
+        Fired when a player dies while the match is live (coaches are not included). `player` is the victim.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              title: MatchZyPlayerDeathEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyPlayerTimedRoundEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - player_death
+                    weapon:
+                      $ref: "#/components/schemas/MatchZyWeapon"
+                    bomb:
+                      type: boolean
+                      description: Whether the player died from the bomb explosion.
+                    headshot:
+                      type: boolean
+                    thru_smoke:
+                      type: boolean
+                    penetrated:
+                      type: integer
+                      minimum: 0
+                      description: The number of objects (players or walls) the bullet went through.
+                    attacker_blind:
+                      type: boolean
+                    no_scope:
+                      type: boolean
+                    suicide:
+                      type: boolean
+                      description: Whether the player killed themselves or died with no attacker (e.g. falling). Bomb deaths are not suicides.
+                    friendly_fire:
+                      type: boolean
+                      description: Whether the attacker was on the victim's side.
+                    attacker:
+                      description: The attacker, `null` if there is none.
+                      allOf:
+                        - $ref: "#/components/schemas/MatchZyPlayer"
+                    assist:
+                      $ref: "#/components/schemas/MatchZyAssist"
+  "MatchZyOnBombPlanted":
+    post:
+      tags:
+        - Live
+      summary: MatchZyOnBombPlanted
+      description: |
+        Fired when the bomb is planted. `player` is the planter.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              title: MatchZyBombPlantedEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyPlayerBombEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - bomb_planted
+  "MatchZyOnBombDefused":
+    post:
+      tags:
+        - Live
+      summary: MatchZyOnBombDefused
+      description: |
+        Fired when the bomb is defused. `player` is the defuser.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              title: MatchZyBombDefusedEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyPlayerBombEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - bomb_defused
+                    bomb_time_remaining:
+                      type: integer
+                      minimum: 0
+                      example: 12438
+                      description: Milliseconds left on the bomb timer when it was defused.
+  "MatchZyOnPlayerDisconnected":
+    post:
+      tags:
+        - Client Actions
+      summary: MatchZyOnPlayerDisconnected
+      description: |
+        Fired when a player (not a bot) disconnects while a match is loaded.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              title: MatchZyPlayerDisconnectedEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyMatchEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - player_disconnect
+                    player:
+                      $ref: "#/components/schemas/MatchZyPlayer"
+  "MatchZyOnBackupRestore":
+    post:
+      tags:
+        - Series Flow
+      summary: MatchZyOnBackupRestore
+      description: |
+        Fired when a round is restored from a backup. `round_number` is the round restored to.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              title: MatchZyBackupRestoredEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyRoundEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - backup_loaded
+                    filename:
+                      type: string
+                      description: The backup file the round was restored from.
 
 components:
   schemas:
@@ -325,6 +552,66 @@ components:
               description: The number of milliseconds into the round the event occurred.
               minimum: 0
               example: 51434
+    MatchZyPlayer:
+      type: object
+      description: A player.
+      properties:
+        steamid:
+          type: string
+          example: "76561198279375306"
+          description: The SteamID64 of the player, or `BOT-<user_id>` for bots.
+        name:
+          type: string
+          example: s1mple
+        user_id:
+          type: integer
+          example: 4
+          description: The in-game user ID of the player.
+        side:
+          $ref: "#/components/schemas/Side"
+        is_bot:
+          type: boolean
+    MatchZyWeapon:
+      type: object
+      properties:
+        name:
+          type: string
+          example: ak47
+          description: The weapon name as the game reports it (e.g. `ak47`, `knife_t`, `inferno`, `planted_c4`).
+        id:
+          type: integer
+          example: 27
+          description: SourceMod's weapon ID (CSWeaponID), as in Get5. 0 for weapons without one, fire and the bomb.
+    MatchZyAssist:
+      type: object
+      nullable: true
+      description: The assist to a kill, `null` if there is none.
+      properties:
+        player:
+          $ref: "#/components/schemas/MatchZyPlayer"
+        friendly_fire:
+          type: boolean
+        flash_assist:
+          type: boolean
+    MatchZyPlayerTimedRoundEvent:
+      allOf:
+        - "$ref": "#/components/schemas/MatchZyTimedRoundEvent"
+        - type: object
+          properties:
+            player:
+              $ref: "#/components/schemas/MatchZyPlayer"
+    MatchZyPlayerBombEvent:
+      allOf:
+        - "$ref": "#/components/schemas/MatchZyPlayerTimedRoundEvent"
+        - type: object
+          properties:
+            site:
+              type: string
+              nullable: true
+              enum:
+                - a
+                - b
+              description: The bomb site.
     Winner:
       type: object
       description: Describes a winning team (their side and team number).
