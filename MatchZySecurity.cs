@@ -27,6 +27,9 @@ namespace MatchZy
             "matchzy_minimum_ready_required",
             "matchzy_pause_after_restore", "matchzy_use_pause_command_for_tactical_pause",
             "matchzy_reset_cvars_on_series_end", "matchzy_stop_command_available",
+            "matchzy_time_to_start", "get5_time_to_start", "matchzy_time_to_start_veto", "get5_time_to_start_veto",
+            "matchzy_ready_mode", "matchzy_join_start_delay",
+            "matchzy_max_tech_pauses", "get5_max_tech_pauses", "matchzy_tech_pause_time", "get5_tech_pause_time", "get5_allow_technical_pause",
         };
 
         // Never settable from a match config, even though they are real convars / MatchZy settings.

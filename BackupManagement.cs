@@ -305,6 +305,16 @@ namespace MatchZy
 
                 isRoundRestoring = true;
 
+                // Decided before the backup replaces the match id and map number. Applied when the round is actually restored
+                // (after a map change or once a queued restore goes live), since the counts are reset on map start.
+                backupData.TryGetValue("map_name", out var backupMapName);
+                if (BackupLogic.IsForDifferentMatch(isMatchLive, liveMatchId, matchConfig.CurrentMapNumber, Server.MapName, backupMatchId, backupMapNumber, backupMapName))
+                {
+                    backupData.TryGetValue("team1_tech_pauses_used", out var team1TechPauses);
+                    backupData.TryGetValue("team2_tech_pauses_used", out var team2TechPauses);
+                    pendingRestoreTechPauses = (BackupLogic.ParseCount(team1TechPauses), BackupLogic.ParseCount(team2TechPauses));
+                }
+
                 // MatchID is set first to avoid generating a new one.
                 if (backupData.TryGetValue("matchid", out var matchId))
                 {
@@ -383,6 +393,13 @@ namespace MatchZy
                         liveSetupRequired = true;
                     }
                 }
+                // The bomb plants / defuses as they were at the start of the restored round (older backups do not have them).
+                if (backupData.TryGetValue("bomb_stats", out var savedBombStats)) bombStats.LoadJson(savedBombStats);
+                if (pendingRestoreTechPauses.HasValue)
+                {
+                    SetTechPausesUsed(pendingRestoreTechPauses.Value.Team1, pendingRestoreTechPauses.Value.Team2);
+                    pendingRestoreTechPauses = null;
+                }
                 if (backupData.TryGetValue("TerroristTimeOuts", out var terroristTimeouts))
                 {
                     gameRules.TerroristTimeOuts = int.Parse(terroristTimeouts);
@@ -403,9 +420,11 @@ namespace MatchZy
                     SetupLiveFlagsAndCfg();
                 }
                 string restoredFileName = fileName;
+                int restoredRound = int.TryParse(roundNumber, out int parsedRound) ? parsedRound : GetRoundNumer();
                 AddTimer(restoreTimer, () => {
                     Server.ExecuteCommand($"mp_backup_restore_load_file {CsgoPathArg(restoreFileName)}");
                     StartDemoRecording();
+                    SendBackupRestoredEvents(restoredFileName, restoredRound);
 
                     // Announced (and paused) once the load has been issued, not before.
                     PrintToAllChat(Localizer["matchzy.restore.restoredsuccessfully", restoredFileName]);
@@ -417,6 +436,7 @@ namespace MatchZy
                         isPaused = true;
                         unpauseData["pauseTeam"] = "RoundRestore";
                         pausedStateTimer ??= AddTimer(chatTimerDelay, SendPausedStateMessage, TimerFlags.REPEAT);
+                        StartPauseTracking(PauseType.Backup, 0);
                     }
                 });
             }
@@ -479,6 +499,9 @@ namespace MatchZy
                         { "team2_series_score", matchzyTeam2.seriesScore.ToString() },
                         { "TerroristTimeOuts", gameRules.TerroristTimeOuts.ToString() },
                         { "CTTimeOuts", gameRules.CTTimeOuts.ToString() },
+                        { "team1_tech_pauses_used", techPausesUsed[1].ToString() },
+                        { "team2_tech_pauses_used", techPausesUsed[2].ToString() },
+                        { "bomb_stats", bombStats.ToJson() },
                         { "match_loaded", isMatchSetup.ToString() },
                         { "match_config", GetMatchConfig() },
                         { "valve_backup", valveBackupContent }

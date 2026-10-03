@@ -27,6 +27,9 @@
     <Compile Include="..\..\BotClaimLogic.cs" Link="Plugin\BotClaimLogic.cs" />
     <Compile Include="..\..\BackupLogic.cs" Link="Plugin\BackupLogic.cs" />
     <Compile Include="..\..\LineupFormat.cs" Link="Plugin\LineupFormat.cs" />
+    <Compile Include="..\..\ReadyTimeLogic.cs" Link="Plugin\ReadyTimeLogic.cs" />
+    <Compile Include="..\..\PauseLogic.cs" Link="Plugin\PauseLogic.cs" />
+    <Compile Include="..\..\LiveEventLogic.cs" Link="Plugin\LiveEventLogic.cs" />
   </ItemGroup>
 
 </Project>
