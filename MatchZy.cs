@@ -370,6 +370,7 @@ namespace MatchZy
                 mapChangePending = false;
                 readyTimeWaitingUsed = 0;
                 ResetTechPauses();
+                bombStats.Clear();
                 // A pause does not carry over to another map.
                 StopPauseTracking(false);
                 AddTimer(1.0f, () => {
@@ -621,6 +622,7 @@ namespace MatchZy
             RegisterEventHandler<EventHegrenadeDetonate>(EventHegrenadeDetonateHandler);
             RegisterListener<Listeners.OnEntityDeleted>(OnEntityDeletedHandler);
             RegisterEventHandler<EventDecoyStarted>(EventDecoyDetonateHandler);
+            RegisterLiveEventHandlers();
 
             Console.WriteLine($"[{ModuleName} {ModuleVersion} LOADED] MatchZy by WD- (https://github.com/shobhit-pathak/) {GetBuildDescription()}");
         }

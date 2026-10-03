@@ -393,6 +393,8 @@ namespace MatchZy
                         liveSetupRequired = true;
                     }
                 }
+                // The bomb plants / defuses as they were at the start of the restored round (older backups do not have them).
+                if (backupData.TryGetValue("bomb_stats", out var savedBombStats)) bombStats.LoadJson(savedBombStats);
                 if (pendingRestoreTechPauses.HasValue)
                 {
                     SetTechPausesUsed(pendingRestoreTechPauses.Value.Team1, pendingRestoreTechPauses.Value.Team2);
@@ -418,9 +420,11 @@ namespace MatchZy
                     SetupLiveFlagsAndCfg();
                 }
                 string restoredFileName = fileName;
+                int restoredRound = int.TryParse(roundNumber, out int parsedRound) ? parsedRound : GetRoundNumer();
                 AddTimer(restoreTimer, () => {
                     Server.ExecuteCommand($"mp_backup_restore_load_file {CsgoPathArg(restoreFileName)}");
                     StartDemoRecording();
+                    SendBackupRestoredEvents(restoredFileName, restoredRound);
 
                     // Announced (and paused) once the load has been issued, not before.
                     PrintToAllChat(Localizer["matchzy.restore.restoredsuccessfully", restoredFileName]);
@@ -497,6 +501,7 @@ namespace MatchZy
                         { "CTTimeOuts", gameRules.CTTimeOuts.ToString() },
                         { "team1_tech_pauses_used", techPausesUsed[1].ToString() },
                         { "team2_tech_pauses_used", techPausesUsed[2].ToString() },
+                        { "bomb_stats", bombStats.ToJson() },
                         { "match_loaded", isMatchSetup.ToString() },
                         { "match_config", GetMatchConfig() },
                         { "valve_backup", valveBackupContent }

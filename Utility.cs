@@ -443,6 +443,7 @@ namespace MatchZy
             {
                 CancelPendingDemoRecording();
                 ResetTechPauses();
+                bombStats.Clear();
                 pendingRestoreTechPauses = null;
                 StopPauseTracking(false);
                 seriesEnded = false;
@@ -1144,9 +1145,11 @@ namespace MatchZy
                     {
                         MatchId = liveMatchId,
                         MapNumber = matchConfig.CurrentMapNumber,
-                        RoundNumber = GetRoundNumer(),
+                        // As in Get5: the rounds played when this round started (0 for the first round), the same as the
+                        // round's player_death and bomb events, and milliseconds since freeze time ended.
+                        RoundNumber = liveRoundNumber,
                         Reason = @event.Reason,
-                        RoundTime = 0,
+                        RoundTime = GetRoundTime(),
                         Winner = winner,
                         StatsTeam1 = new MatchZyStatsTeam(matchzyTeam1.id, matchzyTeam1.teamName, 0, t1score, 0, 0, playerStatsListTeam1),
                         StatsTeam2 = new MatchZyStatsTeam(matchzyTeam2.id, matchzyTeam2.teamName, 0, t2score, 0, 0, playerStatsListTeam2),
@@ -1842,8 +1845,8 @@ namespace MatchZy
                         KnifeKills = 0,
                         HeadshotKills = playerStats.HeadShotKills,
                         RoundsPlayed = roundsPlayed,
-                        BombDefuses = 0,
-                        BombPlants = 0,
+                        BombDefuses = bombStats.Defuses(steamid64),
+                        BombPlants = bombStats.Plants(steamid64),
                         Kills1 = 0,
                         Kills2 = playerStats.Enemy2Ks,
                         Kills3 = playerStats.Enemy3Ks,

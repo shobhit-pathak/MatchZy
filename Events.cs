@@ -76,7 +76,7 @@ public class MatchZyPlayerRoundEvent : MatchZyRoundEvent
 {
 
     [JsonPropertyName("player")]
-    public required int Player { get; init; }
+    public required MatchZyPlayer Player { get; init; }
 
     protected MatchZyPlayerRoundEvent(string eventName) : base(eventName)
     {
@@ -86,17 +86,145 @@ public class MatchZyPlayerRoundEvent : MatchZyRoundEvent
 public class MatchZyPlayerTimedRoundEvent : MatchZyTimedRoundEvent
 {
     [JsonPropertyName("player")]
-    public required int Player { get; init; }
+    public required MatchZyPlayer Player { get; init; }
 
     protected MatchZyPlayerTimedRoundEvent(string eventName) : base(eventName)
     {
     }
 }
 
+// Get5Player: a player in the live events.
+public class MatchZyPlayer
+{
+    // SteamID64, or BOT-<user_id> for bots.
+    [JsonPropertyName("steamid")]
+    public required string SteamId { get; init; }
+
+    [JsonPropertyName("name")]
+    public required string Name { get; init; }
+
+    [JsonPropertyName("user_id")]
+    public required int UserId { get; init; }
+
+    // "ct", "t", "spec", or null.
+    [JsonPropertyName("side")]
+    public string? Side { get; init; }
+
+    [JsonPropertyName("is_bot")]
+    public required bool IsBot { get; init; }
+}
+
+// Get5Weapon: the game's weapon name and SourceMod's weapon id (0 when it has none).
+public class MatchZyWeapon
+{
+    [JsonPropertyName("name")]
+    public required string Name { get; init; }
+
+    [JsonPropertyName("id")]
+    public required int Id { get; init; }
+}
+
+// Get5AssisterObject
+public class MatchZyAssist
+{
+    [JsonPropertyName("player")]
+    public required MatchZyPlayer Player { get; init; }
+
+    [JsonPropertyName("friendly_fire")]
+    public required bool FriendlyFire { get; init; }
+
+    [JsonPropertyName("flash_assist")]
+    public required bool FlashAssist { get; init; }
+}
+
+// Get5PlayerDeathEvent. player is the victim; attacker and assist are null when there is none.
+public class MatchZyPlayerDeathEvent : MatchZyPlayerTimedRoundEvent
+{
+    [JsonPropertyName("weapon")]
+    public required MatchZyWeapon Weapon { get; init; }
+
+    [JsonPropertyName("bomb")]
+    public required bool Bomb { get; init; }
+
+    [JsonPropertyName("headshot")]
+    public required bool Headshot { get; init; }
+
+    [JsonPropertyName("thru_smoke")]
+    public required bool ThruSmoke { get; init; }
+
+    // Number of objects (players or walls) the bullet went through.
+    [JsonPropertyName("penetrated")]
+    public required int Penetrated { get; init; }
+
+    [JsonPropertyName("attacker_blind")]
+    public required bool AttackerBlind { get; init; }
+
+    [JsonPropertyName("no_scope")]
+    public required bool NoScope { get; init; }
+
+    [JsonPropertyName("suicide")]
+    public required bool Suicide { get; init; }
+
+    [JsonPropertyName("friendly_fire")]
+    public required bool FriendlyFire { get; init; }
+
+    [JsonPropertyName("attacker")]
+    public MatchZyPlayer? Attacker { get; init; }
+
+    [JsonPropertyName("assist")]
+    public MatchZyAssist? Assist { get; init; }
+
+    public MatchZyPlayerDeathEvent() : base("player_death")
+    {
+    }
+}
+
+// Get5PlayerBombEvent: bomb_planted / bomb_defused. site is "a", "b" or null.
+public class MatchZyBombEvent : MatchZyPlayerTimedRoundEvent
+{
+    [JsonPropertyName("site")]
+    public string? Site { get; init; }
+
+    public MatchZyBombEvent(string eventName) : base(eventName)
+    {
+    }
+}
+
+public class MatchZyBombDefusedEvent : MatchZyBombEvent
+{
+    // Milliseconds left on the bomb timer.
+    [JsonPropertyName("bomb_time_remaining")]
+    public required int BombTimeRemaining { get; init; }
+
+    public MatchZyBombDefusedEvent() : base("bomb_defused")
+    {
+    }
+}
+
+// round_start: when freeze time begins.
+public class MatchZyRoundStartedEvent : MatchZyRoundEvent
+{
+    public MatchZyRoundStartedEvent() : base("round_start")
+    {
+    }
+}
+
+// backup_loaded: round_number is the round restored to.
+public class MatchZyBackupRestoredEvent : MatchZyRoundEvent
+{
+    [JsonPropertyName("filename")]
+    public required string FileName { get; init; }
+
+    public MatchZyBackupRestoredEvent() : base("backup_loaded")
+    {
+    }
+}
+
+// Get5PlayerDisconnectedEvent
 public class MatchZyPlayerDisconnectedEvent : MatchZyMatchEvent
 {
     [JsonPropertyName("player")]
-    public required int Player { get; init; }
+    public required MatchZyPlayer Player { get; init; }
 
     public MatchZyPlayerDisconnectedEvent() : base("player_disconnect")
     {
