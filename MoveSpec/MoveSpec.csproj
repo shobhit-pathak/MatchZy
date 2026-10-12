@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="CounterStrikeSharp.API">
+      <HintPath>3rdparty/CounterStrikeSharp.API.dll</HintPath>
+    </Reference>
+    <Reference Include="MenuManagerApi">
+      <HintPath>3rdparty/MenuManagerApi.dll</HintPath>
+    </Reference>
+    <Reference Include="PlayerSettingsApi">
+      <HintPath>3rdparty/PlayerSettingsApi.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project> 
