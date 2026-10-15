@@ -310,6 +310,9 @@ namespace MatchZy
                         // if scrim, then only check once match has started
                         if ((enableMatchScrim && matchStarted) || !enableMatchScrim) {
                             if (joiningTeam != playerTeam) {
+                                if (joiningTeam == (int)CsTeam.Spectator && playerTeam == (int)CsTeam.None) {
+                                    return HookResult.Continue;
+                                }
                                 return HookResult.Stop;
                             }
                         }
