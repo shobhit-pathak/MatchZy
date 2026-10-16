@@ -2108,7 +2108,7 @@ namespace MatchZy
         // to spectator: SwitchTeam(None) can crash the server.
         public void SwitchPlayerTeam(CCSPlayerController player, CsTeam team)
         {
-            Log($"[DEBUG SwitchPlayerTeam] Requested: Player={player.PlayerName}, SteamID={player.SteamID}, CurrentTeam={player.TeamNum}, TargetTeam={team}, isMatchLive={isMatchLive}, isMatchSetup={isMatchSetup}, isVeto={isVeto}, Time={Server.CurrentTime}");
+            Server.PrintToConsole($"[DEBUG SwitchPlayerTeam] Requested: Player={player.PlayerName}, SteamID={player.SteamID}, CurrentTeam={player.TeamNum}, TargetTeam={team}, isMatchLive={isMatchLive}, isMatchSetup={isMatchSetup}, isVeto={isVeto}, Time={Server.CurrentTime}");
 
             if (team == CsTeam.None) team = CsTeam.Spectator;
             if (player.Team == team) return;
@@ -2116,11 +2116,11 @@ namespace MatchZy
             Server.NextFrame(() =>
             {
                 if (!player.IsValid) {
-                    Log($"[DEBUG SwitchPlayerTeam] Player no longer valid: {player.PlayerName}");
+                    Server.PrintToConsole($"[DEBUG SwitchPlayerTeam] Player no longer valid: {player.PlayerName}");
                     return;
                 }
 
-                Log($"[DEBUG SwitchPlayerTeam] Executing: Player={player.PlayerName}, CurrentTeam={player.TeamNum}, TargetTeam={team}, Time={Server.CurrentTime}");
+                Server.PrintToConsole($"[DEBUG SwitchPlayerTeam] Executing: Player={player.PlayerName}, CurrentTeam={player.TeamNum}, TargetTeam={team}, Time={Server.CurrentTime}");
 
 
                 // The player may have left, or moved again, by the next frame.
