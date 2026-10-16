@@ -491,9 +491,9 @@ namespace MatchZy
                 CsTeam team1 = teamSides[matchzyTeam1] == "CT" ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
                 CsTeam team2 = teamSides[matchzyTeam2] == "CT" ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
 
-                Dictionary<ulong, string> team1Players = new();
-                Dictionary<ulong, string> team2Players = new();
-                Dictionary<ulong, string> spectatorPlayers = new();
+                Dictionary<ulong, string> team1Players = matchzyTeam1.teamPlayers?.ToObject<Dictionary<ulong, string>>() ?? new();
+                Dictionary<ulong, string> team2Players = matchzyTeam2.teamPlayers?.ToObject<Dictionary<ulong, string>>() ?? new();
+                Dictionary<ulong, string> spectatorPlayers = matchConfig.Spectators?.ToObject<Dictionary<ulong, string>>() ?? new();
 
                 foreach (var key in playerData.Keys)
                 {
