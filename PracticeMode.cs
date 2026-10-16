@@ -160,6 +160,8 @@ namespace MatchZy
 
         public bool enableMatchScrim = false;
 
+        public bool scrimAllowSpectators = false;
+
         public void StartPracticeMode()
         {
             if (matchStarted) return;

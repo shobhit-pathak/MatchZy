@@ -321,13 +321,22 @@ namespace MatchZy
             if (headerValue != "") backupUploadHeaderValue = headerValue;
         }
 
-        [ConsoleCommand("matchzy_enable_match_scrim", "Allows match setup with no players defined and run like a scrim. Default value: False")]
+        [ConsoleCommand("matchzy_enable_match_scrim", "Allows match setup with no players defined and run like a scrim. Default value: false")]
         public void MatchZyEnableMatchScrimConvar(CCSPlayerController? player, CommandInfo command)
         {
             if (player != null) return;
-            string args = command.ArgString;
+            string args = GetSettingArgument(command);
 
-            enableMatchScrim = bool.TryParse(args, out bool enableMatchScrimValue) ? enableMatchScrimValue : args != "0" && enableMatchScrim;
+            enableMatchScrim = ParseBoolSetting(args, enableMatchScrim);
+        }
+
+        [ConsoleCommand("matchzy_scrim_allow_spectators", "Allows not rostered spectators to join after the scrim has gone live. Default value: false")]
+        public void MatchZyScrimAllowSpectatorsConvar(CCSPlayerController? player, CommandInfo command)
+        {
+            if (player != null) return;
+            string args = GetSettingArgument(command);
+
+            scrimAllowSpectators = ParseBoolSetting(args, scrimAllowSpectators);
         }
     }
 }
