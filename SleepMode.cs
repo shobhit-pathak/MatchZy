@@ -36,6 +36,7 @@ namespace MatchZy
                 ExecUnpracCommands();
                 Server.ExecuteCommand("""exec gamemode_competitive.cfg;""");
             }
+            ExecOverrideCfg(sleepCfgPath);
             Log($"[StartSleepMode] MatchZy deactivated!");
         }
 

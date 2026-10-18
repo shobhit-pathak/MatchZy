@@ -53,7 +53,7 @@ There are two ways to create an admin for MatchZy; you can choose the most conve
     Note that `!rcon` gives full server console access, so only give admins without flags (or `matchzy_everyone_is_admin`) to people you trust with the server. An admin with flags needs `@css/rcon` or `@css/root` for it.
 
 ### Configuring MatchZy Settings (ConVars)
-Again, inside `csgo/cfg/MatchZy`, a file named `config.cfg` should be present. This file is executed whenever the plugin is loaded. If you make any changes in this file and want to reload the config, simply execute `exec MatchZy/config.cfg` command on the server.
+Again, inside `csgo/cfg/MatchZy`, a file named `config.cfg` should be present. This file is executed whenever the plugin is loaded. If you make any changes in this file (or in `config_override.cfg`, see [Override CFGs](#override-cfgs)) and want to reload the config, simply execute `exec MatchZy/config.cfg; execifexists MatchZy/config_override.cfg` command on the server.
 
 ####`matchzy_knife_enabled_default`
 :   Whether knife round is enabled by default or not. This is the default value, but knife can be toggled by [admins](#creating-admins) using .roundknife command.<br>**`Default: true`**
@@ -180,9 +180,36 @@ Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <b
 ### Configuring Warmup/Knife/Live/Prac CFGs
 Again, inside `csgo/cfg/MatchZy`, files named `warmup.cfg`, `knife.cfg`, `live.cfg` and `prac.cfg` should be present. These configs are executed when Warmup, Knife, Live and Practice Mode is started respectively.
 
-You can modify these files according to your requirements, or add live_override.cfg / live_wingman_override.cfg to make "overriding" config.
-
 If these configs are not found in the expected location, MatchZy executes the default configs which are present in the code.
+
+### Override CFGs
+Updating MatchZy overwrites the CFGs that come with it, so don't put your own settings in them. Create an override CFG in `csgo/cfg/MatchZy` instead: MatchZy executes `<name>_override.cfg` right after `<name>.cfg` (or after the default config in the code, if `<name>.cfg` is missing). MatchZy releases don't contain override CFGs, so updates never overwrite them. Only add the settings you want to change.
+
+| CFG | Override CFG | Executed |
+| --- | --- | --- |
+| `config.cfg` | `config_override.cfg` | When the plugin is loaded |
+| `warmup.cfg` | `warmup_override.cfg` | Warmup |
+| `knife.cfg` | `knife_override.cfg` | Knife round |
+| `live.cfg` | `live_override.cfg` | When the match goes live |
+| `live_wingman.cfg` | `live_wingman_override.cfg` | When a wingman match goes live |
+| `prac.cfg` | `prac_override.cfg` | Practice mode |
+| `dryrun.cfg` | `dryrun_override.cfg` | Dry run (`.dryrun`) |
+| `sleep.cfg` | `sleep_override.cfg` | Sleep mode (`.sleep`) |
+
+Like `config.cfg`, `config_override.cfg` is only for MatchZy settings (`matchzy_*` and `get5_*`). It is executed only when the plugin is loaded, so the warmup, knife and live CFGs overwrite any game convars (such as `mp_*` or `sv_*`) set in it; put those in the override CFG of the phase they belong to.
+
+For example, a `live_override.cfg` that gives each team 4 tactical timeouts of 60 seconds instead of 3 of 30 seconds:
+
+```
+mp_team_timeout_max 4
+mp_team_timeout_time 60
+```
+
+Or a `live_override.cfg` for group stage matches, which end in a draw instead of going to overtime:
+
+```
+mp_overtime_enable 0
+```
 
 ### Whitelisting players
 Again, inside `csgo/cfg/MatchZy`, there will be a file called `whitelist.cfg`. You can add Steam64 id of whitelisted players like mentioned in the below example:

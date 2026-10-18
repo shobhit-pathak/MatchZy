@@ -33,12 +33,12 @@ namespace MatchZy
 
         public void SetupRoundBackupFile()
         {
+            // CS2 rejects round backup paths that are absolute or contain ".." or ':' (mp_backup_round_file and
+            // mp_backup_restore_load_file alike), and resolves the bare name in csgo/.
             string backupFilePrefix = $"matchzy_{liveMatchId}_{matchConfig.CurrentMapNumber}";
-            Server.ExecuteCommand($"mp_backup_round_file {CsgoPathArg(backupFilePrefix)}");
+            Server.ExecuteCommand($"mp_backup_round_file {backupFilePrefix}");
         }
 
-        // Relative paths in tv_record / mp_backup_* resolve under csgo/addons/metamod when Metamod is installed, so files are
-        // passed as absolute csgo paths (forward slashes, quoted).
         private static string CsgoFullPath(string csgoRelativePath)
         {
             return Path.Join(Server.GameDirectory, "csgo", csgoRelativePath).Replace('\\', '/');
@@ -422,7 +422,7 @@ namespace MatchZy
                 string restoredFileName = fileName;
                 int restoredRound = int.TryParse(roundNumber, out int parsedRound) ? parsedRound : GetRoundNumer();
                 AddTimer(restoreTimer, () => {
-                    Server.ExecuteCommand($"mp_backup_restore_load_file {CsgoPathArg(restoreFileName)}");
+                    Server.ExecuteCommand($"mp_backup_restore_load_file {restoreFileName}");
                     StartDemoRecording();
                     SendBackupRestoredEvents(restoredFileName, restoredRound);
 
