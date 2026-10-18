@@ -777,9 +777,15 @@ namespace MatchZy
                 Server.ExecuteCommand("mp_overtime_enable 0");
                 Server.ExecuteCommand("mp_match_can_clinch false");
             } else {
-                var absoluteCfgPath = Path.Join(Server.GameDirectory + "/csgo/cfg", GetGameMode() == 1 ? liveCfgPath : liveWingmanCfgPath);
-                string? matchCanClinch = GetConvarValueFromCFGFile(absoluteCfgPath, "mp_match_can_clinch");
-                string? overtimeEnabled = GetConvarValueFromCFGFile(absoluteCfgPath, "mp_overtime_enable");
+                var cfgPath = GetGameMode() == 1 ? liveCfgPath : liveWingmanCfgPath;
+                var absoluteCfgPath = Path.Join(Server.GameDirectory + "/csgo/cfg", cfgPath);
+                // The override CFG runs after the live CFG, so a value set there wins.
+                var absoluteOverrideCfgPath = Path.Join(Server.GameDirectory + "/csgo/cfg", OverrideCfgPath(cfgPath));
+                string? GetLiveCfgValue(string convarName) =>
+                    (File.Exists(absoluteOverrideCfgPath) ? GetConvarValueFromCFGFile(absoluteOverrideCfgPath, convarName) : null)
+                    ?? GetConvarValueFromCFGFile(absoluteCfgPath, convarName);
+                string? matchCanClinch = GetLiveCfgValue("mp_match_can_clinch");
+                string? overtimeEnabled = GetLiveCfgValue("mp_overtime_enable");
                 Server.ExecuteCommand($"mp_match_can_clinch {matchCanClinch ?? "1"}");
                 Server.ExecuteCommand($"mp_overtime_enable {overtimeEnabled ?? "1"}");
             }

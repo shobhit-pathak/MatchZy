@@ -1,5 +1,11 @@
 # MatchZy Changelog
 
+# Unreleased
+
+- Added override CFGs for the other CFGs MatchZy executes, like the existing `live_override.cfg` / `live_wingman_override.cfg`: `config_override.cfg`, `warmup_override.cfg`, `knife_override.cfg`, `prac_override.cfg`, `dryrun_override.cfg` and `sleep_override.cfg` in `cfg/MatchZy`. MatchZy executes `<name>_override.cfg` right after `<name>.cfg` (also when `<name>.cfg` is missing and the default config in the code is used), so put your own settings there: updates overwrite the shipped CFGs, but not the override CFGs. To reload `config.cfg` and `config_override.cfg` by hand, run `exec MatchZy/config.cfg; execifexists MatchZy/config_override.cfg`.
+- The release no longer contains `live_override.cfg` and `live_wingman_override.cfg` (they were empty), so extracting an update no longer overwrites them. MatchZy executes the override CFGs itself now, and `live.cfg` / `live_wingman.cfg` no longer `exec` them, so a missing override CFG doesn't log an error.
+- Fixed `mp_overtime_enable` and `mp_match_can_clinch` set in `live_override.cfg` / `live_wingman_override.cfg` being reset to the `live.cfg` / `live_wingman.cfg` values when the match went live with playout off, or when `.playout` was turned off.
+
 # 0.9.1
 
 #### October 3, 2026
