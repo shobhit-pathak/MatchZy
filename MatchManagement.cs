@@ -145,7 +145,7 @@ namespace MatchZy
             }
         }
 
-        static string ValidateMatchJsonStructure(JObject jsonData)
+        private string ValidateMatchJsonStructure(JObject jsonData)
         {
             string[] requiredFields = { "maplist", "team1", "team2", "num_maps" };
 
@@ -207,7 +207,7 @@ namespace MatchZy
                         {
                             return $"{field} should be a JSON structure!";
                         }
-                        if ((field != "spectators") && !MatchConfigJson.IsValidRoster(jsonData[field]!["players"]))
+                        if ((field != "spectators") && !enableMatchScrim && !MatchConfigJson.IsValidRoster(jsonData[field]!["players"]))
                         {
                             return $"{field} should have 'players' as an object of SteamID64s and names, or an array of SteamID64s!";
                         }
@@ -311,8 +311,8 @@ namespace MatchZy
 
             matchzyTeam1.teamName = RemoveSpecialCharacters(team1["name"]!.ToString());
             matchzyTeam2.teamName = RemoveSpecialCharacters(team2["name"]!.ToString());
-            matchzyTeam1.teamPlayers = MatchConfigJson.NormalizeRoster(team1["players"]);
-            matchzyTeam2.teamPlayers = MatchConfigJson.NormalizeRoster(team2["players"]);
+            matchzyTeam1.teamPlayers = team1["players"] == null || team1["players"]!.Type == JTokenType.Null ? null : MatchConfigJson.NormalizeRoster(team1["players"]);
+            matchzyTeam2.teamPlayers = team2["players"] == null || team2["players"]!.Type == JTokenType.Null ? null : MatchConfigJson.NormalizeRoster(team2["players"]);
 
             // The previous match's veto must not decide who starts or picks sides in this one.
             lastVetoTeam = CsTeam.None;
@@ -422,7 +422,7 @@ namespace MatchZy
             // Players are put on their teams when they join a team, which they do again after a map change. When the map does
             // not change (the match is on the current map, or the maps are vetoed first), move those already here (Get5:
             // CheckTeamsPostMatchConfigLoad).
-            if (!mapChangesOnLoad) PlacePlayersOnMatchTeams();
+            if (!mapChangesOnLoad && !enableMatchScrim) PlacePlayersOnMatchTeams();
 
             var seriesStartedEvent = new MatchZySeriesStartedEvent
             {
@@ -482,6 +482,38 @@ namespace MatchZy
                 if (player.Team == CsTeam.None) continue;
                 SwitchPlayerTeam(player, GetPlayerTeam(player));
             }
+        }
+
+        public bool LockTeamsManually()
+        {
+            try
+            {
+                CsTeam team1 = teamSides[matchzyTeam1] == "CT" ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
+                CsTeam team2 = teamSides[matchzyTeam2] == "CT" ? CsTeam.CounterTerrorist : CsTeam.Terrorist;
+
+                Dictionary<ulong, string> team1Players = matchzyTeam1.teamPlayers?.ToObject<Dictionary<ulong, string>>() ?? new();
+                Dictionary<ulong, string> team2Players = matchzyTeam2.teamPlayers?.ToObject<Dictionary<ulong, string>>() ?? new();
+                Dictionary<ulong, string> spectatorPlayers = matchConfig.Spectators?.ToObject<Dictionary<ulong, string>>() ?? new();
+
+                foreach (var key in playerData.Keys)
+                {
+                    if (!playerData[key].IsValid) continue;
+                    if (playerData[key].TeamNum == (int)team1) team1Players.Add(playerData[key].SteamID, playerData[key].PlayerName);
+                    else if (playerData[key].TeamNum == (int)team2) team2Players.Add(playerData[key].SteamID, playerData[key].PlayerName);
+                    else if (playerData[key].TeamNum == (int)CsTeam.Spectator) spectatorPlayers.Add(playerData[key].SteamID, playerData[key].PlayerName);
+                }
+
+                matchzyTeam1.teamPlayers = JToken.FromObject(team1Players);
+                matchzyTeam2.teamPlayers = JToken.FromObject(team2Players);
+                matchConfig.Spectators = JToken.FromObject(spectatorPlayers);
+            }
+            catch (Exception e)
+            {
+                Log($"[LockTeamsManually - FATAL] An error occured: {e.Message}");
+                return false;
+            }
+
+            return true;
         }
 
         public void SetMapSides() {

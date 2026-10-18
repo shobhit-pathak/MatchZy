@@ -294,6 +294,8 @@ namespace MatchZy
                     return HookResult.Continue;
                 }
 
+                if (enableMatchScrim) return HookResult.Continue;
+
                 CsTeam playerTeam = GetPlayerTeam(player);
 
                 SwitchPlayerTeam(player, playerTeam);
@@ -306,8 +308,14 @@ namespace MatchZy
                 if ((isMatchSetup || isVeto) && player != null && player.IsValid) {
                     if (int.TryParse(info.ArgByIndex(1), out int joiningTeam)) {
                         int playerTeam = (int)GetPlayerTeam(player);
-                        if (joiningTeam != playerTeam) {
-                            return HookResult.Stop;
+                        // if scrim, then only check once match has started
+                        if ((enableMatchScrim && matchStarted) || !enableMatchScrim) {
+                            if (joiningTeam != playerTeam) {
+                                if (enableMatchScrim && scrimAllowSpectators && joiningTeam == (int)CsTeam.Spectator && playerTeam == (int)CsTeam.None) {
+                                    return HookResult.Continue;
+                                }
+                                return HookResult.Stop;
+                            }
                         }
                     }
                 }

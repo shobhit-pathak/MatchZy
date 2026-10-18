@@ -1,6 +1,7 @@
 {
   "matchzy.ready.markedready": "Has sido marcado como preparado.",
   "matchzy.ready.markedunready": "Has sido marcado como NO preparado.",
+  "matchzy.ready.matchedreadyonteam": "Has sido marcado como preparado en el equipo {green}{0}{default}!",
   "matchzy.ready.readytotestorebackupinfomessage": "Jugadores no preparados: {0}. Por favor, escribe .ready cuando estes listo para restaurar la copia de seguridad de la partida. {1}",
 
   "matchzy.knife.sidedecisionpending": "{green}{0}{default} ganó la ronda de cuchillos. Esperando que escriban {green}.stay{default} (mantener) o {green}.switch{default} (cambiar) el bando.",

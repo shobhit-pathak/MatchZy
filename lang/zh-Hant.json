@@ -1,5 +1,6 @@
 {
   "matchzy.ready.markedready": "您已被標記為準備完成。",
+  "matchzy.ready.matchedreadyonteam": "您已被標記為已準備好加入團隊 {green}{0}{default}!",
   "matchzy.ready.markedunready": "您已經被標記為未準備。",
   "matchzy.ready.readytotestorebackupinfomessage": "未準備的玩家：{0}。準備好還原比賽備份時請輸入 .ready。{1}",
 

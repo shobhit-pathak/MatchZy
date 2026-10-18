@@ -26,8 +26,10 @@ namespace MatchZy
 
         public void CreateVeto()
         {
-            SwapPlayersToTeams();
-            vetoCaptains["team1"] = GetTeamCaptain("team1");
+            if (!enableMatchScrim)
+                SwapPlayersToTeams();
+
+	    vetoCaptains["team1"] = GetTeamCaptain("team1");
             vetoCaptains["team2"] = GetTeamCaptain("team2");
             // Todo: Implement pauseOnVeto CVAR
             // if (pauseOnVeto) {
