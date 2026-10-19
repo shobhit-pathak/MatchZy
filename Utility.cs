@@ -169,7 +169,8 @@ namespace MatchZy
 
             foreach (var key in playerReadyStatus.Keys)
             {
-                if (playerReadyStatus[key] == false)
+                // Coaches don't count towards a loaded match's ready-up.
+                if (playerReadyStatus[key] == false && !(isMatchSetup && IsCoach(playerData[key])))
                 {
                     unreadyPlayers.Add(playerData[key].PlayerName);
                 }
@@ -991,6 +992,8 @@ namespace MatchZy
 
             stopData["ct"] = false;
             stopData["t"] = false;
+            // A .forceready must not carry over to the next map.
+            ResetReadyStatus();
 
             KillPhaseTimers();
 
