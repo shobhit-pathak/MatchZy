@@ -375,6 +375,10 @@ namespace MatchZy
             SetLiveFlags();
             KillPhaseTimers();
             ExecLiveCFG();
+            // Queued right behind the live CFG, so the match config's cvars are set well before its delayed mp_restartgame
+            // takes effect. The restart reads some of them, e.g. each team's tactical timeouts (mp_team_timeout_max). The
+            // timer below runs them again, after HandlePlayoutConfig, so they win over it too.
+            ExecuteChangedConvars();
             // Adding timer here to make sure that CFG execution is completed till then
             AddTimer(1, () =>
             {
