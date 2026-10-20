@@ -1717,8 +1717,8 @@ namespace MatchZy
                 .Replace("{MATCH_ID}", $"{liveMatchId}")
                 .Replace("{MAP}", Server.MapName)
                 .Replace("{MAPNUMBER}", matchConfig.CurrentMapNumber.ToString())
-                .Replace("{TEAM1}", matchzyTeam1.teamName.Replace(" ", "_"))
-                .Replace("{TEAM2}", matchzyTeam2.teamName.Replace(" ", "_"))
+                .Replace("{TEAM1}", matchzyTeam1.teamName)
+                .Replace("{TEAM2}", matchzyTeam2.teamName)
                 .Replace("{TEAM1_SCORE}", team1Score.ToString())
                 .Replace("{TEAM2_SCORE}", team2Score.ToString());
             return formattedValue;

@@ -71,7 +71,7 @@ namespace MatchZy
                 Log("[StartDemoRecording] Demo recording is already in progress.");
                 return;
             }
-            string demoFileName = FormatCvarValue(demoNameFormat.Replace(" ", "_")) + ".dem";
+            string demoFileName = FormatCvarValue(demoNameFormat).Replace(" ", "_") + ".dem";
             try
             {
                 string? directoryPath = Path.GetDirectoryName(Path.Join(Server.GameDirectory + "/csgo/", demoPath));
