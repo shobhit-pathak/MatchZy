@@ -1,5 +1,11 @@
 # MatchZy Changelog
 
+# Unreleased
+
+- Updated `live.cfg` and `live_wingman.cfg` to FACEIT's CS2 settings. Vote kick and CS2's built-in technical timeout are turned off (`sv_vote_issue_kick_allowed 0`, `mp_technical_timeout_per_team 0`); use `.tech` for technical pauses. To allow kick votes, set `sv_vote_issue_kick_allowed 1` in `live_override.cfg` / `live_wingman_override.cfg`.
+- `live_wingman.cfg`: players can vote for a tactical timeout, each team gets one 60-second tactical timeout plus one in each overtime, overtime has 6 rounds as on FACEIT, there is no short-handed money bonus, and voice is relayed to CSTV.
+- Removed `sv_damage_print_enable` from the CFGs. CS2 doesn't have this convar.
+
 # 0.9.2
 
 ### October 18, 2026
