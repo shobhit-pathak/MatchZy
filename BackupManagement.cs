@@ -44,12 +44,6 @@ namespace MatchZy
             return Path.Join(Server.GameDirectory, "csgo", csgoRelativePath).Replace('\\', '/');
         }
 
-        private static string CsgoPathArg(string csgoRelativePath)
-        {
-            // Always quoted: the console splits arguments at spaces and at ':', which every Windows path has (C:/...).
-            return $"\"{CsgoFullPath(csgoRelativePath)}\"";
-        }
-
         [ConsoleCommand("css_stop", "Restore the backup of the current round (Both teams need to type .stop to restore the current round)")]
         public void OnStopCommand(CCSPlayerController? player, CommandInfo? command)
         {
