@@ -114,7 +114,7 @@ Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <b
 :   Whether playout (play max rounds) is enabled. This is the default value, but playout can be toggled by admin using `.playout` command.<br>**`Default: false`**
 
 ####`matchzy_reset_cvars_on_series_end`
-:   Whether parameters from the cvars section of a match configuration are restored to their original values when a series ends.<br>**`Default: true`**
+:   Whether parameters from the cvars section of a match configuration and the hostname set by [`matchzy_hostname_format`](#matchzy_hostname_format) are restored to their original values when a series ends or the match is reset (e.g. with `.restart`).<br>**`Default: true`**
 
 ####`matchzy_use_pause_command_for_tactical_pause`
 :   Whether to use !pause/.pause command for tactical pause or normal pause (unpauses only when both teams use unpause command, for admin force-unpauses the game).<br>**`Default: false`**
@@ -147,7 +147,7 @@ Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <b
 :   Whether to show 'MatchZy Plugin by WD-' message on match start.<br>**`Default: true`**
 
 ####`matchzy_hostname_format`
-:   The server hostname to use. Set to "" to disable/use existing. Available variables: {TIME}, {MATCH_ID}, {MAP}, {MAPNUMBER}, {TEAM1}, {TEAM2}, {TEAM1_SCORE}, {TEAM2_SCORE}<br>**`Default: MatchZy | {TEAM1} vs {TEAM2}`**
+:   The server hostname to use. Set to "" to disable/use existing. Available variables: {TIME}, {MATCH_ID}, {MAP}, {MAPNUMBER}, {TEAM1}, {TEAM2}, {TEAM1_SCORE}, {TEAM2_SCORE}. The hostname from before the match is restored when the series ends or the match is reset (e.g. with `.restart`), unless [`matchzy_reset_cvars_on_series_end`](#matchzy_reset_cvars_on_series_end) is false.<br>**`Default: MatchZy | {TEAM1} vs {TEAM2}`**
 
 ####`matchzy_match_start_message`
 :   Message to show when the match starts. Use $$$ to break message into multiple lines. Set to "" to disable. Available Colors: {Default}, {Darkred}, {Green}, {LightYellow}, {LightBlue}, {Olive}, {Lime}, {Red}, {Purple}, {Grey}, {Yellow}, {Gold}, {Silver}, {Blue}, {DarkBlue}. Example usage: matchzy_match_start_message {Green} Welcome to the server! {Default} $$$ Agent models are not allowed and may lead to {Red}disqualification!{Default}
