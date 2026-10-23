@@ -1,5 +1,10 @@
 # MatchZy Changelog
 
+# Unreleased
+
+- Fixed the hostname set by `matchzy_hostname_format` staying on the server after a series ended. As in Get5, the hostname from before the match is now restored at series end, together with the match config's `cvars` (unless `matchzy_reset_cvars_on_series_end` is false). Round backups keep it, so it is also restored after a server restart and a backup restore.
+- **Changed:** resetting a match without ending its series now restores the match config's `cvars` and the hostname too, like `.endmatch` (unless `matchzy_reset_cvars_on_series_end` is false). This is `.restart` / `.rr`, and `.match` / `.exitprac` after a loaded match was switched to practice or sleep mode. These drop the loaded match config, but its `cvars` and the hostname used to stay set.
+
 # 0.9.2
 
 ### October 18, 2026
