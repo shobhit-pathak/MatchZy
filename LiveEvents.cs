@@ -1,12 +1,13 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Cvars;
+using CounterStrikeSharp.API.Modules.Commands;
 
 namespace MatchZy
 {
-    // Get5's live events: round_start, player_death, bomb_planted, bomb_defused, backup_loaded and player_disconnect, with Get5's fields
-    // (stats.sp / backups.sp), only while the match is live. G5API uses them for the kill feed and bomb plants, and to
-    // remove them again for the rounds undone by a round restore.
+    // Get5's live events: round_start, player_death, bomb_planted, bomb_defused, backup_loaded, player_connect, player_disconnect and
+    // player_say, with Get5's fields (stats.sp / backups.sp / get5.sp). The round events are only sent while the match is live. G5API
+    // uses them for the kill feed and bomb plants, and to remove them again for the rounds undone by a round restore.
     public partial class MatchZy
     {
         // Rounds played when the current round started (Get5's round_number, 0 for the first round).
@@ -144,6 +145,38 @@ namespace MatchZy
                 }
                 return HookResult.Continue;
             });
+
+            // Before the chat is handled, so commands that end or reset the match are sent too.
+            AddCommandListener("say", (player, info) => SendPlayerSayEvent(player, "say", LiveEventLogic.ChatMessage(info.ArgString)));
+            AddCommandListener("say_team", (player, info) => SendPlayerSayEvent(player, "say_team", LiveEventLogic.ChatMessage(info.ArgString)));
+        }
+
+        // As in Get5: chat (commands included) from players while a match is loaded.
+        private HookResult SendPlayerSayEvent(CCSPlayerController? player, string command, string message)
+        {
+            try
+            {
+                if (!isMatchSetup || player == null || !player.IsValid || player.IsBot || player.IsHLTV || message == "") return HookResult.Continue;
+                var sayEvent = new MatchZyPlayerSayEvent
+                {
+                    MatchId = liveMatchId,
+                    MapNumber = matchConfig.CurrentMapNumber,
+                    // Get5 sends -1 when the match is not live.
+                    RoundNumber = IsLiveForEvents() ? liveRoundNumber : -1,
+                    RoundTime = GetRoundTime(),
+                    Player = GetPlayerObject(player),
+                    Command = command,
+                    Message = message,
+                };
+                // The command may reset the match before the event is sent.
+                var target = CurrentRemoteLogTarget();
+                Task.Run(async () => await SendEventAsync(sayEvent, target));
+            }
+            catch (Exception e)
+            {
+                Log($"[LiveEvents player_say FATAL] An error occurred: {e.Message}");
+            }
+            return HookResult.Continue;
         }
 
         // Get5 sends these only in its live state (not in warmup, the knife round or practice).
@@ -163,6 +196,19 @@ namespace MatchZy
                 Side = LiveEventLogic.SideName(player.TeamNum),
                 IsBot = player.IsBot,
             };
+        }
+
+        // Get5's player_connect: sent on a full connect while a match is loaded, after the checks that kick players not in it.
+        private void SendPlayerConnectedEvent(CCSPlayerController player)
+        {
+            if (!isMatchSetup || player.IsBot || player.IsHLTV) return;
+            var connectEvent = new MatchZyPlayerConnectedEvent
+            {
+                MatchId = liveMatchId,
+                Player = GetPlayerObject(player),
+                IpAddress = LiveEventLogic.IpWithoutPort(player.IpAddress),
+            };
+            Task.Run(async () => await SendEventAsync(connectEvent));
         }
 
         private bool IsCoach(CCSPlayerController player) => matchzyTeam1.coach.Contains(player) || matchzyTeam2.coach.Contains(player);

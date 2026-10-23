@@ -434,6 +434,33 @@ webhooks:
                       minimum: 0
                       example: 12438
                       description: Milliseconds left on the bomb timer when it was defused.
+  "MatchZyOnPlayerConnected":
+    post:
+      tags:
+        - Client Actions
+      summary: MatchZyOnPlayerConnected
+      description: |
+        Fired when a player (not a bot) fully connects while a match is loaded, including after each map change. Players
+        that are kicked because they are not in the match are not sent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              title: MatchZyPlayerConnectedEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyMatchEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - player_connect
+                    player:
+                      $ref: "#/components/schemas/MatchZyPlayer"
+                    ip_address:
+                      type: string
+                      example: "34.132.182.66"
+                      description: The IP address of the player, without the port.
   "MatchZyOnPlayerDisconnected":
     post:
       tags:
@@ -456,6 +483,38 @@ webhooks:
                         - player_disconnect
                     player:
                       $ref: "#/components/schemas/MatchZyPlayer"
+  "MatchZyOnPlayerSay":
+    post:
+      tags:
+        - Client Actions
+      summary: MatchZyOnPlayerSay
+      description: |
+        Fired when a player (not a bot) types in chat while a match is loaded, including chat commands such as `.ready`.
+        `round_number` is -1 when the match is not live.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              title: MatchZyPlayerSayEvent
+              allOf:
+                - "$ref": "#/components/schemas/MatchZyPlayerTimedRoundEvent"
+                - type: object
+                  properties:
+                    event:
+                      enum:
+                        - player_say
+                    command:
+                      type: string
+                      enum:
+                        - say
+                        - say_team
+                      example: say
+                      description: "`say` for all chat, `say_team` for team chat."
+                    message:
+                      type: string
+                      example: gg have fun
+                      description: The message as the player typed it.
   "MatchZyOnBackupRestore":
     post:
       tags:
@@ -539,9 +598,9 @@ components:
           properties:
             round_number:
               type: integer
-              minimum: 0
+              minimum: -1
               example: 13
-              description: The round number of the map, starting at 0.
+              description: The round number of the map, starting at 0 (-1 in `player_say` when the match is not live).
     MatchZyTimedRoundEvent:
       allOf:
         - "$ref": "#/components/schemas/MatchZyRoundEvent"

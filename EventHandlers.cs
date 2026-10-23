@@ -36,6 +36,8 @@ public partial class MatchZy
                 }
             }
 
+            SendPlayerConnectedEvent(player);
+
             if (player.UserId.HasValue)
             {
                 playerData[player.UserId.Value] = player;

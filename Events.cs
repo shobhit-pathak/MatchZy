@@ -231,6 +231,34 @@ public class MatchZyPlayerDisconnectedEvent : MatchZyMatchEvent
     }
 }
 
+// Get5PlayerConnectedEvent
+public class MatchZyPlayerConnectedEvent : MatchZyMatchEvent
+{
+    [JsonPropertyName("player")]
+    public required MatchZyPlayer Player { get; init; }
+
+    [JsonPropertyName("ip_address")]
+    public required string IpAddress { get; init; }
+
+    public MatchZyPlayerConnectedEvent() : base("player_connect")
+    {
+    }
+}
+
+// Get5PlayerSayEvent: command is "say" or "say_team".
+public class MatchZyPlayerSayEvent : MatchZyPlayerTimedRoundEvent
+{
+    [JsonPropertyName("command")]
+    public required string Command { get; init; }
+
+    [JsonPropertyName("message")]
+    public required string Message { get; init; }
+
+    public MatchZyPlayerSayEvent() : base("player_say")
+    {
+    }
+}
+
 public class MatchZySeriesStartedEvent : MatchZyMatchEvent
 {
     [JsonPropertyName("team1")]
