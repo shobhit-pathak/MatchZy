@@ -442,6 +442,20 @@ namespace MatchZy
 
         private void ResetMatch(bool warmupCfgRequired = true)
         {
+            // A match dropped without ending its series (.restart, or .match / .exitprac after a loaded match was switched to
+            // practice or sleep mode) gets back the settings its match config and the hostname changed, as at series end (after
+            // the series has ended they already were). Caught on its own, so that an error cannot stop the reset.
+            if (resetCvarsOnSeriesEnd && !seriesEnded)
+            {
+                try
+                {
+                    ResetChangedConvars();
+                }
+                catch (Exception ex)
+                {
+                    Log($"[ResetMatch] Restoring the match settings failed: {ex.Message}");
+                }
+            }
             try
             {
                 CancelPendingDemoRecording();
@@ -1118,9 +1132,11 @@ namespace MatchZy
             if (!matchStarted) return;
             playerHasTakenDamage = false;
             HandleCoaches();
+            // Before the backup: in a match started without a match config, the first call saves the hostname from before
+            // the match into the match config, so the first round's backup has it too.
+            UpdateHostname();
             CreateMatchZyRoundDataBackup();
             InitPlayerDamageInfo();
-            UpdateHostname();
         }
 
         private void HandlePostRoundEndEvent(EventRoundEnd @event)
@@ -1726,11 +1742,24 @@ namespace MatchZy
 
         public void UpdateHostname()
         {
-            string hostname = hostnameFormat.Value.Trim();
-            if (hostname == "" || hostname == "\"\"") return;
-            string formattedHostname = FormatCvarValue(hostname);
-            Log($"UPDATING HOSTNAME TO: {formattedHostname}");
-            Server.ExecuteCommand($"hostname {formattedHostname}");
+            // Caught here: at round start this runs before the round backup, which an error must not skip.
+            try
+            {
+                // The series is over (and its settings may already be restored): the hostname is not changed until the match is reset.
+                if (seriesEnded) return;
+                string hostname = hostnameFormat.Value.Trim();
+                if (hostname == "" || hostname == "\"\"") return;
+                string formattedHostname = FormatCvarValue(hostname);
+                // As in Get5, the hostname from before the match is restored at series end (with the match config's cvars).
+                // Saved in the match config, so a round backup keeps it.
+                SaveOriginalSettingValue("hostname");
+                Log($"UPDATING HOSTNAME TO: {formattedHostname}");
+                Server.ExecuteCommand($"hostname {formattedHostname}");
+            }
+            catch (Exception e)
+            {
+                Log($"[UpdateHostname FATAL] An error occurred: {e.Message}");
+            }
         }
 
         public CCSGameRules GetGameRules()

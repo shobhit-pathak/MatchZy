@@ -539,12 +539,7 @@ namespace MatchZy
                     }
 
                     matchConfig.ChangedCvars[cvarName] = cvarValue;
-                    // Remember the value from before the match (convars, and also MatchZy settings) to restore at series end.
-                    if (!matchConfig.OriginalCvars.ContainsKey(cvarName))
-                    {
-                        string? originalValue = GetCurrentSettingValue(cvarName);
-                        if (originalValue != null) matchConfig.OriginalCvars[cvarName] = originalValue;
-                    }
+                    SaveOriginalSettingValue(cvarName);
                 }
 
             }
@@ -552,6 +547,16 @@ namespace MatchZy
             {
                 Log($"[GetCvarValues FATAL] An error occurred: {e.Message}");
             }
+        }
+
+        // Remembers the value from before the match (convars, and also MatchZy settings) to restore at series end. Only the
+        // first value is kept, so a value MatchZy has already changed is not saved over it. Names are not case-sensitive
+        // (e.g. HOSTNAME in a match config's cvars and hostname are the same convar).
+        public void SaveOriginalSettingValue(string name)
+        {
+            if (matchConfig.OriginalCvars.Keys.Any(key => key.Equals(name, StringComparison.OrdinalIgnoreCase))) return;
+            string? originalValue = GetCurrentSettingValue(name);
+            if (originalValue != null) matchConfig.OriginalCvars[name] = originalValue;
         }
 
         public void GetOptionalMatchValues(JObject jsonDataObject)

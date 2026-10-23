@@ -72,7 +72,7 @@ namespace MatchZy
             matchModeOnly = ParseBoolSetting(args, matchModeOnly);
         }
 
-        [ConsoleCommand("matchzy_reset_cvars_on_series_end", "Whether parameters from the cvars section of a match configuration are restored to their original values when a series ends. Default value: true")]
+        [ConsoleCommand("matchzy_reset_cvars_on_series_end", "Whether parameters from the cvars section of a match configuration and the hostname set by matchzy_hostname_format are restored to their original values when a series ends or the match is reset (e.g. with .restart). Default value: true")]
         public void MatchZyResetCvarsOnSeriesEndConvar(CCSPlayerController? player, CommandInfo command)
         {
             if (player != null) return;
