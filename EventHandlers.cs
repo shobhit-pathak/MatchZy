@@ -267,7 +267,20 @@ public partial class MatchZy
 
                     // The launch velocity is in InitialVelocity; AbsVelocity can still read ~0 one frame after spawn.
                     Vector velocity = new(projectile.InitialVelocity.X, projectile.InitialVelocity.Y, projectile.InitialVelocity.Z);
-                    if (!IsMovingVelocity(velocity)) velocity = new(projectile.AbsVelocity.X, projectile.AbsVelocity.Y, projectile.AbsVelocity.Z);
+                    if (IsMovingVelocity(velocity))
+                    {
+                        // AbsOrigin is a frame past the release by now, so a rethrow with the launch velocity would start further
+                        // along the arc. Use the position that goes with that velocity; a zero one means the engine did not set it.
+                        var releasePosition = projectile.InitialPosition;
+                        if (releasePosition.X != 0f || releasePosition.Y != 0f || releasePosition.Z != 0f)
+                        {
+                            position = new(releasePosition.X, releasePosition.Y, releasePosition.Z);
+                        }
+                    }
+                    else
+                    {
+                        velocity = new(projectile.AbsVelocity.X, projectile.AbsVelocity.Y, projectile.AbsVelocity.Z);
+                    }
                     if (IsMovingVelocity(velocity))
                     {
                         RecordThrownGrenade(client, nadeType, position, angle, velocity, angularVelocity, playerPosition, playerAngle, itemIndex);
