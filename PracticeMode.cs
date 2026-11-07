@@ -1564,6 +1564,20 @@ namespace MatchZy
             Server.ExecuteCommand("mp_death_drop_breachcharge true; mp_death_drop_defuser true; mp_death_drop_taser true; mp_drop_knife_enable false; mp_death_drop_grenade 2; ammo_grenade_limit_total 4; mp_defuser_allocation 0; sv_infinite_ammo 0; mp_force_pick_time 15");
         }
 
+        // Leaves practice mode (and a dry run) without resetting the match, so that a match being loaded is kept. The commands
+        // are queued before the ones the caller runs next (the match's cvars, warmup.cfg), which therefore win.
+        private void EndPracticeMode()
+        {
+            isPractice = false;
+            isDryRun = false;
+            ExecUnpracCommands();
+            RemoveSpawnBeams();
+            pracUsedBots = new Dictionary<int, Dictionary<string, object>>();
+            noFlashList = new();
+            lastGrenadesData = new();
+            nadeSpecificLastGrenadeData = new();
+        }
+
         public bool IsValidPositionForLastGrenade(CCSPlayerController player, int position)
         {
             int userId = player.UserId!.Value;
