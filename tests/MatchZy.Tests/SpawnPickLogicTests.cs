@@ -70,6 +70,15 @@ public class SpawnPickLogicTests
     }
 
     [Fact]
+    public void IgnoresSpawnThePlayerStandsOn()
+    {
+        var spawns = new List<Vector3> { new(0, 0, 0), new(200, 0, 0) };
+        Assert.Equal(1, SpawnPickLogic.FindAimedSpawn(Eye, SpawnPickLogic.Forward(0, 0), spawns));
+        // Looking at the sky from the spawn you stand on picks nothing.
+        Assert.Equal(-1, SpawnPickLogic.FindAimedSpawn(Eye, SpawnPickLogic.Forward(-80, 0), spawns));
+    }
+
+    [Fact]
     public void NoSpawns()
     {
         Assert.Equal(-1, SpawnPickLogic.FindAimedSpawn(Eye, SpawnPickLogic.Forward(0, 0), new List<Vector3>()));

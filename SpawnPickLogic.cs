@@ -22,6 +22,7 @@ namespace MatchZy
 
         // Returns the index of the spawn whose beam the view ray from eye along forward passes within radius of, or -1.
         // When several beams are that close, the nearest one along the view wins, so a beam behind another isn't picked.
+        // A beam the player is standing in (e.g. right after teleporting to that spawn) is skipped, otherwise it would always win.
         public static int FindAimedSpawn(Vector3 eye, Vector3 forward, IReadOnlyList<Vector3> spawns,
             float beamHeight = BeamHeight, float radius = AimRadius, float maxDistance = MaxDistance)
         {
@@ -33,6 +34,8 @@ namespace MatchZy
             float bestAlong = float.MaxValue;
             for (int i = 0; i < spawns.Count; i++)
             {
+                float dx = eye.X - spawns[i].X, dy = eye.Y - spawns[i].Y;
+                if (dx * dx + dy * dy <= radius * radius) continue;
                 var (distance, along) = RayToSegment(eye, dir, maxDistance, spawns[i], spawns[i] + up);
                 if (distance <= radius && along < bestAlong)
                 {
