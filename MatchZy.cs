@@ -375,6 +375,7 @@ namespace MatchZy
                 bombStats.Clear();
                 // The .showspawns beams are gone with the old map.
                 spawnBeamsShown = false;
+                showSpawnsEnabled = false;
                 // A pause does not carry over to another map.
                 StopPauseTracking(false);
                 AddTimer(1.0f, () => {

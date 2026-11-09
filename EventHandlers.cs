@@ -157,6 +157,7 @@ public partial class MatchZy
         try
         {
             StartPendingDemoRecording();
+            RestoreSpawnBeamsAfterRestart();
             HandlePostRoundStartEvent(@event);
             return HookResult.Continue;
         }

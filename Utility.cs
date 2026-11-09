@@ -1401,6 +1401,7 @@ namespace MatchZy
             if (matchStarted || (!isPractice && !isSleep)) return;
             ExecUnpracCommands();
             ResetMatch();
+            showSpawnsEnabled = false;
             RemoveSpawnBeams();
             Server.PrintToChatAll($"{chatPrefix} Match mode loaded!");
         }
