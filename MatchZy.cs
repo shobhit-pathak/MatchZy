@@ -270,6 +270,7 @@ namespace MatchZy
                 // UpdatePlayersMap();
             });
             RegisterListener<Listeners.OnEntitySpawned>(OnEntitySpawnedHandler);
+            RegisterListener<Listeners.OnPlayerButtonsChanged>(OnPlayerButtonsChangedHandler);
             RegisterEventHandler<EventPlayerTeam>((@event, info) => {
                 CCSPlayerController? player = @event.Userid;
                 if (!IsPlayerValid(player)) return HookResult.Continue;
@@ -372,6 +373,9 @@ namespace MatchZy
                 readyTimeWaitingUsed = 0;
                 ResetTechPauses();
                 bombStats.Clear();
+                // The .showspawns beams are gone with the old map.
+                spawnBeamsShown = false;
+                showSpawnsEnabled = false;
                 // A pause does not carry over to another map.
                 StopPauseTracking(false);
                 AddTimer(1.0f, () => {

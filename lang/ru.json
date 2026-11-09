@@ -67,6 +67,7 @@
     "matchzy.mm.httprequestfailed": "[LoadMatchFromURL] HTTP-запрос не выполнен с кодом состояния: {0}",
     "matchzy.mm.teamcannotbechanged": "Названия команд не могут быть изменены после начала матча!",
     "matchzy.pm.movedtospawn": "Перемещён на точку возрождения: {0}",
+    "matchzy.pm.showspawnsuse": "Посмотрите на точку возрождения и нажмите {green}E{default} (использовать), чтобы телепортироваться туда.",
     "matchzy.pm.negativenumber": "Недопустимое значение для команды {command}. Пожалуйста, укажите действительное неотрицательное число. Использование: !{command} <число>",
     "matchzy.pm.lineupissaved": "Расстановка уже существует! Пожалуйста, используйте другое имя или используйте .delnade <граната>",
     "matchzy.pm.lineupsavedsucces": "Расстановка {green}{0}{default} успешно сохранена!",

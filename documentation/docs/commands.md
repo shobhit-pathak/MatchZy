@@ -25,7 +25,7 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.worstctspawn` Teleports you to CT team's furthest spawn from your current position
 - `.besttspawn` Teleports you to T team's closest spawn from your current position
 - `.worsttspawn` Teleports you to T team's furthest spawn from your current position
-- `.showspawns` Highlights all the competitive spawns
+- `.showspawns` Highlights all the competitive spawns. While they are shown, look at a nearby spawn (within about 8 m) and press the use key (E) to teleport to it
 - `.hidespawns` Hides the highlighted spawns
 - `.bot` Adds a bot on user's current position
 - `.crouchbot` Adds a crouched bot on user's current position (Alias: `.cbot`)

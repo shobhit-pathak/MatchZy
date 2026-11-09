@@ -78,6 +78,7 @@
   "matchzy.mm.teamcannotbechanged": "Team names cannot be changed once the match is started!",
 
   "matchzy.pm.movedtospawn": "Moved to spawn: {0}",
+  "matchzy.pm.showspawnsuse": "Look at a spawn and press {green}E{default} (use) to teleport there.",
   "matchzy.pm.negativenumber": "Invalid value for {command} command. Please specify a valid non-negative number. Usage: !{command} <number>",
   "matchzy.pm.lineupissaved": "Lineup already exists! Please use a different name or use .delnade <nade>",
   "matchzy.pm.lineupsavedsucces": "Lineup {green}{0}{default} saved successfully!",

@@ -30,6 +30,7 @@
     <Compile Include="..\..\ReadyTimeLogic.cs" Link="Plugin\ReadyTimeLogic.cs" />
     <Compile Include="..\..\PauseLogic.cs" Link="Plugin\PauseLogic.cs" />
     <Compile Include="..\..\LiveEventLogic.cs" Link="Plugin\LiveEventLogic.cs" />
+    <Compile Include="..\..\SpawnPickLogic.cs" Link="Plugin\SpawnPickLogic.cs" />
   </ItemGroup>
 
 </Project>
