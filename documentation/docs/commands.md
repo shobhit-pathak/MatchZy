@@ -9,7 +9,7 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.unpause` Request for unpausing the match. Both teams need to type .unpause to unpause the match. In a technical pause, the pausing team can cancel it before it takes effect, and any one team can unpause once `matchzy_tech_pause_time` has passed.
 - `.stay` Stays on the same side (For knife winner, after the knife round)
 - `.switch`/`.swap` Switches the side (For knife winner, after the knife round)
-- `.stop` Restore the backup of the current round (Both teams need to type .stop to restore the current round)
+- `.stop` Restore the backup of the current round (Both teams need to type .stop to restore the current round). The server must be started with `-allow_round_backup_files`, see [Round backups](installation.md#round-backups).
 - `.tac` Starts a tactical timeout
 - `.coach <side>` Starts coaching the specified side. Example: `.coach t` to start coaching terrorist side!
 - `.uncoach` Leaves coaching slot
@@ -68,7 +68,7 @@ Most of the commands can also be used using ! prefix instead of . (like !ready)
 - `.endmatch` Ends the current match without a winner: `series_end` is sent, the match gets an end time in the database and the match config cvars are restored. (Alias: `.forceend`). `.endmatch team1` / `.endmatch team2` (or `get5_endmatch team1|team2` from the server console) ends a loaded or running match with that team as the winner (reported with the series score needed to win, e.g. 1-0 in a BO1).
 - `.forcepause` Pauses the match as an admin (Players cannot unpause the admin-paused match). (Alias: `.fp`)
 - `.forceunpause` Force unpauses the match. (Alias: `.fup`)
-- `.restore <round>` Restores the backup of provided round number.
+- `.restore <round>` Restores the backup of provided round number. The server must be started with `-allow_round_backup_files`, see [Round backups](installation.md#round-backups).
 - `.skipveto` / `.sv` Skips the current veto phase.
 - `.roundknife` / `.rk` Toggles the knife round. If disabled, match will directly go from Warmup phase to Live phase.
 - `.playout` Toggles playout (If playout is enabled, all rounds would be played irrespective of winner. Useful in scrims!)

@@ -74,7 +74,7 @@ Again, inside `csgo/cfg/MatchZy`, a file named `config.cfg` should be present. T
 :   With `matchzy_ready_mode 1`: seconds between all players having joined and the match starting. Set to 0 to start right away.<br>**`Default: 10`**
 
 ####`matchzy_stop_command_available`
-:   Whether !stop/.stop command to restore the backup of the current round is enabled by default or not.<br>**`Default: false`**
+:   Whether !stop/.stop command to restore the backup of the current round is enabled by default or not. Round restores need the `-allow_round_backup_files` launch option, see [Round backups](installation.md#round-backups).<br>**`Default: false`**
 
 ####`matchzy_stop_command_no_damage`
 :   Whether the stop command becomes unavailable if a player damages a player from the opposing team.<br>**`Default: false`**
@@ -154,7 +154,7 @@ Example: `matchzy_demo_upload_url "https://your-website.com/upload-endpoint"` <b
 <br>**`Default: ""`**
 
 ####`matchzy_loadbackup`
-:   Loads a match backup from the given file. Relative to `csgo/MatchZyDataBackup/`.
+:   Loads a match backup from the given file. Relative to `csgo/MatchZyDataBackup/`. Round restores need the `-allow_round_backup_files` launch option, see [Round backups](installation.md#round-backups).
 
 ####`matchzy_loadbackup_url`
 :   Loads a match backup from a remote host by sending an HTTP(S) GET to the given URL. You may optionally provide an HTTP header and value pair using the header name and header value arguments. You should put all arguments inside quotation marks ("").
