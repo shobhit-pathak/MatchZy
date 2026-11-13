@@ -385,6 +385,8 @@ namespace MatchZy
 
         private void StartLive()
         {
+            if (enableMatchScrim) LockTeamsManually();
+            SetupLiveFlagsAndCfg();
             SetupLiveFlagsAndCfg();
             StartDemoRecordingAfterRestart(liveRestartDelay);
 
@@ -587,7 +589,7 @@ namespace MatchZy
                     if (isMatchSetup || matchModeOnly)
                     {
                         CsTeam team = GetPlayerTeam(player);
-                        if (team == CsTeam.None && player.UserId.HasValue)
+                        if (((enableMatchScrim && matchStarted) || !enableMatchScrim) && team == CsTeam.None && player.UserId.HasValue)
                         {
                             Server.ExecuteCommand($"kickid {(ushort)player.UserId}");
                             continue;
@@ -1990,7 +1992,7 @@ namespace MatchZy
         {
             if (player.UserId.HasValue)
             {
-                Server.ExecuteCommand($"kickid {(ushort)player.UserId}");
+//                Server.ExecuteCommand($"kickid {(ushort)player.UserId}");
             }
         }
 
@@ -2109,10 +2111,10 @@ namespace MatchZy
             {
                 if (!whiteList.Contains(steamId.ToString()))
                 {
-                    Log($"[EventPlayerConnectFull] KICKING PLAYER STEAMID: {steamId}, Name: {player.PlayerName} (Not whitelisted!)");
-                    PrintToAllChat($"Kicking player {player.PlayerName} - Not whitelisted.");
-                    KickPlayer(player);
-                    return true;
+                    // Log($"[EventPlayerConnectFull] KICKING PLAYER STEAMID: {steamId}, Name: {player.PlayerName} (Not whitelisted!)");
+                    // PrintToAllChat($"Kicking player {player.PlayerName} - Not whitelisted.");
+                    // KickPlayer(player);
+                    // return true;
                 }
             }
 
