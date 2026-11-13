@@ -66,6 +66,22 @@ public class LiveEventLogicTests
     [InlineData(100, 99, 0)]
     public void RoundTime(double startedAt, double now, int expected) => Assert.Equal(expected, LiveEventLogic.RoundTime(startedAt, now));
 
+    [Theory]
+    [InlineData("34.132.182.66:27005", "34.132.182.66")]
+    [InlineData("34.132.182.66", "34.132.182.66")]
+    [InlineData("::1", "::1")]  // IPv6 is kept
+    [InlineData("", "")]
+    [InlineData(null, "")]
+    public void IpWithoutPort(string? address, string expected) => Assert.Equal(expected, LiveEventLogic.IpWithoutPort(address));
+
+    [Theory]
+    [InlineData("\"gg have fun\"", "gg have fun")]
+    [InlineData("gg have fun", "gg have fun")]  // unquoted from the console
+    [InlineData(" \".ready\" ", ".ready")]
+    [InlineData("\"\"", "")]
+    [InlineData("\"", "\"")]
+    public void ChatMessage(string argString, string expected) => Assert.Equal(expected, LiveEventLogic.ChatMessage(argString));
+
     [Fact]
     public void SteamIds()
     {

@@ -127,6 +127,21 @@ namespace MatchZy
             return (int)Math.Max(0, Math.Round((now - startedAt) * 1000));
         }
 
+        // Get5's ip_address has no port; CounterStrikeSharp may add one ("1.2.3.4:27005"). Other values (e.g. IPv6) are kept.
+        public static string IpWithoutPort(string? address)
+        {
+            if (string.IsNullOrEmpty(address)) return "";
+            int colon = address.IndexOf(':');
+            return colon >= 0 && colon == address.LastIndexOf(':') ? address[..colon] : address;
+        }
+
+        // The text of a say / say_team command: the chat sends it quoted, the console may not.
+        public static string ChatMessage(string argString)
+        {
+            string message = argString.Trim();
+            return message.Length >= 2 && message[0] == '"' && message[^1] == '"' ? message[1..^1] : message;
+        }
+
         // Get5Player.steamid: the SteamID64, or BOT-<user id> for bots.
         public static string PlayerSteamId(ulong steamId, bool isBot, int userId)
         {
