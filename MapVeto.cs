@@ -322,6 +322,7 @@ namespace MatchZy
             }
             readyAvailable = true;
             isWarmup = true;
+            HandleClanTags();
             StartWarmup();
         }
 
@@ -370,6 +371,7 @@ namespace MatchZy
             readyAvailable = true;
             isPreVeto = false;
             isVeto = false;
+            HandleClanTags();
             StartWarmup();
         }
 
