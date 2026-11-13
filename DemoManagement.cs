@@ -82,6 +82,26 @@ namespace MatchZy
                         Directory.CreateDirectory(directoryPath);
                     }
                 }
+
+                // With Metamod installed a relative tv_record path may also resolve under csgo/addons/metamod/. Create
+                // that directory too, but don't let a failure there abort the recording (the catch below would fall
+                // back to the bare file name).
+                if (UseRelativeDemoPath())
+                {
+                    try
+                    {
+                        string? metamodDirectoryPath = Path.GetDirectoryName(Path.Join(Server.GameDirectory, "csgo", "addons", "metamod", demoPath));
+                        if (metamodDirectoryPath != null && !Directory.Exists(metamodDirectoryPath))
+                        {
+                            Directory.CreateDirectory(metamodDirectoryPath);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log($"[StartDemoRecording] Could not create the Metamod demo directory: {ex.Message}");
+                    }
+                }
+
                 string tempDemoPath = demoPath == "" ? demoFileName : demoPath + demoFileName;
                 activeDemoFile = tempDemoPath;
                 // Write the demo while recording (as the fork does), so less of it is lost if the server crashes.
@@ -101,25 +121,44 @@ namespace MatchZy
 
         }
 
-        // tv_record with an absolute path (see CsgoPathArg).
+        // CS2 1.41.9.1 rejects Windows absolute tv_record paths (C:/...), but Linux absolute paths are still accepted
+        // (#422) and keep demos out of csgo/addons/metamod (#411), so only Windows uses the relative path.
+        private static bool UseRelativeDemoPath() => OperatingSystem.IsWindows();
+
+        // Folders a relative tv_record path may resolve to.
+        private static readonly string[] DemoRoots = { "csgo", "csgo/addons/metamod" };
+
         private void TvRecord(string csgoRelativePath)
         {
-            string fullPath = CsgoFullPath(csgoRelativePath);
-            Server.ExecuteCommand($"tv_record {CsgoPathArg(csgoRelativePath)}");
+            string recordPath = UseRelativeDemoPath() ? csgoRelativePath : CsgoFullPath(csgoRelativePath);
+            Server.ExecuteCommand($"tv_record \"{recordPath}\"");
 
             AddTimer(5.0f, () =>
             {
-                if (isDemoRecording && !File.Exists(fullPath))
+                if (!isDemoRecording) return;
+
+                string? fullPath = ResolveCsgoFile(csgoRelativePath);
+                if (fullPath == null)
                 {
-                    Log($"[StartDemoRecording] Demo file was not created: {fullPath}. Check the console for CDemoFile errors.");
+                    Log($"[StartDemoRecording] Demo file was not created: {csgoRelativePath} (looked in csgo/ and csgo/addons/metamod/). Check the console for CDemoFile errors.");
+                }
+                else
+                {
+                    Log($"[StartDemoRecording] Demo file created: {fullPath}");
                 }
             });
         }
 
+        // The newest match wins, so a leftover demo with the same name in the other folder is never picked up.
+        private static string? ResolveCsgoFile(string csgoRelativePath) => DemoRoots
+            .Select(root => Path.Join(Server.GameDirectory, root, csgoRelativePath))
+            .Where(File.Exists)
+            .OrderByDescending(File.GetLastWriteTimeUtc)
+            .FirstOrDefault();
+
         public void StopDemoRecording(float delay, string activeDemoFile, long liveMatchId, int currentMapNumber)
         {
             Log($"[StopDemoRecording] Going to stop demorecording in {delay}s");
-            string demoPath = Path.Join(Server.GameDirectory + "/csgo/", activeDemoFile);
             (int t1score, int t2score) = GetTeamsScore();
             int roundNumber = t1score + t2score;
             // Captured now: at series end the match config's upload settings are restored before the upload below runs.
@@ -135,6 +174,14 @@ namespace MatchZy
                 isDemoRecording = false;
                 AddTimer(15, () =>
                 {
+                    // Resolved after recording stopped: the engine may have written it under csgo/addons/metamod/.
+                    string? demoPath = ResolveCsgoFile(activeDemoFile);
+                    if (demoPath == null)
+                    {
+                        Log($"[StopDemoRecording] Demo file not found: {activeDemoFile} (looked in csgo/ and csgo/addons/metamod/), skipping upload.");
+                        return;
+                    }
+
                     Task.Run(async () =>
                     {
                         await UploadFileAsync(demoPath, uploadUrl, uploadHeaderKey, uploadHeaderValue, liveMatchId, currentMapNumber, roundNumber);
