@@ -66,7 +66,7 @@ public class GrenadeThrownData
                     Position.Handle,
                     Angle.Handle,
                     Velocity.Handle,
-                    Velocity.Handle,
+                    AngularVelocity.Handle,
                     IntPtr.Zero,
                     ItemIndex,
                     (int)player.Team);
@@ -79,7 +79,7 @@ public class GrenadeThrownData
                     Position.Handle,
                     Angle.Handle,
                     Velocity.Handle,
-                    Velocity.Handle,
+                    AngularVelocity.Handle,
                     IntPtr.Zero,
                     ItemIndex);
                 grenadeEntity ??= CreateWithEntityApi<CMolotovProjectile>("molotov_projectile");
@@ -91,7 +91,7 @@ public class GrenadeThrownData
                     Position.Handle,
                     Angle.Handle,
                     Velocity.Handle,
-                    Velocity.Handle,
+                    AngularVelocity.Handle,
                     IntPtr.Zero,
                     ItemIndex);
                 grenadeEntity ??= CreateWithEntityApi<CHEGrenadeProjectile>("hegrenade_projectile");
@@ -103,7 +103,7 @@ public class GrenadeThrownData
                     Position.Handle,
                     Angle.Handle,
                     Velocity.Handle,
-                    Velocity.Handle,
+                    AngularVelocity.Handle,
                     IntPtr.Zero,
                     ItemIndex);
                 grenadeEntity ??= CreateWithEntityApi<CDecoyProjectile>("decoy_projectile");
