@@ -1,6 +1,11 @@
 # MatchZy Changelog
 
+# 0.9.3
+
+### November 13, 2026
+
 - Fixed loading a match while practice mode (`.prac`) or a dry run was on. Practice mode now ends as with `.exitprac`, and the match loads normally. Before, practice settings stayed on in the match (players spawned with free grenades every round, also in the knife round and the live match), and practice commands such as `.bot` and `.god` kept working in its warmup. If the match changed the map, the server went back to practice mode after the map change, and `.ready` did nothing. When loading a match fails during practice, the server goes back to warmup as before, now without the practice settings.
+- Updated SmokeGrenadeProjectile_Create Signature and fixed the rethrow velocity to repeat the original throw.
 
 # 0.9.2
 
