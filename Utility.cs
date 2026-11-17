@@ -1399,10 +1399,8 @@ namespace MatchZy
         private void StartMatchMode()
         {
             if (matchStarted || (!isPractice && !isSleep)) return;
-            ExecUnpracCommands();
+            EndPracticeMode();
             ResetMatch();
-            showSpawnsEnabled = false;
-            RemoveSpawnBeams();
             Server.PrintToChatAll($"{chatPrefix} Match mode loaded!");
         }
 

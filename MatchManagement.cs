@@ -289,6 +289,15 @@ namespace MatchZy
             
             JObject jsonDataObject = JObject.Parse(jsonData);
 
+            // Loading a match ends practice mode and a dry run, like .exitprac but keeping this match. Done first, so that the
+            // practice settings are reset before the match's cvars and warmup.cfg, and a failed load (the caller then resets the
+            // match) also leaves practice properly.
+            if (isPractice || isDryRun)
+            {
+                Log("[LoadMatchFromJSON] Ending practice mode to load the match.");
+                EndPracticeMode();
+            }
+
             string validationError = ValidateMatchJsonStructure(jsonDataObject);
             bool mapChangesOnLoad = false;
 
