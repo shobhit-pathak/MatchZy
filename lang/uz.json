@@ -75,6 +75,7 @@
   "matchzy.mm.teamcannotbechanged": "Oʻyin boshlanganidan keyin jamoalar nomini oʻzgartirib boʻlmaydi!",
 
   "matchzy.pm.movedtospawn": "Tugʻilish nuqtasiga koʻchirildi: {0}",
+  "matchzy.pm.showspawnsuse": "Tugʻilish nuqtasiga qarang va u yerga teleport qilish uchun {green}E{default} (foydalanish) tugmasini bosing.",
   "matchzy.pm.negativenumber": "{command} buyrug‘i uchun qiymat noto‘g‘ri. Iltimos, manfiy boʻlmagan toʻgʻri raqamni kiriting. Foydalanish: !{buyruq} <raqam>",
   "matchzy.pm.lineupissaved": "Chiziq allaqachon mavjud! Iltimos, boshqa nom toping yoki .delnade <nade> dan foydalaning.",
   "matchzy.pm.lineupsavedsucces": "Chiziq {green}{0}{default} muvaffaqiyatli saqlandi!",

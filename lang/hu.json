@@ -67,6 +67,7 @@
   "matchzy.mm.httprequestfailed": "[LoadMatchFromURL] HTTP kérés sikertelen a következő állapotkóddal: {0}",
   "matchzy.mm.teamcannotbechanged": "A csapatnevek nem változtathatók meg, miután a meccs elkezdődött!",
   "matchzy.pm.movedtospawn": "Áthelyezve a spawnra: {0}",
+  "matchzy.pm.showspawnsuse": "Nézz egy spawnra, és nyomd meg az {green}E{default} (használat) gombot, hogy odateleportálj.",
   "matchzy.pm.negativenumber": "Érvénytelen érték a {command} parancshoz. Kérlek adj meg egy érvényes, nem negatív számot. Használat: !{command} <szám>",
   "matchzy.pm.lineupissaved": "A lineup már létezik! Kérlek használj másik nevet, vagy használd a .delnade <nade> parancsot",
   "matchzy.pm.lineupsavedsucces": "A lineup {green}{0}{default} sikeresen mentve!",

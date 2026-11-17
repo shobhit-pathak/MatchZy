@@ -75,6 +75,7 @@
   "matchzy.mm.teamcannotbechanged": "試合開始後はチーム名を変更することはできません。",
 
   "matchzy.pm.movedtospawn": "スポーンに移動: {0}",
+  "matchzy.pm.showspawnsuse": "スポーンを見て{green}E{default}（使用）を押すと、そこへテレポートします。",
   "matchzy.pm.negativenumber": "無効な値 {command} コマンド。有効な負でない数値を指定してください。使用法: !{command} <number>",
   "matchzy.pm.lineupissaved": "ラインナップはすでに存在します。別の名前を使用するか、.delnade を使用してください。 <nade>",
   "matchzy.pm.lineupsavedsucces": "ラインナップ {green}{0}{default} 正常に保存！",
