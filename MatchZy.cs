@@ -39,6 +39,10 @@ namespace MatchZy
         public long liveMatchId = -1;
         public int autoStartMode = 1;
 
+        // As in Get5: set when a match ends and cleared when a map starts. While it is set, the next match reloads the map even
+        // when it starts on the current one (on load, or after the veto). At the end of a match the game restarts in place
+        // (mp_match_end_restart) and kicks the CSTV bot, so no demo is recorded until the map changes; players who left also
+        // keep their controllers, and their sides, until then.
         public bool mapReloadRequired = false;
 
         // Pause Data
@@ -369,6 +373,8 @@ namespace MatchZy
                 CancelPendingDemoRecording();
                 // The map change the veto waited for is done; the next ready-up phase gets the full time.
                 mapChangePending = false;
+                // A new map has a new CSTV bot and no players left from a match played before.
+                mapReloadRequired = false;
                 readyTimeWaitingUsed = 0;
                 ResetTechPauses();
                 bombStats.Clear();
