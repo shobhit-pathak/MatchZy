@@ -1,5 +1,7 @@
 # MatchZy Changelog
 
+- Fixed `get5_status` (and `get5_web_available`) reporting `live` for a few seconds after a series had ended, between the game's restart at the end of the match and MatchZy resetting the match. It now reports `post_game` until the match is reset.
+
 # 0.9.3
 
 ### November 13, 2026

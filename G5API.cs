@@ -194,7 +194,9 @@ namespace MatchZy
             {
                 state = Get5GameState.WaitingForKnifeDecision;
             }
-            else if (IsPostGamePhase())
+            // At series end the game restarts in place (mp_match_end_restart) before the match is reset: until the reset, it
+            // is still the post game, not a live match.
+            else if (IsPostGamePhase() || seriesEnded)
             {
                 state = Get5GameState.PostGame;
             }
