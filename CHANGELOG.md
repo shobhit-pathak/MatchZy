@@ -1,5 +1,7 @@
 # MatchZy Changelog
 
+- Fixed players coming back on the side they had when they left, which could be the other team's, when they reconnected after a match was loaded on the map the server was already on. When such a player connects before the match goes live (warmup, veto, knife round, side choice), MatchZy now moves them to their team's side, as it does with players already on the server when the match is loaded.
+
 # 0.9.3
 
 ### November 13, 2026
