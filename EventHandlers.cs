@@ -141,6 +141,8 @@ public partial class MatchZy
     {
         try
         {
+            // Also when no match is loaded (as in Get5): the next match on this map has to reload it.
+            mapReloadRequired = true;
             HandleMatchEnd();
             // ResetMatch();
             return HookResult.Continue;

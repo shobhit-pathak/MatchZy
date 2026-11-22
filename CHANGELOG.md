@@ -1,5 +1,7 @@
 # MatchZy Changelog
 
+- Fixed a match played on the same map as the previous match recording no demo (the CSTV broadcast stayed frozen for the whole match), and players who had left that map coming back on the side they left from. At the end of a match the game restarts in place, and that restart kicks the CSTV bot, which only comes back when the map changes. As in Get5, once a match has ended, the next match reloads the map even when it starts on the same one (when it is loaded, or after its veto), unless the map was changed in between.
+
 # 0.9.3
 
 ### November 13, 2026
