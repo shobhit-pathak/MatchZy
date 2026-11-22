@@ -53,6 +53,23 @@ public partial class MatchZy
             // Update: Commenting the below function as it was being called multiple times on map change.
             // UpdatePlayersMap();
 
+            // A player who left earlier on this map and comes back gets their old controller back, still on the side they left
+            // from. That is not a team change, so the jointeam listener and the player_team handler don't run. If a match was
+            // loaded on this map since then, it can be the other team's side: move them as PlacePlayersOnMatchTeams does at load.
+            // A player with no team yet (a fresh connect) picks one from the team menu. Only before the match goes live (warmup,
+            // veto, knife round, side choice): a player who reconnects during live play comes back on the right side, and at
+            // halftime MatchZy's sides are swapped before the game moves the players.
+            if ((isMatchSetup || isVeto) && !isMatchLive && !player.IsBot && !player.IsHLTV && player.Team != CsTeam.None
+                && !matchzyTeam1.coach.Contains(player) && !matchzyTeam2.coach.Contains(player))
+            {
+                CsTeam matchTeam = GetPlayerTeam(player);
+                if (player.Team != matchTeam)
+                {
+                    Log($"[FULL CONNECT] {player.PlayerName} is on {player.Team}, moving them to {matchTeam}.");
+                }
+                SwitchPlayerTeam(player, matchTeam);
+            }
+
             if (readyAvailable && !matchStarted)
             {
                 // Start Warmup when first player connect and match is not started.
