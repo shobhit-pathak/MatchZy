@@ -317,9 +317,7 @@ namespace MatchZy
                 {"team1", -1},
                 {"team2", -1}
             };
-            foreach (var key in playerReadyStatus.Keys) {
-                playerReadyStatus[key] = false;
-            }
+            ResetReadyStatus();
             readyAvailable = true;
             isWarmup = true;
             StartWarmup();
@@ -348,9 +346,7 @@ namespace MatchZy
             // Also required if the map doesn't need to change.
             SetMapSides();
             ExecuteChangedConvars();
-            foreach (var key in playerReadyStatus.Keys) {
-                playerReadyStatus[key] = false;
-            }
+            ResetReadyStatus();
 
             if (IsMapReloadRequiredForGameMode(matchConfig.Wingman) || mapReloadRequired || currentMapName != mapToPlay) {
 

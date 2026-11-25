@@ -89,6 +89,7 @@ public partial class MatchZy
         foreach (var key in playerData.Keys)
         {
             if (!playerData[key].IsValid) continue;
+            if (!includeCoaches && IsCoach(playerData[key])) continue;
             if (playerData[key].TeamNum == team) {
                 playerCount++;
                 if (playerReadyStatus[key] == true) readyCount++;

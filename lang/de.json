@@ -155,6 +155,7 @@
     "matchzy.ready.joinstartin": "Das Match startet in {green}{0}{default}...",
     "matchzy.ready.joinstartstopped": "Ein Spieler hat den Server verlassen, das Match startet, sobald alle Spieler da sind.",
     "matchzy.ready.joinmode": "Kein .ready nötig: Das Match startet automatisch, sobald alle Spieler da sind.",
+    "matchzy.ready.coachnotneeded": "Coaches müssen sich nicht bereit melden.",
     "matchzy.ready.waitingforplayers": "Warte auf Spieler: {green}{0}{default} {1}/{2}, {green}{3}{default} {4}/{5}.",
     "matchzy.pause.techpausecalled": "{green}{0}{default} hat eine technische Pause angefordert ({1}/{2}). Schreibe .unpause, um das Match fortzusetzen.",
     "matchzy.pause.anyonecanunpause": "Die maximale Dauer der technischen Pause ist erreicht. Jeder kann jetzt {green}.unpause{default} schreiben.",

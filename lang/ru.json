@@ -144,6 +144,7 @@
     "matchzy.ready.joinstartin": "Матч начнётся через {green}{0}{default}...",
     "matchzy.ready.joinstartstopped": "Игрок вышел, матч начнётся, когда подключатся все игроки.",
     "matchzy.ready.joinmode": "Писать .ready не нужно: матч начнётся автоматически, когда подключатся все игроки.",
+    "matchzy.ready.coachnotneeded": "Тренерам не нужно писать .ready.",
     "matchzy.ready.waitingforplayers": "Ожидание подключения игроков: {green}{0}{default} {1}/{2}, {green}{3}{default} {4}/{5}.",
     "matchzy.pause.techpausecalled": "{green}{0}{default} взяла техническую паузу ({1}/{2}). Введите .unpause, чтобы возобновить матч.",
     "matchzy.pause.anyonecanunpause": "Достигнута максимальная длительность технической паузы. Теперь любой может ввести {green}.unpause{default}.",

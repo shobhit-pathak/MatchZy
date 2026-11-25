@@ -169,7 +169,8 @@ namespace MatchZy
 
             foreach (var key in playerReadyStatus.Keys)
             {
-                if (playerReadyStatus[key] == false)
+                // Coaches don't count towards a loaded match's ready-up.
+                if (playerReadyStatus[key] == false && !(isMatchSetup && IsCoach(playerData[key])))
                 {
                     unreadyPlayers.Add(playerData[key].PlayerName);
                 }
@@ -191,7 +192,7 @@ namespace MatchZy
             }
             else
             {
-                int countOfReadyPlayers = playerReadyStatus.Count(kv => kv.Value == true);
+                int countOfReadyPlayers = playerReadyStatus.Count(kv => kv.Value == true && !(isMatchSetup && playerData.TryGetValue(kv.Key, out var p) && IsCoach(p)));
                 if (isMatchSetup)
                 {
                     // Server.PrintToChatAll($"{chatPrefix} Current ready players: {ChatColors.Green}{countOfReadyPlayers}{ChatColors.Default}");
@@ -988,6 +989,8 @@ namespace MatchZy
 
             stopData["ct"] = false;
             stopData["t"] = false;
+            // A .forceready must not carry over to the next map.
+            ResetReadyStatus();
 
             KillPhaseTimers();
 

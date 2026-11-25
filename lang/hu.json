@@ -143,6 +143,7 @@
   "matchzy.ready.joinstartin": "A meccs kezdése: {green}{0}{default}...",
   "matchzy.ready.joinstartstopped": "Egy játékos kilépett, a meccs akkor kezdődik, ha mindenki csatlakozott.",
   "matchzy.ready.joinmode": "Nem kell .ready-t írni: a meccs automatikusan elindul, amint minden játékos csatlakozott.",
+  "matchzy.ready.coachnotneeded": "Az edzőknek nem kell .ready-t írniuk.",
   "matchzy.ready.waitingforplayers": "Várakozás a játékosok csatlakozására: {green}{0}{default} {1}/{2}, {green}{3}{default} {4}/{5}.",
   "matchzy.pause.techpausecalled": "{green}{0}{default} technikai szünetet kért ({1}/{2}). Írd be: .unpause a meccs folytatásához.",
   "matchzy.pause.anyonecanunpause": "A technikai szünet elérte a maximális hosszt. Most már bárki beírhatja: {green}.unpause{default}.",

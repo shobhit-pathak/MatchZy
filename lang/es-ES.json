@@ -155,6 +155,7 @@
   "matchzy.ready.joinstartin": "La partida empieza en {green}{0}{default}...",
   "matchzy.ready.joinstartstopped": "Un jugador ha salido, la partida empezará cuando se hayan unido todos los jugadores.",
   "matchzy.ready.joinmode": "No hace falta prepararse: la partida empieza automáticamente cuando se hayan unido todos los jugadores.",
+  "matchzy.ready.coachnotneeded": "Los entrenadores no necesitan prepararse.",
   "matchzy.ready.waitingforplayers": "Esperando a que se unan los jugadores: {green}{0}{default} {1}/{2}, {green}{3}{default} {4}/{5}.",
   "matchzy.pause.techpausecalled": "{green}{0}{default} ha pedido una pausa técnica ({1}/{2}). Escribe .unpause para reanudar la partida.",
   "matchzy.pause.anyonecanunpause": "Se ha alcanzado la duración máxima de la pausa técnica. Ahora cualquiera puede usar {green}.unpause{default}.",

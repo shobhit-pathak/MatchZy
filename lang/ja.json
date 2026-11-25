@@ -155,6 +155,7 @@
   "matchzy.ready.joinstartin": "試合開始まで {green}{0}{default}...",
   "matchzy.ready.joinstartstopped": "プレイヤーが退出しました。全プレイヤーが参加すると試合が始まります。",
   "matchzy.ready.joinmode": "準備完了の必要はありません: 全プレイヤーが参加すると試合が自動的に始まります。",
+  "matchzy.ready.coachnotneeded": "コーチは準備完了する必要はありません。",
   "matchzy.ready.waitingforplayers": "プレイヤーの参加を待っています: {green}{0}{default} {1}/{2}、{green}{3}{default} {4}/{5}。",
   "matchzy.pause.techpausecalled": "{green}{0}{default} がテクニカルポーズを要求しました ({1}/{2})。試合を再開するには .unpause と入力してください。",
   "matchzy.pause.anyonecanunpause": "テクニカルポーズの最大時間に達しました。誰でも {green}.unpause{default} で再開できます。",

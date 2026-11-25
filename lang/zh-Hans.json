@@ -155,6 +155,7 @@
     "matchzy.ready.joinstartin": "比赛将在 {green}{0}{default} 后开始...",
     "matchzy.ready.joinstartstopped": "有玩家离开, 所有玩家加入后比赛才会开始。",
     "matchzy.ready.joinmode": "无需准备: 所有玩家加入后比赛将自动开始。",
+    "matchzy.ready.coachnotneeded": "教练无需准备。",
     "matchzy.ready.waitingforplayers": "正在等待玩家加入: {green}{0}{default} {1}/{2}, {green}{3}{default} {4}/{5}。",
     "matchzy.pause.techpausecalled": "{green}{0}{default} 发起了技术暂停 ({1}/{2})。输入 .unpause 来解除暂停。",
     "matchzy.pause.anyonecanunpause": "技术暂停已达到最长时间。现在任何人都可以输入 {green}.unpause{default} 解除暂停。",
