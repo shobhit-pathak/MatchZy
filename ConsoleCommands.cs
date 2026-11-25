@@ -73,6 +73,11 @@ namespace MatchZy
             }
             if (readyAvailable && !matchStarted)
             {
+                if (isMatchSetup && IsCoach(player))
+                {
+                    PrintToPlayerChat(player, Localizer["matchzy.ready.coachnotneeded"]);
+                    return;
+                }
                 if (player.UserId.HasValue)
                 {
                     if (!playerReadyStatus.ContainsKey(player.UserId.Value))
@@ -109,6 +114,11 @@ namespace MatchZy
             }
             if (readyAvailable && !matchStarted)
             {
+                if (isMatchSetup && IsCoach(player))
+                {
+                    PrintToPlayerChat(player, Localizer["matchzy.ready.coachnotneeded"]);
+                    return;
+                }
                 if (player.UserId.HasValue)
                 {
                     if (!playerReadyStatus.ContainsKey(player.UserId.Value))

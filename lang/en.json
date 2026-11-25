@@ -155,6 +155,7 @@
   "matchzy.ready.joinstartin": "The match starts in {green}{0}{default}...",
   "matchzy.ready.joinstartstopped": "A player left, the match starts once all players have joined.",
   "matchzy.ready.joinmode": "No need to ready up: the match starts automatically once all players have joined.",
+  "matchzy.ready.coachnotneeded": "Coaches do not need to ready up.",
   "matchzy.ready.waitingforplayers": "Waiting for players to join: {green}{0}{default} {1}/{2}, {green}{3}{default} {4}/{5}.",
   "matchzy.pause.techpausecalled": "{green}{0}{default} called for a technical pause ({1}/{2}). Type .unpause to unpause the match.",
   "matchzy.pause.anyonecanunpause": "Maximum technical pause length has been reached. Anyone may {green}.unpause{default} now.",

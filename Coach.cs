@@ -72,6 +72,8 @@ public partial class MatchZy
         if (player.InGameMoneyServices != null) player.InGameMoneyServices.Account = 0;
         ReplyToUserCommand(player, $"You are now coaching {matchZyCoachTeam.teamName}! Use .uncoach to stop coaching");
         PrintToAllChat($"{ChatColors.Green}{player.PlayerName}{ChatColors.Default} is now coaching {ChatColors.Green}{matchZyCoachTeam.teamName}{ChatColors.Default}!");
+        // Coaches don't count towards the ready-up, so the team may be ready now.
+        CheckLiveRequired();
     }
 
     public void HandleCoaches()

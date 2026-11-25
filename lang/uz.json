@@ -155,6 +155,7 @@
   "matchzy.ready.joinstartin": "Oʻyin boshlanishiga {green}{0}{default}...",
   "matchzy.ready.joinstartstopped": "Bir oʻyinchi chiqib ketdi, barcha oʻyinchilar qoʻshilgach oʻyin boshlanadi.",
   "matchzy.ready.joinmode": ".ready yozish shart emas: barcha oʻyinchilar qoʻshilgach oʻyin avtomatik boshlanadi.",
+  "matchzy.ready.coachnotneeded": "Murabbiylar .ready yozishi shart emas.",
   "matchzy.ready.waitingforplayers": "Oʻyinchilar qoʻshilishi kutilmoqda: {green}{0}{default} {1}/{2}, {green}{3}{default} {4}/{5}.",
   "matchzy.pause.techpausecalled": "{green}{0}{default} texnik pauza oldi ({1}/{2}). Oʻyinni davom ettirish uchun .unpause yozing.",
   "matchzy.pause.anyonecanunpause": "Texnik pauzaning maksimal davomiyligiga yetildi. Endi istalgan kishi {green}.unpause{default} yozishi mumkin.",

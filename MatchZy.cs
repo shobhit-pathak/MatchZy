@@ -370,6 +370,8 @@ namespace MatchZy
                 // The map change the veto waited for is done; the next ready-up phase gets the full time.
                 mapChangePending = false;
                 readyTimeWaitingUsed = 0;
+                // As in Get5: ready flags and .forceready never carry over to another map.
+                ResetReadyStatus();
                 ResetTechPauses();
                 bombStats.Clear();
                 // A pause does not carry over to another map.
