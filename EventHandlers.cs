@@ -49,6 +49,7 @@ public partial class MatchZy
                     playerReadyStatus[player.UserId.Value] = true;
                 }
             }
+            SendPlayerConnectedEvent(player);
             // May not be required, but just to be on safe side so that player data is properly updated in dictionaries
             // Update: Commenting the below function as it was being called multiple times on map change.
             // UpdatePlayersMap();

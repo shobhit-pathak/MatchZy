@@ -127,6 +127,41 @@ namespace MatchZy
             return (int)Math.Max(0, Math.Round((now - startedAt) * 1000));
         }
 
+        // Get5's ip_address has no port; CounterStrikeSharp may add one ("1.2.3.4:27005"). Other values (e.g. IPv6) are kept.
+        public static string IpWithoutPort(string? address)
+        {
+            if (string.IsNullOrEmpty(address)) return "";
+            int colon = address.IndexOf(':');
+            return colon >= 0 && colon == address.LastIndexOf(':') ? address[..colon] : address;
+        }
+
+        // The text of a say / say_team command: the chat sends it quoted, the console may not.
+        public static string ChatMessage(string argString)
+        {
+            string message = argString.Trim();
+            return message.Length >= 2 && message[0] == '"' && message[^1] == '"' ? message[1..^1] : message;
+        }
+
+        // Redact secrets in chat rcon commands (.rcon / !rcon / /rcon) before sending player_say,
+        // matching the [RCON] audit log so passwords/tokens aren't leaked to the remote log URL or error logs.
+        public static string RedactChatMessage(string message)
+        {
+            if (string.IsNullOrEmpty(message)) return message;
+            string trimmed = message.TrimStart();
+            int space = trimmed.IndexOfAny(new[] { ' ', '\t' });
+            if (space < 0) return message;
+            string prefix = trimmed[..space];
+            if (!prefix.Equals(".rcon", StringComparison.OrdinalIgnoreCase)
+                && !prefix.Equals("!rcon", StringComparison.OrdinalIgnoreCase)
+                && !prefix.Equals("/rcon", StringComparison.OrdinalIgnoreCase))
+            {
+                return message;
+            }
+            string args = trimmed[(space + 1)..];
+            if (string.IsNullOrWhiteSpace(args)) return message;
+            return $"{prefix} {MatchZySecurity.RedactConsoleCommand(args)}";
+        }
+
         // Get5Player.steamid: the SteamID64, or BOT-<user id> for bots.
         public static string PlayerSteamId(ulong steamId, bool isBot, int userId)
         {

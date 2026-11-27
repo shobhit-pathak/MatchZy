@@ -124,7 +124,28 @@ namespace MatchZy
         }
 
         // For audit logs of console commands: keep the command name, drop the arguments when the command sets a secret.
+        // Splits chained commands on ';' only outside double quotes so quoted secrets containing ';' stay redacted.
         public static string RedactConsoleCommand(string commandLine)
+        {
+            if (!commandLine.Contains(';')) return RedactSingleConsoleCommand(commandLine);
+            var segments = new List<string>();
+            bool inQuotes = false;
+            int start = 0;
+            for (int i = 0; i < commandLine.Length; i++)
+            {
+                char c = commandLine[i];
+                if (c == '"') inQuotes = !inQuotes;
+                else if (c == ';' && !inQuotes)
+                {
+                    segments.Add(RedactSingleConsoleCommand(commandLine[start..i]));
+                    start = i + 1;
+                }
+            }
+            segments.Add(RedactSingleConsoleCommand(commandLine[start..]));
+            return string.Join("; ", segments);
+        }
+
+        private static string RedactSingleConsoleCommand(string commandLine)
         {
             string trimmed = commandLine.Trim();
             int space = trimmed.IndexOfAny(new[] { ' ', '\t' });
