@@ -320,6 +320,8 @@ namespace MatchZy
 
             matchzyTeam1.teamName = RemoveSpecialCharacters(team1["name"]!.ToString());
             matchzyTeam2.teamName = RemoveSpecialCharacters(team2["name"]!.ToString());
+            matchzyTeam1.teamTag = team1["tag"]?.ToString() ?? "";
+            matchzyTeam2.teamTag = team2["tag"]?.ToString() ?? "";
             matchzyTeam1.teamPlayers = MatchConfigJson.NormalizeRoster(team1["players"]);
             matchzyTeam2.teamPlayers = MatchConfigJson.NormalizeRoster(team2["players"]);
 
@@ -427,6 +429,7 @@ namespace MatchZy
 
             SetTeamNames();
             UpdatePlayersMap();
+            HandleClanTags();
             UpdateHostname();
             // Players are put on their teams when they join a team, which they do again after a map change. When the map does
             // not change (the match is on the current map, or the maps are vetoed first), move those already here (Get5:
@@ -632,7 +635,7 @@ namespace MatchZy
                 reverseTeamSides["CT"] = matchzyTeam1;
                 foreach (var coach in matchzyTeam1.coach)
                 {
-                    coach.Clan = $"[{matchzyTeam1.teamName} COACH]";
+                    SetPlayerClanTag(coach, $"{matchzyTeam1.teamName} COACH");
                 }
             } else if (teamNum == 2) {
                 matchzyTeam2.teamName = teamName;
@@ -640,7 +643,7 @@ namespace MatchZy
                 reverseTeamSides["TERRORIST"] = matchzyTeam2;
                 foreach (var coach in matchzyTeam2.coach)
                 {
-                    coach.Clan = $"[{matchzyTeam2.teamName} COACH]";
+                    SetPlayerClanTag(coach, $"{matchzyTeam2.teamName} COACH");
                 }
             }
             Server.ExecuteCommand($"mp_teamname_{teamNum} \"{teamName}\";");

@@ -318,6 +318,7 @@ namespace MatchZy
             isKnifeRound = true;
             readyAvailable = false;
             isWarmup = false;
+            HandleClanTags();
 
             var absolutePath = Path.Join(Server.GameDirectory + "/csgo/cfg", knifeCfgPath);
 
@@ -386,6 +387,7 @@ namespace MatchZy
         private void StartLive()
         {
             SetupLiveFlagsAndCfg();
+            HandleClanTags();
             StartDemoRecordingAfterRestart(liveRestartDelay);
 
             // Storing 0-0 score backup file as lastBackupFileName, so that .stop functions properly in first round.
@@ -516,6 +518,8 @@ namespace MatchZy
 
                 matchzyTeam1.teamName = "COUNTER-TERRORISTS";
                 matchzyTeam2.teamName = "TERRORISTS";
+                matchzyTeam1.teamTag = "";
+                matchzyTeam2.teamTag = "";
 
                 matchzyTeam1.teamPlayers = null;
                 matchzyTeam2.teamPlayers = null;
@@ -525,7 +529,7 @@ namespace MatchZy
                 foreach (var coach in coaches)
                 {
                     if (!IsPlayerValid(coach)) continue;
-                    coach.Clan = "";
+                    SetPlayerClanTag(coach, "");
                     SetPlayerVisible(coach);
                 }
 
@@ -813,7 +817,7 @@ namespace MatchZy
                     {
                         matchzyTeam1.teamName = "team_" + RemoveSpecialCharacters(playerData[key].PlayerName.Replace(" ", "_"));
                         foreach (var coach in matchzyTeam1.coach) {
-                            coach.Clan = $"[{matchzyTeam1.teamName} COACH]";
+                            SetPlayerClanTag(coach, $"{matchzyTeam1.teamName} COACH");
                         }
                         break;
                     }
@@ -832,7 +836,7 @@ namespace MatchZy
                     {
                         matchzyTeam2.teamName = "team_" + RemoveSpecialCharacters(playerData[key].PlayerName.Replace(" ", "_"));
                         foreach (var coach in matchzyTeam2.coach) {
-                            coach.Clan = $"[{matchzyTeam2.teamName} COACH]";
+                            SetPlayerClanTag(coach, $"{matchzyTeam2.teamName} COACH");
                         }
                         break;
                     }
@@ -873,44 +877,6 @@ namespace MatchZy
                 foreach (string message in matchStartMessages)
                 {
                     PrintToAllChat(GetColorTreatedString(FormatCvarValue(message.Trim())));
-                }
-            }
-        }
-
-        public void HandleClanTags()
-        {
-            // Currently it is not possible to keep updating player tags while in warmup without restarting the match
-            // Hence returning from here until we find a proper solution
-            return;
-
-            if (readyAvailable && !matchStarted)
-            {
-                foreach (var key in playerData.Keys)
-                {
-                    if (playerReadyStatus[key])
-                    {
-                        playerData[key].Clan = "[Ready]";
-                    }
-                    else
-                    {
-                        playerData[key].Clan = "[Unready]";
-                    }
-                    Server.PrintToChatAll($"PlayerName: {playerData[key].PlayerName} Clan: {playerData[key].Clan}");
-                }
-            }
-            else if (matchStarted)
-            {
-                foreach (var key in playerData.Keys)
-                {
-                    if (playerData[key].TeamNum == 2)
-                    {
-                        playerData[key].Clan = reverseTeamSides["TERRORIST"].teamTag;
-                    }
-                    else if (playerData[key].TeamNum == 3)
-                    {
-                        playerData[key].Clan = reverseTeamSides["CT"].teamTag;
-                    }
-                    Server.PrintToChatAll($"PlayerName: {playerData[key].PlayerName} Clan: {playerData[key].Clan}");
                 }
             }
         }

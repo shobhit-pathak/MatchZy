@@ -129,5 +129,6 @@ public partial class MatchZy
 
         teamReadyOverride[(CsTeam)player.TeamNum] = true;
         CheckLiveRequired();
+        HandleClanTags();
     }
 }

@@ -68,8 +68,8 @@ public partial class MatchZy
         // }
 
         matchZyCoachTeam.coach.Add(player!);
-        player!.Clan = $"[{matchZyCoachTeam.teamName} COACH]";
-        if (player.InGameMoneyServices != null) player.InGameMoneyServices.Account = 0;
+        SetPlayerClanTag(player!, $"{matchZyCoachTeam.teamName} COACH");
+        if (player!.InGameMoneyServices != null) player.InGameMoneyServices.Account = 0;
         ReplyToUserCommand(player, $"You are now coaching {matchZyCoachTeam.teamName}! Use .uncoach to stop coaching");
         PrintToAllChat($"{ChatColors.Green}{player.PlayerName}{ChatColors.Default} is now coaching {ChatColors.Green}{matchZyCoachTeam.teamName}{ChatColors.Default}!");
     }

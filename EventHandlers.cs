@@ -63,6 +63,7 @@ public partial class MatchZy
                     AutoStart();
                 }
             }
+            ScheduleClanTag(player);
             return HookResult.Continue;
 
         }
