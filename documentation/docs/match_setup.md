@@ -82,7 +82,7 @@ Other optional fields (Get5 compatible):
 
 Entries in `"cvars"` must be a real convar (like `mp_friendlyfire`) or a MatchZy/Get5 setting (like `matchzy_remote_log_url`), and the value cannot contain `"`, `;` or line breaks. Console commands (e.g. `quit`, `exec`), MatchZy/Get5 commands that perform an action (such as `matchzy_loadmatch_url` or `get5_endmatch`), `rcon_password` and `matchzy_everyone_is_admin` are ignored and logged. `matchzy_demo_path` and `matchzy_demo_name_format` must be relative paths without `..`.
 
-The optional `tag` fields appear as player clan tags during live play when `matchzy_clan_tags_enabled true` is set in `cfg/MatchZy/config.cfg`. MatchZy shows readiness tags during warmup with that setting enabled.
+The optional `tag` fields appear as player clan tags during live play when `matchzy_clan_tags_enabled true` is set in `cfg/MatchZy/config_override.cfg`. MatchZy shows readiness tags during warmup with that setting enabled.
 
 ## Current Limitations?
 

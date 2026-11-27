@@ -22,16 +22,45 @@ public partial class MatchZy
         AddTimer(0.25f, () => ApplyClanTag(Utilities.GetPlayerFromSteamId64(steamId)));
     }
 
+    private void SetPlayerClanTag(CCSPlayerController player, string clanTag)
+    {
+        if (!player.IsValid) return;
+        player.Clan = clanTag;
+        Utilities.SetStateChanged(player, "CCSPlayerController", "m_szClan");
+    }
+
+    private bool IsManagedClanTag(string? clanTag)
+    {
+        if (string.IsNullOrEmpty(clanTag)) return false;
+        return clanTag is "Ready" or "Unready"
+            || (!string.IsNullOrEmpty(matchzyTeam1.teamTag) && clanTag == matchzyTeam1.teamTag)
+            || (!string.IsNullOrEmpty(matchzyTeam2.teamTag) && clanTag == matchzyTeam2.teamTag);
+    }
+
+    private void ClearManagedClanTags()
+    {
+        foreach (CCSPlayerController player in playerData.Values)
+        {
+            if (player is not { IsValid: true, IsBot: false, IsHLTV: false }) continue;
+            if (matchzyTeam1.coach.Contains(player) || matchzyTeam2.coach.Contains(player)) continue;
+            if (!IsManagedClanTag(player.Clan)) continue;
+
+            player.Clan = "";
+            Utilities.SetStateChanged(player, "CCSPlayerController", "m_szClan");
+        }
+    }
+
     private void ApplyClanTag(CCSPlayerController? player)
     {
         if (!clanTagsEnabled.Value || player is not { IsValid: true, IsBot: false, IsHLTV: false }) return;
-        if (matchzyTeam1.coach.Contains(player) || matchzyTeam2.coach.Contains(player)) return;
-        if (player.TeamNum is not (2 or 3) && player.Clan is not ("Ready" or "Unready")
-            && player.Clan != matchzyTeam1.teamTag && player.Clan != matchzyTeam2.teamTag) return;
+        if (matchzyTeam1.coach.Contains(player) || matchzyTeam2.coach.Contains(player))
+        {
+            Utilities.SetStateChanged(player, "CCSPlayerController", "m_szClan");
+            return;
+        }
+        if (player.TeamNum is not (2 or 3) && !IsManagedClanTag(player.Clan)) return;
 
         string clanTag = player.TeamNum is 2 or 3 ? CurrentClanTag(player) : "";
-        if (player.Clan == clanTag) return;
-
         player.Clan = clanTag;
         Utilities.SetStateChanged(player, "CCSPlayerController", "m_szClan");
     }

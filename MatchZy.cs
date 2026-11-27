@@ -254,6 +254,12 @@ namespace MatchZy
                 { ".loadpos", OnLoadPosCommand}
             };
 
+            clanTagsEnabled.ValueChanged += (_, enabled) =>
+            {
+                if (enabled) HandleClanTags();
+                else ClearManagedClanTags();
+            };
+
             RegisterEventHandler<EventPlayerConnectFull>(EventPlayerConnectFullHandler);
             RegisterEventHandler<EventPlayerSpawn>((gameEvent, _) => {
                 ScheduleClanTag(gameEvent.Userid);

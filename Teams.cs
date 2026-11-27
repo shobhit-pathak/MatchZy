@@ -50,13 +50,13 @@ namespace MatchZy
             }
 
             if (matchzyTeam1.coach.Contains(player)) {
-                player.Clan = "";
                 matchzyTeam1.coach.Remove(player);
+                SetPlayerClanTag(player, "");
                 SetPlayerVisible(player);
             }
             else if (matchzyTeam2.coach.Contains(player)) {
-                player.Clan = "";
                 matchzyTeam2.coach.Remove(player);
+                SetPlayerClanTag(player, "");
                 SetPlayerVisible(player);
             }
             else {

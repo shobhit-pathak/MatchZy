@@ -626,7 +626,7 @@ namespace MatchZy
                 reverseTeamSides["CT"] = matchzyTeam1;
                 foreach (var coach in matchzyTeam1.coach)
                 {
-                    coach.Clan = $"[{matchzyTeam1.teamName} COACH]";
+                    SetPlayerClanTag(coach, $"{matchzyTeam1.teamName} COACH");
                 }
             } else if (teamNum == 2) {
                 matchzyTeam2.teamName = teamName;
@@ -634,7 +634,7 @@ namespace MatchZy
                 reverseTeamSides["TERRORIST"] = matchzyTeam2;
                 foreach (var coach in matchzyTeam2.coach)
                 {
-                    coach.Clan = $"[{matchzyTeam2.teamName} COACH]";
+                    SetPlayerClanTag(coach, $"{matchzyTeam2.teamName} COACH");
                 }
             }
             Server.ExecuteCommand($"mp_teamname_{teamNum} \"{teamName}\";");

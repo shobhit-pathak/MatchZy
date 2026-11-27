@@ -165,6 +165,7 @@ namespace MatchZy
             isDryRun = false;
             isWarmup = false;
             readyAvailable = false;
+            HandleClanTags();
 
             var absolutePath = Path.Join(Server.GameDirectory + "/csgo/cfg", practiceCfgPath);
 

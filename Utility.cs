@@ -526,7 +526,7 @@ namespace MatchZy
                 foreach (var coach in coaches)
                 {
                     if (!IsPlayerValid(coach)) continue;
-                    coach.Clan = "";
+                    SetPlayerClanTag(coach, "");
                     SetPlayerVisible(coach);
                 }
 
@@ -814,7 +814,7 @@ namespace MatchZy
                     {
                         matchzyTeam1.teamName = "team_" + RemoveSpecialCharacters(playerData[key].PlayerName.Replace(" ", "_"));
                         foreach (var coach in matchzyTeam1.coach) {
-                            coach.Clan = $"[{matchzyTeam1.teamName} COACH]";
+                            SetPlayerClanTag(coach, $"{matchzyTeam1.teamName} COACH");
                         }
                         break;
                     }
@@ -833,7 +833,7 @@ namespace MatchZy
                     {
                         matchzyTeam2.teamName = "team_" + RemoveSpecialCharacters(playerData[key].PlayerName.Replace(" ", "_"));
                         foreach (var coach in matchzyTeam2.coach) {
-                            coach.Clan = $"[{matchzyTeam2.teamName} COACH]";
+                            SetPlayerClanTag(coach, $"{matchzyTeam2.teamName} COACH");
                         }
                         break;
                     }
