@@ -82,6 +82,21 @@ public class LiveEventLogicTests
     [InlineData("\"", "\"")]
     public void ChatMessage(string argString, string expected) => Assert.Equal(expected, LiveEventLogic.ChatMessage(argString));
 
+    [Theory]
+    [InlineData("gg have fun", "gg have fun")]
+    [InlineData(".ready", ".ready")]
+    [InlineData(".rcon", ".rcon")]
+    [InlineData(".rcon mp_restartgame 1", ".rcon mp_restartgame 1")]
+    [InlineData(".rcon rcon_password hunter2", ".rcon rcon_password <redacted>")]
+    [InlineData("!rcon sv_password scrim", "!rcon sv_password <redacted>")]
+    [InlineData("/rcon matchzy_remote_log_header_value Bearer secret", "/rcon matchzy_remote_log_header_value <redacted>")]
+    [InlineData("/RCON rcon_password hunter2", "/RCON rcon_password <redacted>")]
+    [InlineData(" .rcon rcon_password hunter2", ".rcon rcon_password <redacted>")]
+    [InlineData(".rcon rcon_password \"abc;def\"", ".rcon rcon_password <redacted>")]
+    [InlineData(".rcon sv_cheats 1; rcon_password \"abc;def\"; mp_restartgame 1", ".rcon sv_cheats 1; rcon_password <redacted>; mp_restartgame 1")]
+    [InlineData(".rcon sv_cheats 1; rcon_password hunter2", ".rcon sv_cheats 1; rcon_password <redacted>")]
+    public void RedactChatMessage(string message, string expected) => Assert.Equal(expected, LiveEventLogic.RedactChatMessage(message));
+
     [Fact]
     public void SteamIds()
     {

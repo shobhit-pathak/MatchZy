@@ -25,6 +25,8 @@ public class RedactionTests
     [InlineData("  mp_restartgame 1 ", "mp_restartgame 1")]
     [InlineData("status", "status")]
     [InlineData("rcon_password", "rcon_password")]
+    [InlineData("rcon_password \"abc;def\"", "rcon_password <redacted>")]
+    [InlineData("sv_cheats 1; rcon_password hunter2; status", "sv_cheats 1; rcon_password <redacted>; status")]
     public void RedactConsoleCommand(string command, string expected) => Assert.Equal(expected, MatchZySecurity.RedactConsoleCommand(command));
 
     [Theory]

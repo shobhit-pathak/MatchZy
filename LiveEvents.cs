@@ -166,7 +166,7 @@ namespace MatchZy
                     RoundTime = GetRoundTime(),
                     Player = GetPlayerObject(player),
                     Command = command,
-                    Message = message,
+                    Message = LiveEventLogic.RedactChatMessage(message),
                 };
                 // The command may reset the match before the event is sent.
                 var target = CurrentRemoteLogTarget();
@@ -201,14 +201,21 @@ namespace MatchZy
         // Get5's player_connect: sent on a full connect while a match is loaded, after the checks that kick players not in it.
         private void SendPlayerConnectedEvent(CCSPlayerController player)
         {
-            if (!isMatchSetup || player.IsBot || player.IsHLTV) return;
-            var connectEvent = new MatchZyPlayerConnectedEvent
+            try
             {
-                MatchId = liveMatchId,
-                Player = GetPlayerObject(player),
-                IpAddress = LiveEventLogic.IpWithoutPort(player.IpAddress),
-            };
-            Task.Run(async () => await SendEventAsync(connectEvent));
+                if (!isMatchSetup || player.IsBot || player.IsHLTV) return;
+                var connectEvent = new MatchZyPlayerConnectedEvent
+                {
+                    MatchId = liveMatchId,
+                    Player = GetPlayerObject(player),
+                    IpAddress = LiveEventLogic.IpWithoutPort(player.IpAddress),
+                };
+                Task.Run(async () => await SendEventAsync(connectEvent));
+            }
+            catch (Exception e)
+            {
+                Log($"[LiveEvents player_connect FATAL] An error occurred: {e.Message}");
+            }
         }
 
         private bool IsCoach(CCSPlayerController player) => matchzyTeam1.coach.Contains(player) || matchzyTeam2.coach.Contains(player);
