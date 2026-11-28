@@ -100,7 +100,6 @@ namespace MatchZy
             //       The missing attributes are:
             //       - "matchid"    - It is currently implemented to return long and correspunds to the "liveMatchId".
             //                        However, it does not return the correct values when in scrim or manual mode.
-//       - "round_time" - This is not implemented, as it is not currently tracked by the plugin. Currently it returns Null.
 
             string PluginVersion = "0.15.0";
 
@@ -135,6 +134,8 @@ namespace MatchZy
             if (gamestate == Get5GameState.Live)
             {
                 get5Status.RoundNumber = GetRoundNumer();
+                // Milliseconds since freeze time ended, 0 during freeze time: the same value the events send.
+                get5Status.RoundTime = GetRoundTime();
             }
 
             command.ReplyToCommand(JsonSerializer.Serialize(get5Status));
