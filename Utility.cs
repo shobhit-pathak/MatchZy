@@ -451,6 +451,7 @@ namespace MatchZy
                 StopPauseTracking(false);
                 seriesEnded = false;
                 currentMapFinished = false;
+                sidesSwappedBeforeGame = false;
                 // We stop demo recording if a live match was restarted
                 if (matchStarted && isDemoRecording)
                 {
@@ -1086,18 +1087,25 @@ namespace MatchZy
             database.WritePlayerStatsToCsv(statsPath, matchId, mapNumber);
         }
 
+        // Set when the teams are moved to their new sides at the end of the last round of a half. The game moves them
+        // (and their scores) only when the next round starts, so until then each score is still on the team's old side.
+        private bool sidesSwappedBeforeGame = false;
+
         private (int t1score, int t2score) GetTeamsScore()
         {
             var teamEntities = Utilities.FindAllEntitiesByDesignerName<CCSTeam>("cs_team_manager");
+            var (team1Side, team2Side) = sidesSwappedBeforeGame
+                ? ScoreLogic.ScoreSides(teamSides[matchzyTeam1], teamSides[matchzyTeam2], true, GetGameRules().RoundWinStatus != 0, IsHalfTimePhase())
+                : (teamSides[matchzyTeam1], teamSides[matchzyTeam2]);
             int t1score = 0;
             int t2score = 0;
             foreach (var team in teamEntities)
             {
-                if (team.Teamname == teamSides[matchzyTeam1])
+                if (team.Teamname == team1Side)
                 {
                     t1score = team.Score;
                 }
-                else if (team.Teamname == teamSides[matchzyTeam2])
+                else if (team.Teamname == team2Side)
                 {
                     t2score = team.Score;
                 }
@@ -1114,6 +1122,7 @@ namespace MatchZy
 
         public void HandlePostRoundStartEvent(EventRoundStart @event)
         {
+            sidesSwappedBeforeGame = false;
             if (isDryRun) RandomizeSpawns();
             if (!matchStarted) return;
             playerHasTakenDamage = false;
@@ -1188,6 +1197,7 @@ namespace MatchZy
                     if (swapRequired && !isRoundRestoring)
                     {
                         SwapSidesInTeamData(false);
+                        sidesSwappedBeforeGame = true;
                     }
 
                     isRoundRestoring = false;

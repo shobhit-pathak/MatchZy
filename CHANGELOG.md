@@ -1,5 +1,7 @@
 # MatchZy Changelog
 
+- Fixed the map scores of the two teams being swapped during the halftime (#446). At the end of the last round of a half MatchZy moves the teams to their new sides, but the game moves the scores only when the next round starts, so until then `get5_status`, round backups and events gave each team the other team's score.
+
 # 0.9.3
 
 ### November 13, 2026
