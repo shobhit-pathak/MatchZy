@@ -347,6 +347,7 @@ namespace MatchZy
                 }
                 if (backupData.TryGetValue("team1_side", out var team1Side))
                 {
+                    sidesSwappedBeforeGame = false;
 
                     if (team1Side == "CT")
                     {
