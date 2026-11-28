@@ -1,5 +1,7 @@
 # MatchZy Changelog
 
+- `get5_status` now reports `round_time` while the match is live, as in Get5: the milliseconds since the freeze time of the current round ended (0 during the freeze time). It was always `null` before; the events already sent it.
+
 # 0.9.3
 
 ### November 13, 2026
